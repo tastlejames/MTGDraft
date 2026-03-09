@@ -6,11 +6,7 @@
 <title>Draft Table — MTG Draft Assistant</title>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@500;700;900&family=Barlow+Condensed:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════
-   ROOT & COLOR SYSTEM
-═══════════════════════════════════════════ */
 :root {
-  /* Frame colors per identity */
   --frame-W: linear-gradient(160deg,#f5eecb,#e8d898,#c8b060,#e8d898,#f0e8b8);
   --frame-U: linear-gradient(160deg,#a8c8e8,#6898c8,#2858a8,#6898c8,#a0c0e0);
   --frame-B: linear-gradient(160deg,#686068,#383038,#181018,#383038,#585058);
@@ -18,706 +14,273 @@
   --frame-G: linear-gradient(160deg,#6aaa50,#306820,#0e3808,#306820,#5a9840);
   --frame-gold: linear-gradient(160deg,#f0d878,#c8a030,#906010,#c8a030,#e8cc60);
   --frame-neutral: linear-gradient(160deg,#d0c8a8,#a89870,#706040,#a89870,#c8b888);
-
-  /* Active frame — set dynamically */
   --frame-active: linear-gradient(160deg,#d0c8a8,#a89870,#706040,#a89870,#c8b888);
-
-  --bg: #0a0806;
-  --parchment: #e8dac0;
-  --parchment2: #e0d0b0;
-  --parchment3: #d8c8a0;
-  --parchment-dark: #c8b080;
-  --ink: #1a1208;
-  --ink-dim: #4a3c28;
-  --ink-muted: #8a7a60;
-
-  --W-col:#b89820;--U-col:#1858a8;--B-col:#380838;--R-col:#a01808;--G-col:#185810;
-  --W-light:#f5eecb;--U-light:#a8c8e8;--B-light:#686068;--R-light:#e89870;--G-light:#90c870;
-  --W-hex:#c8a830;--U-hex:#4a9fd4;--B-hex:#9060c0;--R-hex:#f05a3a;--G-hex:#3ac87a;
-
-  --gold-trim: #c8a030;
-  --gold-trim2: #e8cc60;
-  --gold-trim3: #906010;
-  --bevel-light: rgba(255,255,255,0.4);
-  --bevel-dark: rgba(0,0,0,0.5);
-
-  --shadow: 0 8px 32px rgba(0,0,0,0.8);
-  --shadow2: 0 16px 48px rgba(0,0,0,0.9);
-  --inner-shadow: inset 0 2px 4px rgba(0,0,0,0.4), inset 0 -1px 2px rgba(255,255,255,0.1);
+  --bg:#0a0806;
+  --parchment:#e4d4b4; --parchment2:#dcc8a0; --parchment3:#d0bc90; --parchment-dark:#b89c68;
+  --ink:#1a1208; --ink-dim:#4a3c28; --ink-muted:#7a6a50;
+  --W-hex:#c8a830; --U-hex:#2060b0; --B-hex:#806880; --R-hex:#b02808; --G-hex:#106820;
+  --gold-trim:#c8a030; --gold-trim2:#e8cc60; --gold-trim3:#906010;
+  --shadow:0 8px 32px rgba(0,0,0,0.85); --shadow2:0 20px 60px rgba(0,0,0,0.92);
+  --inner-shadow:inset 0 2px 6px rgba(0,0,0,0.45),inset 0 -1px 2px rgba(255,255,255,0.08);
+  --bevel:inset 0 0 0 2px rgba(255,255,255,0.18),inset 0 0 0 3px rgba(0,0,0,0.55);
 }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Crimson Pro',Georgia,serif;font-size:15px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,#1e1508 0%,#0a0806 70%),repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(255,255,255,0.007) 40px,rgba(255,255,255,0.007) 41px),repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(255,255,255,0.004) 40px,rgba(255,255,255,0.004) 41px);pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:1460px;margin:0 auto;padding:14px 14px 60px}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 15px;
-  line-height: 1.5;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* Play mat background */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 50%, #1a1208 0%, #0a0806 70%),
-    repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.008) 40px, rgba(255,255,255,0.008) 41px),
-    repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(255,255,255,0.005) 40px, rgba(255,255,255,0.005) 41px);
-  pointer-events: none; z-index: 0;
-}
-
-.app {
-  position: relative; z-index: 1;
-  max-width: 1460px; margin: 0 auto;
-  padding: 16px 16px 60px;
-}
-
-/* ═══════════════════════════════════════════
-   CARD FRAME MIXIN (reusable)
-═══════════════════════════════════════════ */
-.card-frame {
-  background: var(--frame-active);
-  border: 4px solid #1a1208;
-  border-radius: 14px;
-  box-shadow: var(--shadow2),
-    inset 0 0 0 2px rgba(255,255,255,0.15),
-    inset 0 0 0 3px rgba(0,0,0,0.6);
-  padding: 5px;
-  position: relative;
-  transition: background 0.8s ease;
-}
-
-.card-frame-inner {
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--parchment);
-  box-shadow: var(--inner-shadow);
-}
-
-/* ═══════════════════════════════════════════
-   HEADER — Card Title Bar Style
-═══════════════════════════════════════════ */
-.card-title-bar {
-  background: var(--frame-active);
-  border: 3px solid #1a1208;
-  border-radius: 12px;
-  box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,255,255,0.15), inset 0 0 0 2px rgba(0,0,0,0.5);
-  padding: 4px;
-  margin-bottom: 14px;
-  transition: background 0.8s ease;
-}
-
-.title-bar-inner {
-  background: linear-gradient(180deg, #2a2010 0%, #1a1408 50%, #221c0c 100%);
-  border-radius: 9px;
-  padding: 10px 16px;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; flex-wrap: wrap;
-}
-
-.logo-area { display: flex; align-items: center; gap: 10px; }
-
-.logo {
-  font-family: 'Cinzel', serif;
-  font-size: 22px; font-weight: 900;
-  letter-spacing: 0.08em;
-  color: var(--gold-trim2);
-  text-shadow: 0 0 20px rgba(200,160,48,.5), 1px 1px 0 #3a2808;
-}
-
-.logo-sub {
-  font-family: 'Cinzel', serif;
-  font-size: 10px; font-weight: 500;
-  letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--gold-trim);
-  border-left: 1px solid var(--gold-trim3);
-  padding-left: 10px;
-}
-
-.header-stats { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-
-.hstat {
-  text-align: center;
-  background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(200,160,48,0.3);
-  border-radius: 6px;
-  padding: 4px 10px;
-  min-width: 52px;
-}
-.hstat-v {
-  font-family: 'Cinzel', serif;
-  font-size: 20px; font-weight: 700;
-  color: var(--gold-trim2); line-height: 1;
-}
-.hstat-l {
-  font-size: 9px; color: var(--gold-trim);
-  letter-spacing: 0.08em; text-transform: uppercase;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; margin-top: 1px;
-}
-
-.color-id-bar { display: flex; gap: 5px; align-items: center; }
-.cid-mana {
-  width: 24px; height: 24px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px; font-weight: 800;
-  border: 2px solid rgba(0,0,0,0.5);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px rgba(255,255,255,0.2);
-  position: relative;
-}
+/* ── HEADER ── */
+.card-title-bar{background:var(--frame-active);border:3px solid #100c04;border-radius:12px;box-shadow:var(--shadow2),var(--bevel);padding:4px;margin-bottom:12px;transition:background 0.8s ease}
+.title-bar-inner{background:linear-gradient(180deg,#2e2410 0%,#1a1408 45%,#241c0c 100%);border-radius:9px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.logo-area{display:flex;align-items:center;gap:10px}
+.logo{font-family:'Cinzel',serif;font-size:22px;font-weight:900;letter-spacing:0.08em;color:var(--gold-trim2);text-shadow:0 0 24px rgba(200,160,48,.55),1px 1px 0 #3a2808}
+.logo-sub{font-family:'Cinzel',serif;font-size:10px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-trim);border-left:1px solid var(--gold-trim3);padding-left:10px}
+.header-stats{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.hstat{text-align:center;background:rgba(0,0,0,0.45);border:1px solid rgba(200,160,48,0.25);border-radius:6px;padding:4px 10px;min-width:50px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4)}
+.hstat-v{font-family:'Cinzel',serif;font-size:19px;font-weight:700;color:var(--gold-trim2);line-height:1}
+.hstat-l{font-size:9px;color:var(--gold-trim);letter-spacing:0.08em;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-top:1px}
+.color-id-bar{display:flex;gap:5px;align-items:center}
+.cid-mana{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;border:2px solid rgba(0,0,0,0.55);box-shadow:0 2px 5px rgba(0,0,0,0.55),inset 0 1px rgba(255,255,255,0.2);position:relative}
 .mW{background:radial-gradient(circle at 40% 35%,#f8f0d0,#c8a830);color:#3a2800}
-.mU{background:radial-gradient(circle at 40% 35%,#80b8e8,#2060b0);color:#fff}
+.mU{background:radial-gradient(circle at 40% 35%,#80b8e8,#1850a0);color:#fff}
 .mB{background:radial-gradient(circle at 40% 35%,#806880,#280828);color:#e0c8e0}
-.mR{background:radial-gradient(circle at 40% 35%,#f09060,#b02808);color:#fff}
+.mR{background:radial-gradient(circle at 40% 35%,#f09060,#a82008);color:#fff}
 .mG{background:radial-gradient(circle at 40% 35%,#50a860,#0e5818);color:#fff}
 .mC{background:radial-gradient(circle at 40% 35%,#b0b0b0,#606060);color:#fff}
-.pip-count {
-  position: absolute; top: -5px; right: -5px;
-  background: #1a1208; color: var(--gold-trim2);
-  border: 1px solid var(--gold-trim3);
-  border-radius: 8px; font-size: 9px; font-weight: 800;
-  min-width: 14px; height: 14px;
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 2px;
-  font-family: 'Barlow Condensed', sans-serif;
-}
+.pip-count{position:absolute;top:-5px;right:-5px;background:#1a1208;color:var(--gold-trim2);border:1px solid var(--gold-trim3);border-radius:8px;font-size:9px;font-weight:800;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;padding:0 2px;font-family:'Barlow Condensed',sans-serif}
+.import-btn-hd{background:linear-gradient(180deg,#e8cc70,#c09020,#a07010,#c8a030);border:2px solid #7a5010;border-radius:5px;color:#1a0c00;font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:0.08em;padding:6px 12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4),inset 0 1px rgba(255,255,255,0.3);white-space:nowrap;flex-shrink:0;text-shadow:0 1px rgba(255,255,255,0.15)}
+.import-btn-hd:hover{opacity:0.9}
 
-/* ═══════════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════════ */
-.layout { display: grid; grid-template-columns: 320px 1fr; gap: 14px; align-items: start; }
-@media(max-width:900px){ .layout { grid-template-columns: 1fr; } }
+/* ── WARNING STRIP ── */
+.warn-strip{margin-bottom:10px;display:none}
+.warn-strip.show{display:block}
+.warn-inner{background:linear-gradient(135deg,#1e1408,#2a1c0a);border:2px solid var(--gold-trim3);border-radius:10px;padding:8px 14px;box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,0.06);display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.warn-label{font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold-trim);flex-shrink:0;padding-top:2px}
+.warn-pills{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.wpill{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-family:'Crimson Pro',serif;font-weight:600;border:1px solid transparent;cursor:default}
+.wpill.red{background:rgba(138,8,8,.2);border-color:rgba(138,8,8,.5);color:#e87878}
+.wpill.amber{background:rgba(138,100,8,.2);border-color:rgba(138,100,8,.5);color:#e8c078}
+.wpill.blue{background:rgba(24,72,160,.2);border-color:rgba(24,72,160,.5);color:#78a8e8}
+.wpill.purple{background:rgba(96,40,128,.2);border-color:rgba(96,40,128,.5);color:#c898e8}
 
-/* ═══════════════════════════════════════════
-   SECTION PANELS — Card frame style
-═══════════════════════════════════════════ */
-.panel {
-  background: var(--frame-active);
-  border: 3px solid #1a1208;
-  border-radius: 12px;
-  box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,255,255,0.12), inset 0 0 0 2px rgba(0,0,0,0.5);
-  padding: 4px;
-  margin-bottom: 12px;
-  transition: background 0.8s ease;
-}
+/* Off-color suggestion */
+.offcolor-strip{margin-bottom:10px;display:none}
+.offcolor-strip.show{display:block}
+.offcolor-inner{background:linear-gradient(135deg,#180c18,#200e20);border:2px solid rgba(176,126,232,0.5);border-radius:10px;padding:10px 14px;box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,0.05)}
+.offcolor-title{font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:0.08em;color:#c898e8;margin-bottom:6px}
+.offcolor-cards{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.offcolor-card{background:rgba(96,40,128,.15);border:1px solid rgba(176,126,232,.3);border-radius:4px;padding:3px 8px;font-size:12px;color:#e0c0f0;font-family:'Crimson Pro',serif}
+.offcolor-actions{display:flex;gap:8px}
+.oc-btn{padding:5px 14px;border-radius:5px;font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:0.06em;cursor:pointer;transition:opacity .15s}
+.oc-btn.move{background:linear-gradient(180deg,#e0a0f0,#9840c0,#6820a0,#9840c0);border:1px solid #6820a0;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
+.oc-btn.dismiss{background:none;border:1px solid rgba(176,126,232,.3);color:#c898e8}
+.oc-btn:hover{opacity:0.85}
 
-.panel-inner {
-  border-radius: 9px;
-  overflow: visible;
-  background: var(--parchment);
-}
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:320px 1fr;gap:14px;align-items:start}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
 
-/* Type line header */
-.type-line {
-  background: var(--frame-active);
-  padding: 6px 14px;
-  display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 2px solid rgba(0,0,0,0.3);
-  border-radius: 9px 9px 0 0;
-  transition: background 0.8s ease;
-}
+/* ── PANELS — deep card frame ── */
+.panel{background:var(--frame-active);border:3px solid #100c04;border-radius:12px;box-shadow:var(--shadow),var(--bevel);padding:5px;margin-bottom:12px;transition:background 0.8s ease}
+.panel-inner{border-radius:8px;overflow:visible;background:var(--parchment)}
+/* Bevel ring between frame and parchment */
+.panel-inner::before{content:'';display:block;border-radius:8px 8px 0 0;height:0;box-shadow:0 0 0 1px rgba(255,255,255,0.22),0 0 0 2px rgba(0,0,0,0.4)}
 
-.type-line-text {
-  font-family: 'Cinzel', serif;
-  font-size: 11px; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: #1a1208;
-  text-shadow: 0 1px rgba(255,255,255,0.3);
-}
+.type-line{background:var(--frame-active);padding:6px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid rgba(0,0,0,0.35);border-radius:8px 8px 0 0;transition:background 0.8s ease;position:relative}
+.type-line::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:rgba(255,255,255,0.12)}
+.type-line-text{font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1a1208;text-shadow:0 1px rgba(255,255,255,0.25)}
+.panel-body{background:repeating-linear-gradient(180deg,transparent,transparent 23px,rgba(120,95,50,0.07) 23px,rgba(120,95,50,0.07) 24px),linear-gradient(180deg,var(--parchment) 0%,var(--parchment2) 100%);padding:12px 14px;border-radius:0 0 8px 8px;position:relative}
+.panel-body::before{content:'';position:absolute;inset:0;border-radius:0 0 8px 8px;box-shadow:inset 0 3px 8px rgba(0,0,0,0.18),inset 0 0 2px rgba(0,0,0,0.1);pointer-events:none}
 
-.panel-body {
-  background:
-    repeating-linear-gradient(
-      180deg,
-      transparent,
-      transparent 24px,
-      rgba(139,110,60,0.06) 24px,
-      rgba(139,110,60,0.06) 25px
-    ),
-    linear-gradient(180deg, var(--parchment) 0%, var(--parchment2) 100%);
-  padding: 12px 14px;
-}
+/* ── SEARCH ── */
+.sw{position:relative}
+.si{width:100%;background:var(--parchment2);border:2px solid var(--parchment-dark);border-radius:5px;color:var(--ink);font-family:'Crimson Pro',serif;font-size:16px;font-weight:500;padding:9px 13px;outline:none;box-shadow:var(--inner-shadow);transition:border-color .2s,box-shadow .2s}
+.si:focus{border-color:var(--gold-trim3);box-shadow:inset 0 1px 4px rgba(0,0,0,0.25),0 0 0 2px rgba(200,160,48,0.2)}
+.si::placeholder{color:var(--ink-muted);font-style:italic}
+.acl{position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--parchment);border:2px solid var(--parchment-dark);border-radius:5px;z-index:200;max-height:240px;overflow-y:auto;box-shadow:var(--shadow2);display:none}
+.acl.open{display:block}
+.aci{padding:8px 13px;cursor:pointer;border-bottom:1px solid var(--parchment-dark);font-size:14px;color:var(--ink);transition:background .1s;font-family:'Crimson Pro',serif}
+.aci:last-child{border-bottom:none}
+.aci:hover,.aci.sel{background:var(--parchment2)}
 
-/* Oracle text box style */
-.oracle-box {
-  background: linear-gradient(180deg, var(--parchment2), var(--parchment3));
-  border: 1px solid var(--parchment-dark);
-  border-radius: 4px;
-  padding: 10px 12px;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.15);
-}
+/* ── ADD BUTTON ── */
+.addbtn{width:100%;margin-top:8px;padding:10px;background:linear-gradient(180deg,#ecd472 0%,#c49020 35%,#a07010 60%,#ccaa38 100%);border:2px solid #7a5010;border-radius:5px;color:#1a0c00;font-family:'Cinzel',serif;font-size:13px;font-weight:700;letter-spacing:0.1em;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.45),inset 0 1px rgba(255,255,255,0.35);transition:opacity .2s,transform .1s;text-shadow:0 1px rgba(255,255,255,0.2)}
+.addbtn:hover{opacity:.9}.addbtn:active{transform:scale(.98)}.addbtn:disabled{opacity:.3;cursor:not-allowed}
 
-/* ═══════════════════════════════════════════
-   SEARCH INPUT
-═══════════════════════════════════════════ */
-.sw { position: relative; }
-.si {
-  width: 100%;
-  background: var(--parchment2);
-  border: 2px solid var(--parchment-dark);
-  border-radius: 5px;
-  color: var(--ink);
-  font-family: 'Crimson Pro', serif;
-  font-size: 16px; font-weight: 500;
-  padding: 9px 13px;
-  outline: none;
-  box-shadow: var(--inner-shadow);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.si:focus { border-color: var(--gold-trim3); box-shadow: inset 0 1px 3px rgba(0,0,0,0.2), 0 0 0 2px rgba(200,160,48,0.2); }
-.si::placeholder { color: var(--ink-muted); font-style: italic; }
-
-.acl {
-  position: absolute; top: calc(100% + 3px); left: 0; right: 0;
-  background: var(--parchment);
-  border: 2px solid var(--parchment-dark);
-  border-radius: 5px; z-index: 200;
-  max-height: 240px; overflow-y: auto;
-  box-shadow: var(--shadow2); display: none;
-}
-.acl.open { display: block; }
-.aci {
-  padding: 8px 13px; cursor: pointer;
-  border-bottom: 1px solid var(--parchment-dark);
-  font-size: 14px; color: var(--ink);
-  transition: background 0.1s;
-  font-family: 'Crimson Pro', serif;
-}
-.aci:last-child { border-bottom: none; }
-.aci:hover, .aci.sel { background: var(--parchment2); }
-
-/* ═══════════════════════════════════════════
-   ADD BUTTON — Rare card gold style
-═══════════════════════════════════════════ */
-.addbtn {
-  width: 100%; margin-top: 8px;
-  padding: 10px;
-  background: linear-gradient(180deg, #e8cc70 0%, #c09020 40%, #a07010 60%, #c8a030 100%);
-  border: 2px solid #7a5010;
-  border-radius: 5px;
-  color: #1a0c00;
-  font-family: 'Cinzel', serif;
-  font-size: 13px; font-weight: 700;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px rgba(255,255,255,0.3);
-  transition: opacity 0.2s, transform 0.1s;
-  text-shadow: 0 1px rgba(255,255,255,0.2);
-}
-.addbtn:hover { opacity: 0.9; }
-.addbtn:active { transform: scale(0.98); }
-.addbtn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-/* ═══════════════════════════════════════════
-   CONTROLS
-═══════════════════════════════════════════ */
-.cr2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-.cl {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 10px; font-weight: 800;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-dim); margin-bottom: 3px;
-}
-.cs {
-  background: var(--parchment2);
-  border: 1px solid var(--parchment-dark);
-  color: var(--ink); border-radius: 4px;
-  padding: 7px 10px;
-  font-family: 'Crimson Pro', serif; font-size: 14px;
-  cursor: pointer; width: 100%; outline: none;
-  box-shadow: var(--inner-shadow);
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a3c28'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 10px center;
-  padding-right: 28px;
-}
-
-/* COLOR PIPS */
-.cprow { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-.cp {
-  width: 32px; height: 32px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 800;
-  border: 2px solid rgba(0,0,0,0.4);
-  cursor: pointer; opacity: 0.3;
-  transition: opacity 0.15s, transform 0.1s, border-color 0.15s;
-  font-family: 'Barlow Condensed', sans-serif;
-  user-select: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-.cp.on { opacity: 1; border-color: rgba(255,255,255,0.5); transform: scale(1.12); box-shadow: 0 3px 8px rgba(0,0,0,0.5); }
+/* ── CONTROLS ── */
+.cr2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.cl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:3px}
+.cs{background:var(--parchment2);border:1px solid var(--parchment-dark);color:var(--ink);border-radius:4px;padding:7px 10px;font-family:'Crimson Pro',serif;font-size:14px;cursor:pointer;width:100%;outline:none;box-shadow:var(--inner-shadow);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a3c28'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.cprow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.cp{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;border:2px solid rgba(0,0,0,0.4);cursor:pointer;opacity:.28;transition:opacity .15s,transform .1s,border-color .15s;font-family:'Barlow Condensed',sans-serif;user-select:none;box-shadow:0 2px 5px rgba(0,0,0,0.35)}
+.cp.on{opacity:1;border-color:rgba(255,255,255,0.5);transform:scale(1.12);box-shadow:0 3px 10px rgba(0,0,0,0.55)}
 .cp-W{background:radial-gradient(circle at 40% 35%,#f8f0d0,#c8a830);color:#3a2800}
-.cp-U{background:radial-gradient(circle at 40% 35%,#80b8e8,#2060b0);color:#fff}
+.cp-U{background:radial-gradient(circle at 40% 35%,#80b8e8,#1850a0);color:#fff}
 .cp-B{background:radial-gradient(circle at 40% 35%,#806880,#280828);color:#e0c8e0}
-.cp-R{background:radial-gradient(circle at 40% 35%,#f09060,#b02808);color:#fff}
+.cp-R{background:radial-gradient(circle at 40% 35%,#f09060,#a82008);color:#fff}
 .cp-G{background:radial-gradient(circle at 40% 35%,#50a860,#0e5818);color:#fff}
 .cp-C{background:radial-gradient(circle at 40% 35%,#b0b0b0,#606060);color:#fff}
+.qrow{display:flex;align-items:center;gap:8px;margin-top:10px}
+.ql{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-dim)}
+.qb{background:linear-gradient(180deg,#d8c898,#b89458);border:1px solid #7a6030;color:var(--ink);width:28px;height:28px;border-radius:4px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:opacity .15s;font-weight:700;font-family:serif;box-shadow:0 2px 5px rgba(0,0,0,0.3)}
+.qb:hover{opacity:.85}
+.qv{font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--ink);min-width:20px;text-align:center}
 
-/* QTY */
-.qrow { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-.ql { font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-dim); }
-.qb {
-  background: linear-gradient(180deg,#d4c090,#b89860);
-  border: 1px solid #7a6030;
-  color: var(--ink); width: 28px; height: 28px; border-radius: 4px;
-  cursor: pointer; font-size: 16px;
-  display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.15s; line-height: 1;
-  font-weight: 700; font-family: serif;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-.qb:hover { opacity: 0.85; }
-.qv { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; color: var(--ink); min-width: 20px; text-align: center; }
+/* ── STATS STRIP ── */
+.sstrip{display:grid;grid-template-columns:repeat(5,1fr);background:var(--frame-active);border:3px solid #100c04;border-radius:10px;box-shadow:var(--shadow),var(--bevel);padding:3px;gap:2px;margin-bottom:12px;transition:background 0.8s ease}
+.sc{background:var(--parchment2);border-radius:6px;padding:8px 6px;text-align:center;box-shadow:var(--inner-shadow)}
+.sc-v{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--ink);line-height:1}
+.sc-l{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:800;color:var(--ink-muted);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px}
+.sc.good .sc-v{color:#185810}.sc.warn .sc-v{color:#8a4808}.sc.bad .sc-v{color:#8a0808}
 
-/* ═══════════════════════════════════════════
-   STATS STRIP — PT box style
-═══════════════════════════════════════════ */
-.sstrip {
-  display: grid; grid-template-columns: repeat(5,1fr);
-  background: var(--frame-active);
-  border: 3px solid #1a1208;
-  border-radius: 10px;
-  box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,255,255,0.1);
-  padding: 3px; gap: 2px;
-  margin-bottom: 12px;
-  transition: background 0.8s ease;
-}
-.sc {
-  background: var(--parchment2);
-  border-radius: 6px;
-  padding: 8px 6px; text-align: center;
-  box-shadow: var(--inner-shadow);
-}
-.sc-v { font-family:'Cinzel',serif; font-size:22px; font-weight:700; color:var(--ink); line-height:1; }
-.sc-l { font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:800; color:var(--ink-muted); letter-spacing:0.08em; text-transform:uppercase; margin-top:2px; }
-.sc.good .sc-v { color:#185810; }
-.sc.warn .sc-v { color:#8a4808; }
-.sc.bad  .sc-v { color:#8a0808; }
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:rgba(0,0,0,0.22);padding:3px;border-radius:6px;margin-bottom:10px}
+.tab{flex:1;background:var(--parchment3);border:1px solid var(--parchment-dark);border-radius:4px;color:var(--ink-dim);font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:7px 4px;cursor:pointer;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,0.25)}
+.tab:hover{color:var(--ink);background:var(--parchment2)}
+.tab.active{background:linear-gradient(180deg,#ecdca0,#c8a030);color:var(--ink);border-color:#906010;box-shadow:0 2px 6px rgba(0,0,0,0.35),inset 0 1px rgba(255,255,255,0.35)}
+.tc{display:none}.tc.active{display:block}
 
-/* ═══════════════════════════════════════════
-   TABS — enchantment tabs style
-═══════════════════════════════════════════ */
-.tabs {
-  display: flex; gap: 2px;
-  background: rgba(0,0,0,0.2);
-  padding: 3px; border-radius: 6px;
-  margin-bottom: 10px;
-}
-.tab {
-  flex: 1; background: var(--parchment3);
-  border: 1px solid var(--parchment-dark);
-  border-radius: 4px;
-  color: var(--ink-dim);
-  font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 7px 4px; cursor: pointer;
-  transition: all 0.15s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-.tab:hover { color: var(--ink); background: var(--parchment2); }
-.tab.active {
-  background: linear-gradient(180deg,#e8d898,#c8a830);
-  color: var(--ink); border-color: #906010;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.3);
-}
-.tc { display: none; }
-.tc.active { display: block; }
+/* ── TYPE CHIPS ── */
+.tchips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.tchip{background:var(--parchment3);border:1px solid var(--parchment-dark);border-radius:12px;padding:2px 9px;font-size:12px;display:flex;align-items:center;gap:4px;font-family:'Crimson Pro',serif;box-shadow:0 1px 3px rgba(0,0,0,0.12)}
+.tcn{font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--ink)}
+.tcl{color:var(--ink-dim)}
 
-/* ═══════════════════════════════════════════
-   TYPE CHIPS
-═══════════════════════════════════════════ */
-.tchips { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
-.tchip {
-  background: var(--parchment3); border: 1px solid var(--parchment-dark);
-  border-radius: 12px; padding: 2px 9px;
-  font-size: 12px; display: flex; align-items: center; gap: 4px;
-  font-family: 'Crimson Pro', serif;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}
-.tcn { font-family:'Cinzel',serif; font-size:13px; font-weight:700; color:var(--ink); }
-.tcl { color: var(--ink-dim); }
-
-/* ═══════════════════════════════════════════
-   CARD LIST — Oracle text style
-═══════════════════════════════════════════ */
-.clist { display: flex; flex-direction: column; gap: 2px; }
-.cgh {
-  font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:800;
-  letter-spacing:0.12em; text-transform:uppercase;
-  color:var(--ink-muted); padding:8px 4px 2px;
-  border-bottom: 1px solid var(--parchment-dark);
-  margin-bottom: 2px;
-}
-.crow {
-  display: flex; align-items: center; gap: 7px;
-  padding: 5px 9px;
-  background: transparent;
-  border: 1px solid transparent; border-radius: 4px;
-  transition: background 0.12s, border-color 0.12s;
-  position: relative; overflow: hidden;
-}
-.crow::before {
-  content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
-  border-radius:2px 0 0 2px; opacity:0; transition:opacity 0.15s;
-}
-.crow:hover { background: rgba(139,110,60,0.12); border-color: var(--parchment-dark); }
-.crow:hover::before { opacity: 1; }
-.cW::before{background:#c8a830}.cU::before{background:#2060b0}
-.cB::before{background:#806880}.cR::before{background:#b02808}
-.cG::before{background:#106820}.cCC::before{background:#707070}
-.cq { font-family:'Cinzel',serif; font-size:12px; font-weight:700; color:var(--gold-trim3); min-width:18px; text-align:right; }
-.cn { flex:1; font-size:14px; font-weight:600; color:var(--ink); font-family:'Crimson Pro',serif; }
-.cc { font-family:'Barlow Condensed',sans-serif; font-size:12px; color:var(--ink-dim); }
-.ct {
-  font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:800;
-  letter-spacing:0.06em; padding:2px 5px; border-radius:3px;
-}
-.ctCreature    {background:rgba(16,104,32,.15);color:#185810}
-.ctInstant,.ctSorcery{background:rgba(32,96,176,.15);color:#1848a0}
-.ctEnchantment {background:rgba(100,40,130,.15);color:#602880}
-.ctArtifact    {background:rgba(80,70,50,.15);color:#504030}
+/* ── CARD LIST ── */
+.clist{display:flex;flex-direction:column;gap:2px}
+.cgh{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-muted);padding:8px 4px 2px;border-bottom:1px solid var(--parchment-dark);margin-bottom:2px}
+.crow{display:flex;align-items:center;gap:7px;padding:5px 9px;background:transparent;border:1px solid transparent;border-radius:4px;transition:background .12s,border-color .12s;position:relative;overflow:hidden}
+.crow::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px 0 0 2px;opacity:0;transition:opacity .15s}
+.crow:hover{background:rgba(120,90,40,0.14);border-color:var(--parchment-dark)}
+.crow:hover::before{opacity:1}
+.cW::before{background:#c8a830}.cU::before{background:#1850a0}.cB::before{background:#806880}
+.cR::before{background:#a82008}.cG::before{background:#106820}.cCC::before{background:#707070}
+.cq{font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:var(--gold-trim3);min-width:18px;text-align:right}
+.cn{flex:1;font-size:14px;font-weight:600;color:var(--ink);font-family:'Crimson Pro',serif}
+.cc{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--ink-dim)}
+.ct{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:800;letter-spacing:0.06em;padding:2px 5px;border-radius:3px}
+.ctCreature{background:rgba(16,104,32,.15);color:#185810}
+.ctInstant,.ctSorcery{background:rgba(24,80,160,.15);color:#1848a0}
+.ctEnchantment{background:rgba(100,40,130,.15);color:#602880}
+.ctArtifact{background:rgba(80,70,50,.15);color:#504030}
 .ctPlaneswalker{background:rgba(160,112,16,.2);color:#805808}
-.ctLand        {background:rgba(100,60,20,.15);color:#704010}
-.ctOther       {background:rgba(80,70,60,.15);color:#504030}
-.crm {
-  background:none; border:none; color:var(--ink-muted);
-  cursor:pointer; font-size:13px; padding:2px 4px; border-radius:3px;
-  transition:color 0.15s, background 0.15s; line-height:1;
-  font-family:serif;
-}
-.crm:hover { color:#8a0808; background:rgba(138,8,8,.1); }
+.ctLand{background:rgba(100,60,20,.15);color:#704010}
+.ctOther{background:rgba(80,70,60,.15);color:#504030}
+.crm{background:none;border:none;color:var(--ink-muted);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:3px;transition:color .15s,background .15s;line-height:1;font-family:serif}
+.crm:hover{color:#8a0808;background:rgba(138,8,8,.1)}
 
-/* ═══════════════════════════════════════════
-   MANA CURVE
-═══════════════════════════════════════════ */
-.cbars { display:flex; align-items:flex-end; gap:5px; }
-.ccol { display:flex; flex-direction:column; align-items:center; flex:1; gap:3px; }
-.cba { display:flex; flex-direction:column; justify-content:flex-end; width:100%; }
-.cbs {
-  width:100%;
-  background:linear-gradient(to top,#a07010,#e8c840);
-  border-radius:2px 2px 0 0; min-height:0;
-  box-shadow:inset -1px 0 rgba(255,255,255,0.2);
-}
-.cbc {
-  width:100%;
-  background:linear-gradient(to top,#185810,#50c860);
-  border-radius:2px 2px 0 0; min-height:0;
-  box-shadow:inset -1px 0 rgba(255,255,255,0.2);
-}
-.cnum { font-family:'Cinzel',serif; font-size:11px; font-weight:700; color:var(--ink); min-height:14px; line-height:1; text-align:center; }
-.clbl { font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; color:var(--ink-dim); }
-.cleg { display:flex; gap:14px; margin-top:8px; font-size:12px; color:var(--ink-dim); font-style:italic; }
-.ld { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:middle; }
+/* ── SIDEBOARD ── */
+.sb-section{margin-top:14px;border-top:1px solid var(--parchment-dark);padding-top:10px}
+.sb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sb-title{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-muted)}
+.sb-hint{font-size:11px;color:var(--ink-muted);font-style:italic;font-family:'Crimson Pro',serif}
+.sb-row{display:flex;align-items:center;gap:7px;padding:4px 9px;background:rgba(0,0,0,0.04);border:1px solid var(--parchment-dark);border-radius:4px;margin-bottom:2px;opacity:0.7}
+.sb-name{flex:1;font-size:13px;color:var(--ink-dim);font-family:'Crimson Pro',serif;font-style:italic}
+.sb-restore{background:none;border:1px solid var(--parchment-dark);border-radius:3px;padding:2px 7px;font-size:11px;color:var(--ink-dim);cursor:pointer;font-family:'Crimson Pro',serif;transition:all .15s}
+.sb-restore:hover{color:var(--ink);border-color:var(--gold-trim3);background:rgba(200,160,48,.08)}
 
-/* ═══════════════════════════════════════════
-   ANALYSIS SUGGESTIONS
-═══════════════════════════════════════════ */
-.sl { display:flex; flex-direction:column; gap:7px; }
-.sg {
-  display:flex; align-items:flex-start; gap:9px;
-  padding:9px 11px; border-radius:4px;
-  font-size:13px; border-left:3px solid transparent;
-  line-height:1.45; font-family:'Crimson Pro',serif;
-  background:rgba(0,0,0,0.04);
-  border: 1px solid var(--parchment-dark);
-  border-left-width:3px;
-}
+/* ── MANA CURVE ── */
+.curve-wrap{padding:4px 0 0}
+.curve-art-row{display:flex;gap:5px;align-items:flex-end;margin-bottom:6px}
+.curve-art-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.card-fan{position:relative;width:100%;display:flex;justify-content:center;min-height:60px}
+.card-thumb{width:38px;height:52px;border-radius:3px;border:1px solid rgba(0,0,0,0.5);box-shadow:0 2px 6px rgba(0,0,0,0.6);object-fit:cover;object-position:top;position:absolute;transition:transform .15s}
+.card-thumb:hover{z-index:10;transform:scale(1.15) translateY(-4px)!important}
+.cbars{display:flex;align-items:flex-end;gap:5px}
+.ccol{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px}
+.cba{display:flex;flex-direction:column;justify-content:flex-end;width:100%}
+.cbs{width:100%;background:linear-gradient(to top,#a07010,#e8c840);border-radius:2px 2px 0 0;min-height:0;box-shadow:inset -1px 0 rgba(255,255,255,0.2)}
+.cbc{width:100%;background:linear-gradient(to top,#185810,#50c060);border-radius:2px 2px 0 0;min-height:0;box-shadow:inset -1px 0 rgba(255,255,255,0.2)}
+.cnum{font-family:'Cinzel',serif;font-size:11px;font-weight:700;color:var(--ink);min-height:14px;line-height:1;text-align:center}
+.clbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--ink-dim)}
+.cleg{display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--ink-dim);font-style:italic}
+.ld{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+
+/* ── ANALYSIS ── */
+.sl{display:flex;flex-direction:column;gap:7px}
+.sg{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:4px;font-size:13px;line-height:1.45;font-family:'Crimson Pro',serif;background:rgba(0,0,0,0.04);border:1px solid var(--parchment-dark);border-left-width:3px}
 .sg.good{border-left-color:#185810;background:rgba(16,104,32,.06)}
 .sg.warn{border-left-color:#8a5808;background:rgba(138,88,8,.06)}
-.sg.bad {border-left-color:#8a0808;background:rgba(138,8,8,.06)}
+.sg.bad{border-left-color:#8a0808;background:rgba(138,8,8,.06)}
 .sg.info{border-left-color:#184888;background:rgba(24,72,136,.06)}
 .sg.sp-ok{border-left-color:#602880;background:rgba(96,40,128,.06)}
 .sg.sp-bad{border-left-color:#8a0808;background:rgba(138,8,8,.06)}
-.sg strong { color:#3a2000; font-weight:700; }
+.sg strong{color:#3a2000;font-weight:700}
 
-/* ═══════════════════════════════════════════
-   AI ANALYSIS SECTION
-═══════════════════════════════════════════ */
-.ai-section { margin-top:14px; border-top:2px solid var(--parchment-dark); padding-top:12px; }
-.ai-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.ai-title {
-  font-family:'Cinzel',serif; font-size:12px; font-weight:700;
-  letter-spacing:0.1em; color:var(--ink-dim);
-  display:flex; align-items:center; gap:6px;
-}
-.ai-btn {
-  background:linear-gradient(180deg,#e8cc70,#c09020,#a07010,#c8a030);
-  border:2px solid #7a5010; border-radius:5px;
-  color:#1a0c00;
-  font-family:'Cinzel',serif; font-size:11px; font-weight:700;
-  letter-spacing:0.08em;
-  padding:6px 14px; cursor:pointer;
-  box-shadow:0 2px 6px rgba(0,0,0,0.3), inset 0 1px rgba(255,255,255,0.25);
-  transition:opacity 0.2s; display:flex; align-items:center; gap:6px;
-}
-.ai-btn:hover { opacity:0.88; }
-.ai-btn:disabled { opacity:0.4; cursor:not-allowed; }
-.ai-spinner {
-  width:11px; height:11px;
-  border:2px solid rgba(26,12,0,0.3); border-top-color:#1a0c00;
-  border-radius:50%; animation:spin .7s linear infinite; display:none;
-}
-.ai-spinner.show { display:block; }
+/* ── AI SECTION ── */
+.ai-section{margin-top:14px;border-top:2px solid var(--parchment-dark);padding-top:12px}
+.ai-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ai-title{font-family:'Cinzel',serif;font-size:12px;font-weight:700;letter-spacing:0.1em;color:var(--ink-dim);display:flex;align-items:center;gap:6px}
+.ai-btn{background:linear-gradient(180deg,#ecd472,#c09020,#a07010,#ccaa38);border:2px solid #7a5010;border-radius:5px;color:#1a0c00;font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:0.08em;padding:6px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px rgba(255,255,255,0.3);transition:opacity .2s;display:flex;align-items:center;gap:6px}
+.ai-btn:hover{opacity:.88}.ai-btn:disabled{opacity:.4;cursor:not-allowed}
+.ai-spinner{width:11px;height:11px;border:2px solid rgba(26,12,0,.3);border-top-color:#1a0c00;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.ai-spinner.show{display:block}
 @keyframes spin{to{transform:rotate(360deg)}}
+.key-row{display:flex;gap:6px;margin-bottom:10px}
+.key-input{flex:1;background:var(--parchment2);border:1px solid var(--parchment-dark);border-radius:4px;color:var(--ink);font-family:'Crimson Pro',serif;font-size:13px;padding:7px 10px;outline:none;box-shadow:var(--inner-shadow)}
+.key-input:focus{border-color:var(--gold-trim3)}
+.key-input::placeholder{color:var(--ink-muted);font-style:italic}
+.key-hint{font-size:11px;color:var(--ink-muted);font-style:italic;margin-bottom:8px}
+.ai-output{background:linear-gradient(180deg,var(--parchment2),var(--parchment3));border:1px solid var(--parchment-dark);border-radius:5px;padding:14px 16px;font-size:13px;line-height:1.8;color:var(--ink);font-family:'Crimson Pro',serif;box-shadow:var(--inner-shadow);display:none;width:100%;word-wrap:break-word;white-space:normal}
+.ai-output.show{display:block}
+.ai-output strong,.ai-output b{color:#3a2000;font-weight:700}
 
-/* API key input */
-.key-row { display:flex; gap:6px; margin-bottom:10px; }
-.key-input {
-  flex:1; background:var(--parchment2); border:1px solid var(--parchment-dark);
-  border-radius:4px; color:var(--ink);
-  font-family:'Crimson Pro',serif; font-size:13px;
-  padding:7px 10px; outline:none;
-  box-shadow:var(--inner-shadow);
-}
-.key-input:focus { border-color:var(--gold-trim3); }
-.key-input::placeholder { color:var(--ink-muted); font-style:italic; }
-.key-hint { font-size:11px; color:var(--ink-muted); font-style:italic; margin-bottom:8px; }
-
-.ai-output {
-  background: linear-gradient(180deg, var(--parchment2), var(--parchment3));
-  border:1px solid var(--parchment-dark);
-  border-radius:5px; padding:12px 14px;
-  font-size:13px; line-height:1.7;
-  color:var(--ink); font-family:'Crimson Pro',serif;
-  box-shadow:var(--inner-shadow);
-  display:none;
-  overflow-y:auto;
-  max-height:none;
-  word-wrap:break-word;
-  white-space:normal;
-}
-.ai-output.show { display:block; }
-.ai-output strong, .ai-output b { color:#3a2000; font-weight:700; }
-
-/* ═══════════════════════════════════════════
-   LAND CALCULATOR
-═══════════════════════════════════════════ */
-.ldl { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
-.ldi {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:6px 10px; background:var(--parchment3);
-  border-radius:4px; border:1px solid var(--parchment-dark);
-  font-size:13px; font-family:'Crimson Pro',serif;
-}
-.ldin { color:var(--ink); flex:1; }
-.ldips { display:flex; gap:3px; align-items:center; }
-.ldp {
-  width:16px; height:16px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  font-size:8px; font-weight:800; font-family:'Barlow Condensed',sans-serif;
-  border:1px solid rgba(0,0,0,0.3);
-  box-shadow:0 1px 2px rgba(0,0,0,0.3);
-}
+/* ── LAND CALC ── */
+.ldl{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.ldi{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--parchment3);border-radius:4px;border:1px solid var(--parchment-dark);font-size:13px;font-family:'Crimson Pro',serif}
+.ldin{color:var(--ink);flex:1}
+.ldips{display:flex;gap:3px;align-items:center}
+.ldp{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;font-family:'Barlow Condensed',sans-serif;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 2px rgba(0,0,0,0.3)}
 .ldpW{background:radial-gradient(circle,#f8f0d0,#c8a830);color:#3a2800}
-.ldpU{background:radial-gradient(circle,#80b8e8,#2060b0);color:#fff}
+.ldpU{background:radial-gradient(circle,#80b8e8,#1850a0);color:#fff}
 .ldpB{background:radial-gradient(circle,#806880,#280828);color:#e0c0e0}
-.ldpR{background:radial-gradient(circle,#f09060,#b02808);color:#fff}
+.ldpR{background:radial-gradient(circle,#f09060,#a82008);color:#fff}
 .ldpG{background:radial-gradient(circle,#50a860,#0e5818);color:#fff}
-
-.bgrid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; }
-.bcell {
-  background:var(--parchment3); border-radius:6px;
-  padding:9px 11px; display:flex; align-items:center; justify-content:space-between;
-  border:1px solid var(--parchment-dark);
-  box-shadow:var(--inner-shadow);
-}
-.bcell.pri { border-color:var(--gold-trim3); }
-.bcl { display:flex; align-items:center; gap:7px; }
-.bcsw { width:18px; height:18px; border-radius:50%; flex-shrink:0; border:1px solid rgba(0,0,0,0.3); box-shadow:0 1px 3px rgba(0,0,0,0.3); }
-.bcswW{background:radial-gradient(circle,#f8f0d0,#c8a830)}.bcswU{background:radial-gradient(circle,#80b8e8,#2060b0)}
-.bcswB{background:radial-gradient(circle,#806880,#280828)}.bcswR{background:radial-gradient(circle,#f09060,#b02808)}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.bcell{background:var(--parchment3);border-radius:6px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--parchment-dark);box-shadow:var(--inner-shadow)}
+.bcell.pri{border-color:var(--gold-trim3)}
+.bcl{display:flex;align-items:center;gap:7px}
+.bcsw{width:18px;height:18px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.bcswW{background:radial-gradient(circle,#f8f0d0,#c8a830)}.bcswU{background:radial-gradient(circle,#80b8e8,#1850a0)}
+.bcswB{background:radial-gradient(circle,#806880,#280828)}.bcswR{background:radial-gradient(circle,#f09060,#a82008)}
 .bcswG{background:radial-gradient(circle,#50a860,#0e5818)}
-.bcn { font-size:12px; color:var(--ink-dim); font-weight:600; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.06em; text-transform:uppercase; }
-.bcc { font-family:'Cinzel',serif; font-size:22px; font-weight:700; color:var(--ink); }
+.bcn{font-size:12px;color:var(--ink-dim);font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.06em;text-transform:uppercase}
+.bcc{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--ink)}
+.ltbar{background:linear-gradient(135deg,rgba(200,160,48,.18),rgba(200,160,48,.08));border:1px solid var(--gold-trim3);border-radius:6px;padding:9px 13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;box-shadow:inset 0 1px rgba(255,255,255,0.18)}
+.ltbl{font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:var(--gold-trim3);letter-spacing:0.08em;text-transform:uppercase}
+.ltbc{font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:var(--ink)}
+.land-advice{border-radius:5px;padding:9px 11px;font-size:12px;line-height:1.5;margin-bottom:12px;font-family:'Crimson Pro',serif;border:1px solid;border-left-width:3px}
+.land-advice strong{color:#3a2000;font-weight:700}
+.land-advice.ok{background:rgba(16,104,32,.07);border-color:#185810}
+.land-advice.caution{background:rgba(138,88,8,.07);border-color:#8a5808}
+.land-advice.no{background:rgba(138,8,8,.07);border-color:#8a0808}
+.psect{margin-top:12px}
+.ptit{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:7px}
+.pgrid{display:flex;flex-direction:column;gap:5px}
+.prow{display:flex;align-items:center;gap:7px}
+.pcl{width:54px;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;display:flex;align-items:center;gap:4px;color:var(--ink-dim)}
+.pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pbars{display:flex;gap:3px;flex:1}
+.pbar{flex:1;height:20px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;color:rgba(255,255,255,0.9);text-shadow:0 1px rgba(0,0,0,0.4)}
+.ptlabs{display:flex;gap:3px;margin-top:2px;padding-left:61px}
+.ptlab{flex:1;text-align:center;font-size:9px;color:var(--ink-muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.06em}
 
-.ltbar {
-  background:linear-gradient(135deg,rgba(200,160,48,.15),rgba(200,160,48,.08));
-  border:1px solid var(--gold-trim3); border-radius:6px;
-  padding:9px 13px; display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:10px;
-  box-shadow:inset 0 1px rgba(255,255,255,0.2);
-}
-.ltbl { font-family:'Cinzel',serif; font-size:12px; font-weight:700; color:var(--gold-trim3); letter-spacing:0.08em; text-transform:uppercase; }
-.ltbc { font-family:'Cinzel',serif; font-size:24px; font-weight:700; color:var(--ink); }
-
-/* Variable land advice */
-.land-advice {
-  border-radius:5px; padding:9px 11px; font-size:12px; line-height:1.5;
-  margin-bottom:12px; border-left:3px solid;
-  font-family:'Crimson Pro',serif;
-  border:1px solid; border-left-width:3px;
-}
-.land-advice strong { color:#3a2000; font-weight:700; }
-.land-advice.ok   { background:rgba(16,104,32,.07); border-color:#185810; }
-.land-advice.caution{ background:rgba(138,88,8,.07); border-color:#8a5808; }
-.land-advice.no   { background:rgba(138,8,8,.07);  border-color:#8a0808; }
-
-/* PROB CHART */
-.psect { margin-top:12px; }
-.ptit {
-  font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:800;
-  letter-spacing:0.12em; text-transform:uppercase;
-  color:var(--ink-muted); margin-bottom:7px;
-}
-.pgrid { display:flex; flex-direction:column; gap:5px; }
-.prow { display:flex; align-items:center; gap:7px; }
-.pcl { width:54px; flex-shrink:0; font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:800; display:flex; align-items:center; gap:4px; color:var(--ink-dim); }
-.pdot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-.pbars { display:flex; gap:3px; flex:1; }
-.pbar {
-  flex:1; height:20px; border-radius:3px;
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:800;
-  color:rgba(255,255,255,0.9); text-shadow:0 1px rgba(0,0,0,0.4);
-}
-.ptlabs { display:flex; gap:3px; margin-top:2px; padding-left:61px; }
-.ptlab { flex:1; text-align:center; font-size:9px; color:var(--ink-muted); font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:0.06em; }
-
-/* ═══════════════════════════════════════════
-   MISC
-═══════════════════════════════════════════ */
-.slbl {
-  font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:800;
-  letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-muted);
-  margin-bottom:5px;
-}
-.divider { border:none; border-top:1px solid var(--parchment-dark); margin:10px 0; }
-.empty { text-align:center; padding:24px 16px; color:var(--ink-muted); font-size:14px; font-style:italic; font-family:'Crimson Pro',serif; }
-.eicon { font-size:28px; margin-bottom:6px; opacity:0.3; display:block; }
-.dbtn {
-  background:none; border:1px solid rgba(138,8,8,.3); color:rgba(138,8,8,.5);
-  border-radius:4px; padding:4px 10px;
-  font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700;
-  cursor:pointer; transition:all .15s; letter-spacing:0.06em;
-}
-.dbtn:hover { border-color:#8a0808; color:#8a0808; background:rgba(138,8,8,.06); }
-.toast {
-  position:fixed; bottom:20px; right:20px;
-  background:var(--parchment);
-  border:2px solid var(--gold-trim3);
-  border-radius:8px; padding:10px 16px;
-  font-size:13px; font-weight:600; color:var(--ink);
-  box-shadow:var(--shadow2); z-index:999;
-  opacity:0; transform:translateY(6px);
-  transition:opacity .2s,transform .2s; pointer-events:none;
-  font-family:'Crimson Pro',serif;
-}
-.toast.show { opacity:1; transform:translateY(0); }
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:var(--parchment2)}
-::-webkit-scrollbar-thumb{background:var(--parchment-dark);border-radius:3px}
+/* ── MISC ── */
+.slbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:5px}
+.divider{border:none;border-top:1px solid var(--parchment-dark);margin:10px 0}
+.empty{text-align:center;padding:24px 16px;color:var(--ink-muted);font-size:14px;font-style:italic;font-family:'Crimson Pro',serif}
+.eicon{font-size:28px;margin-bottom:6px;opacity:.3;display:block}
+.dbtn{background:none;border:1px solid rgba(138,8,8,.3);color:rgba(138,8,8,.5);border-radius:4px;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:0.06em}
+.dbtn:hover{border-color:#8a0808;color:#8a0808;background:rgba(138,8,8,.06)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--parchment);border:2px solid var(--gold-trim3);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--ink);box-shadow:var(--shadow2);z-index:999;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none;font-family:'Crimson Pro',serif}
+.toast.show{opacity:1;transform:translateY(0)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--parchment2)}::-webkit-scrollbar-thumb{background:var(--parchment-dark);border-radius:3px}
 </style>
 </head>
 <body>
 <div class="app">
 
-<!-- HEADER -->
-<div class="card-title-bar" id="title-bar">
+<div class="card-title-bar">
   <div class="title-bar-inner">
     <div class="logo-area">
       <div class="logo">⬡ Draft Table</div>
@@ -729,26 +292,36 @@ body::before {
       <div class="hstat"><div class="hstat-v" id="hs-sp">0</div><div class="hstat-l">Spells</div></div>
       <div class="hstat"><div class="hstat-v" id="hs-cmc">—</div><div class="hstat-l">Avg CMC</div></div>
       <div class="color-id-bar" id="hd-colors"></div>
-      <button onclick="openImporter()" style="
-        background:linear-gradient(180deg,#e8cc70,#c09020,#a07010,#c8a030);
-        border:2px solid #7a5010;border-radius:5px;color:#1a0c00;
-        font-family:'Cinzel',serif;font-size:11px;font-weight:700;
-        letter-spacing:0.08em;padding:6px 12px;cursor:pointer;
-        box-shadow:0 2px 6px rgba(0,0,0,0.3),inset 0 1px rgba(255,255,255,0.25);
-        white-space:nowrap;flex-shrink:0;">
-        ⬆ Import
-      </button>
+      <button class="import-btn-hd" onclick="openImporter()">⬆ Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- WARNING STRIP -->
+<div class="warn-strip" id="warn-strip">
+  <div class="warn-inner">
+    <span class="warn-label">⚑ Draft</span>
+    <div class="warn-pills" id="warn-pills"></div>
+  </div>
+</div>
+
+<!-- OFF-COLOR SUGGESTION -->
+<div class="offcolor-strip" id="offcolor-strip">
+  <div class="offcolor-inner">
+    <div class="offcolor-title" id="offcolor-title">🎨 Your deck is shaping up — some cards may not fit</div>
+    <div class="offcolor-cards" id="offcolor-cards"></div>
+    <div class="offcolor-actions">
+      <button class="oc-btn move" onclick="moveOffColorToSideboard()">Move to Sideboard</button>
+      <button class="oc-btn dismiss" onclick="dismissOffColor()">Dismiss</button>
     </div>
   </div>
 </div>
 
 <div class="layout">
-<!-- LEFT COLUMN -->
 <div>
-  <!-- ADD PICK -->
-  <div class="panel" id="panel-add">
+  <div class="panel">
     <div class="panel-inner">
-      <div class="type-line" id="tl-add">
+      <div class="type-line">
         <span class="type-line-text">Add Pick</span>
         <span id="prev-cost" style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--ink-dim)"></span>
       </div>
@@ -774,7 +347,7 @@ body::before {
           </div>
         </div>
         <div class="cl" style="margin-top:10px">Color(s)</div>
-        <div class="cprow" id="cprow">
+        <div class="cprow">
           <div class="cp cp-W" data-c="W">W</div>
           <div class="cp cp-U" data-c="U">U</div>
           <div class="cp cp-B" data-c="B">B</div>
@@ -792,12 +365,9 @@ body::before {
     </div>
   </div>
 
-  <!-- LAND CALC -->
-  <div class="panel" id="panel-land">
+  <div class="panel">
     <div class="panel-inner">
-      <div class="type-line" id="tl-land">
-        <span class="type-line-text">Land — Calculator</span>
-      </div>
+      <div class="type-line"><span class="type-line-text">Land — Calculator</span></div>
       <div class="panel-body" id="lc-body">
         <div class="empty"><span class="eicon">🏔</span>Add spells to see recommendations</div>
       </div>
@@ -805,9 +375,7 @@ body::before {
   </div>
 </div>
 
-<!-- RIGHT COLUMN -->
 <div>
-  <!-- STATS STRIP -->
   <div class="sstrip" id="sstrip">
     <div class="sc" id="sc-tot"><div class="sc-v">0</div><div class="sc-l">Total</div></div>
     <div class="sc" id="sc-cr"><div class="sc-v">0</div><div class="sc-l">Creatures</div></div>
@@ -816,36 +384,28 @@ body::before {
     <div class="sc" id="sc-cmc"><div class="sc-v">—</div><div class="sc-l">Avg CMC</div></div>
   </div>
 
-  <div class="panel" id="panel-main">
+  <div class="panel">
     <div class="panel-inner">
-      <div class="type-line" id="tl-main">
-        <span class="type-line-text">Draft Pool</span>
-      </div>
+      <div class="type-line"><span class="type-line-text">Draft Pool</span></div>
       <div class="panel-body">
         <div class="tabs">
           <button class="tab active" data-tab="pool">Pool</button>
           <button class="tab" data-tab="curve">Curve</button>
           <button class="tab" data-tab="analysis">Analysis</button>
         </div>
-
-        <!-- POOL -->
         <div class="tc active" id="tab-pool">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
             <div class="tchips" id="tchips" style="margin-bottom:0"></div>
             <button class="dbtn" id="clr-btn">Clear All</button>
           </div>
           <div class="clist" id="clist"><div class="empty"><span class="eicon">🃏</span>Your pool is empty.</div></div>
+          <div id="sb-section"></div>
         </div>
-
-        <!-- CURVE -->
         <div class="tc" id="tab-curve">
           <div id="curve-body"><div class="empty"><span class="eicon">📊</span>Add cards to see mana curve.</div></div>
         </div>
-
-        <!-- ANALYSIS -->
         <div class="tc" id="tab-analysis">
           <div class="sl" id="sl"><div class="empty"><span class="eicon">🔮</span>Add cards to receive analysis.</div></div>
-          <!-- AI SECTION -->
           <div class="ai-section" id="ai-section" style="display:none">
             <div class="ai-header">
               <div class="ai-title">✦ AI Analysis <span style="font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:500;letter-spacing:0.06em;color:var(--ink-muted)">(Gemini)</span></div>
@@ -871,202 +431,45 @@ body::before {
 
 <script>
 // ── STATE ──
-let pool=[], qty=1, selCard=null, acTmo=null, acRes=[], acIdx=-1, geminiKey='';
+let pool=[], sideboard=[], qty=1, selCard=null, acTmo=null, acRes=[], acIdx=-1, geminiKey='';
+let offColorDismissed=false, lastOffColorIds=[];
 
 const CNAMES={W:'Plains',U:'Islands',B:'Swamps',R:'Mountains',G:'Forests'};
 const CFULL={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
-const CHEX={W:'#c8a830',U:'#2060b0',B:'#806880',R:'#b02808',G:'#106820'};
-
-// Frame gradients per color
-const FRAME_GRAD = {
+const CHEX={W:'#c8a830',U:'#1850a0',B:'#806880',R:'#a82008',G:'#106820'};
+const FRAME_GRAD={
   W:'linear-gradient(160deg,#f5eecb,#e8d898,#c8b060,#e8d898,#f0e8b8)',
   U:'linear-gradient(160deg,#a8c8e8,#6898c8,#2858a8,#6898c8,#a0c0e0)',
   B:'linear-gradient(160deg,#686068,#383038,#181018,#383038,#585058)',
   R:'linear-gradient(160deg,#e89870,#c85828,#981808,#c85828,#e08060)',
-  G:'linear-gradient(160deg,#90c870,#488030,#185010,#488030,#80b860)',
+  G:'linear-gradient(160deg,#6aaa50,#306820,#0e3808,#306820,#5a9840)',
   gold:'linear-gradient(160deg,#f0d878,#c8a030,#906010,#c8a030,#e8cc60)',
   neutral:'linear-gradient(160deg,#d0c8a8,#a89870,#706040,#a89870,#c8b888)'
 };
+const FRAME_MID={W:'#d8c060',U:'#3868b8',B:'#302030',R:'#b83818',G:'#206818'};
+const FRAME_LIGHT={W:'#f0e8b0',U:'#90b8e0',B:'#585058',R:'#e08060',G:'#4a8830'};
+const FRAME_DARK={W:'#a89030',U:'#1848a0',B:'#100810',R:'#901008',G:'#0a3008'};
 
-// ── FRAME COLOR UPDATER ──
-// Per-color midpoints for blending
-const FRAME_MID = {
-  W:'#d8c060', U:'#3868b8', B:'#302030', R:'#b83818', G:'#206818'
-};
-const FRAME_LIGHT = {
-  W:'#f0e8b0', U:'#90b8e0', B:'#585058', R:'#e08060', G:'#4a8830'
-};
-const FRAME_DARK = {
-  W:'#a89030', U:'#1848a0', B:'#100810', R:'#901008', G:'#0a3008'
-};
+// Removal oracle text keywords
+const REMOVAL_KEYWORDS=[
+  'destroy','exile','deals','damage','−','-1/-1','-2/-2','-3/-3','-4/-4','-x/-x',
+  'return target','put on the bottom','tap target','tapped and doesn\'t untap',
+  'can\'t attack','can\'t block','counter target','sacrifice','loses all abilities'
+];
+const REMOVAL_TYPES=['Instant','Sorcery'];
 
-function updateFrameColor() {
-  const pt = getPips();
-  const sorted = Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]);
-  let grad = FRAME_GRAD.neutral;
-
-  if (sorted.length === 0) {
-    grad = FRAME_GRAD.neutral;
-  } else if (sorted.length === 1) {
-    grad = FRAME_GRAD[sorted[0][0]] || FRAME_GRAD.neutral;
-  } else if (sorted.length === 2) {
-    const [c1, c2] = [sorted[0][0], sorted[1][0]];
-    const l1=FRAME_LIGHT[c1], m1=FRAME_MID[c1], d1=FRAME_DARK[c1];
-    const l2=FRAME_LIGHT[c2], m2=FRAME_MID[c2], d2=FRAME_DARK[c2];
-    grad = `linear-gradient(160deg,${l1},${m1},${d1},${m2},${l2})`;
-  } else {
-    // 3+ colors → gold multicolor
-    grad = FRAME_GRAD.gold;
-  }
-  document.documentElement.style.setProperty('--frame-active', grad);
-}
-
-// ── ARENA IMPORTER ──
-function openImporter() {
-  const existing = document.getElementById('importer-modal');
-  if (existing) { existing.remove(); return; }
-
-  const modal = document.createElement('div');
-  modal.id = 'importer-modal';
-  modal.style.cssText = `
-    position:fixed;inset:0;z-index:500;
-    display:flex;align-items:center;justify-content:center;
-    background:rgba(0,0,0,0.75);padding:16px;
-  `;
-  modal.innerHTML = `
-    <div style="background:var(--parchment);border:4px solid #1a1208;border-radius:12px;
-      box-shadow:0 20px 60px rgba(0,0,0,0.9),inset 0 0 0 2px rgba(255,255,255,0.1);
-      width:100%;max-width:520px;overflow:hidden;">
-      <div style="background:var(--frame-active);padding:8px 16px;border-bottom:2px solid rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:#1a1208;letter-spacing:0.1em;text-transform:uppercase;">Import from Arena</span>
-        <button onclick="document.getElementById('importer-modal').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#1a1208;line-height:1;padding:2px 4px;">✕</button>
-      </div>
-      <div style="padding:16px;">
-        <div style="font-family:'Crimson Pro',serif;font-size:13px;color:var(--ink-dim);margin-bottom:8px;font-style:italic;">
-          Paste your Arena deck export below. Supports formats like:<br>
-          <span style="font-family:monospace;font-size:12px;color:var(--ink);">4 Lightning Bolt (M21) 123</span> or <span style="font-family:monospace;font-size:12px;color:var(--ink);">4 Lightning Bolt</span>
-        </div>
-        <textarea id="import-text" style="width:100%;height:200px;background:var(--parchment2);
-          border:1px solid var(--parchment-dark);border-radius:5px;
-          padding:10px;font-family:monospace;font-size:13px;color:var(--ink);
-          resize:vertical;outline:none;box-shadow:inset 0 1px 3px rgba(0,0,0,0.15);"
-          placeholder="4 Lightning Bolt (M21) 123&#10;2 Grizzly Bears&#10;..."></textarea>
-        <div id="import-status" style="font-size:12px;color:var(--ink-muted);font-style:italic;margin-top:6px;min-height:18px;font-family:'Crimson Pro',serif;"></div>
-        <div style="display:flex;gap:8px;margin-top:10px;">
-          <button id="import-btn" onclick="runImport()" style="
-            flex:1;background:linear-gradient(180deg,#e8cc70,#c09020,#a07010,#c8a030);
-            border:2px solid #7a5010;border-radius:5px;color:#1a0c00;
-            font-family:'Cinzel',serif;font-size:13px;font-weight:700;letter-spacing:0.08em;
-            padding:9px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3);">
-            ✦ Import Cards
-          </button>
-          <button onclick="document.getElementById('importer-modal').remove()" style="
-            background:none;border:1px solid var(--parchment-dark);border-radius:5px;
-            color:var(--ink-dim);font-family:'Cinzel',serif;font-size:12px;font-weight:700;
-            padding:9px 16px;cursor:pointer;">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
-  document.getElementById('import-text').focus();
-}
-
-async function runImport() {
-  const raw = document.getElementById('import-text').value.trim();
-  if (!raw) return;
-  const status = document.getElementById('import-status');
-  const btn = document.getElementById('import-btn');
-  btn.disabled = true;
-
-  // Parse lines — skip section headers like "Deck", "Sideboard", blank lines
-  const lines = raw.split('\n').map(l=>l.trim()).filter(l=>{
-    if(!l) return false;
-    if(/^(deck|sideboard|commander|companion)$/i.test(l)) return false;
-    return true;
-  });
-
-  const parsed = [];
-  for (const line of lines) {
-    // Match: optional qty, card name, optional (SET) NUM
-    const m = line.match(/^(\d+)\s+(.+?)(?:\s+\([^)]+\)\s+\d+)?$/);
-    if (m) {
-      parsed.push({ qty: parseInt(m[1]), name: m[2].trim() });
-    } else {
-      // Try bare name with no qty
-      const m2 = line.match(/^(.+?)(?:\s+\([^)]+\)\s+\d+)?$/);
-      if (m2) parsed.push({ qty: 1, name: m2[1].trim() });
-    }
-  }
-
-  if (!parsed.length) {
-    status.textContent = 'No cards found — check the format and try again.';
-    btn.disabled = false;
-    return;
-  }
-
-  // Dedupe by name, sum quantities
-  const deduped = {};
-  parsed.forEach(({qty, name}) => {
-    const key = name.toLowerCase();
-    if (!deduped[key]) deduped[key] = { qty: 0, name };
-    deduped[key].qty += qty;
-  });
-  const cards = Object.values(deduped);
-
-  status.textContent = `Looking up ${cards.length} card${cards.length>1?'s':''}…`;
-
-  let added = 0, failed = [];
-
-  for (let i = 0; i < cards.length; i++) {
-    const { qty, name } = cards[i];
-    status.textContent = `Looking up ${i+1}/${cards.length}: ${name}…`;
-    try {
-      const r = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);
-      const card = await r.json();
-      if (card.object === 'card') {
-        const tl = card.type_line || '';
-        let type = 'Other';
-        if(tl.includes('Creature')) type='Creature';
-        else if(tl.includes('Instant')) type='Instant';
-        else if(tl.includes('Sorcery')) type='Sorcery';
-        else if(tl.includes('Enchantment')) type='Enchantment';
-        else if(tl.includes('Artifact')) type='Artifact';
-        else if(tl.includes('Planeswalker')) type='Planeswalker';
-        else if(tl.includes('Land')) type='Land';
-        const cmc = card.cmc !== undefined ? Math.round(card.cmc) : 0;
-        const cmcRaw = cmc >= 7 ? '7+' : String(cmc);
-        const colors = card.colors || [];
-        const pips = parsePips(card.mana_cost);
-        const produced = (card.produced_mana||[]).filter(c=>'WUBRG'.includes(c));
-        const oracle = card.oracle_text || card.card_faces?.[0]?.oracle_text || '';
-        const ex = pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase()&&c.type===type);
-        if (ex) { ex.qty += qty; }
-        else { pool.push({id:Date.now()+i, name:card.name, type, cmc, cmcRaw, colors:colors.length?colors:['C'], qty, pips, produced, oracle}); }
-        added += qty;
-      } else {
-        failed.push(name);
-      }
-    } catch {
-      failed.push(name);
-    }
-    // Small delay to be polite to Scryfall
-    await new Promise(res => setTimeout(res, 80));
-  }
-
-  resetAiOutput();
-  render();
-
-  if (failed.length) {
-    status.innerHTML = `<span style="color:#185810">Added ${added} cards.</span> <span style="color:#8a0808">Not found: ${failed.join(', ')}</span>`;
-  } else {
-    status.innerHTML = `<span style="color:#185810">✓ Added ${added} cards successfully!</span>`;
-    setTimeout(() => document.getElementById('importer-modal')?.remove(), 1200);
-  }
-  btn.disabled = false;
+// ── FRAME COLOR ──
+function updateFrameColor(){
+  const pt=getPips();
+  const sorted=Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]);
+  let grad=FRAME_GRAD.neutral;
+  if(sorted.length===0) grad=FRAME_GRAD.neutral;
+  else if(sorted.length===1) grad=FRAME_GRAD[sorted[0][0]]||FRAME_GRAD.neutral;
+  else if(sorted.length===2){
+    const[c1,c2]=[sorted[0][0],sorted[1][0]];
+    grad=`linear-gradient(160deg,${FRAME_LIGHT[c1]},${FRAME_MID[c1]},${FRAME_DARK[c1]},${FRAME_MID[c2]},${FRAME_LIGHT[c2]})`;
+  } else grad=FRAME_GRAD.gold;
+  document.documentElement.style.setProperty('--frame-active',grad);
 }
 
 // ── TABS ──
@@ -1095,6 +498,18 @@ function parsePips(mc){
   return p;
 }
 
+// ── REMOVAL DETECTION ──
+function isRemoval(card){
+  if(card.type==='Land') return false;
+  const oracle=(card.oracle||'').toLowerCase();
+  // Check oracle text for removal keywords
+  if(REMOVAL_KEYWORDS.some(k=>oracle.includes(k))) return true;
+  // Enchantments that restrict creatures (Pacifism effects)
+  if(card.type==='Enchantment'&&(oracle.includes("can't attack")&&oracle.includes("can't block"))) return true;
+  if(card.type==='Enchantment'&&oracle.includes("enchanted creature can't")) return true;
+  return false;
+}
+
 // ── AUTOCOMPLETE ──
 const si=document.getElementById('si'),acl=document.getElementById('acl'),addbtn=document.getElementById('addbtn');
 si.addEventListener('input',()=>{
@@ -1115,7 +530,7 @@ si.addEventListener('keydown',e=>{
 async function fetchAc(q){try{const r=await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`);const d=await r.json();acRes=d.data||[];acIdx=-1;renderAc()}catch{closeAc()}}
 function renderAc(){
   if(!acRes.length){closeAc();return}
-  acl.innerHTML=acRes.slice(0,10).map((n,i)=>`<div class="aci${i===acIdx?' sel':''}" data-i="${i}">${n}</div>`).join('');
+  acl.innerHTML=acRes.slice(0,10).map((n,i)=>`<div class="aci${i===acIdx?' sel':''}">${n}</div>`).join('');
   acl.classList.add('open');
   acl.querySelectorAll('.aci').forEach((el,i)=>{
     el.addEventListener('mousedown',e=>{e.preventDefault();selectAc(acRes[i])});
@@ -1144,6 +559,7 @@ function applyCard(card){
   selCard._pips=parsePips(card.mana_cost);
   selCard._produced=(card.produced_mana||[]).filter(c=>'WUBRG'.includes(c));
   selCard._oracle=card.oracle_text||card.card_faces?.[0]?.oracle_text||'';
+  selCard._img=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.small||null;
   document.getElementById('prev-cost').textContent=card.mana_cost||'';
   addbtn.disabled=false;
 }
@@ -1162,18 +578,20 @@ function addCard(){
   const pips=selCard?._pips||{};
   const produced=selCard?._produced||[];
   const oracle=selCard?._oracle||'';
+  const img=selCard?._img||null;
   const ex=pool.find(c=>c.name.toLowerCase()===name.toLowerCase()&&c.type===type);
   if(ex){ex.qty+=qty;toast(`+${qty} ${name}`)}
-  else{pool.push({id:Date.now(),name,type,cmc,cmcRaw,colors,qty,pips,produced,oracle});toast(`Added: ${name}`)}
+  else{pool.push({id:Date.now(),name,type,cmc,cmcRaw,colors,qty,pips,produced,oracle,img});toast(`Added: ${name}`)}
   si.value='';document.getElementById('prev-cost').textContent='';
   selCard=null;addbtn.disabled=true;qty=1;document.getElementById('qv').textContent='1';
   document.querySelectorAll('.cp').forEach(p=>p.classList.remove('on'));
-  resetAiOutput();
-  render();
+  offColorDismissed=false;
+  resetAiOutput();render();
 }
 function removeOne(id){const c=pool.find(x=>x.id===id);if(!c)return;if(c.qty>1)c.qty--;else pool=pool.filter(x=>x.id!==id);resetAiOutput();render()}
 function removeAll(id){pool=pool.filter(x=>x.id!==id);resetAiOutput();render()}
-document.getElementById('clr-btn').addEventListener('click',()=>{if(!pool.length)return;if(confirm('Clear all cards?')){pool=[];resetAiOutput();render()}});
+function restoreFromSideboard(id){const c=sideboard.find(x=>x.id===id);if(!c)return;sideboard=sideboard.filter(x=>x.id!==id);pool.push(c);render()}
+document.getElementById('clr-btn').addEventListener('click',()=>{if(!pool.length)return;if(confirm('Clear all cards?')){pool=[];sideboard=[];offColorDismissed=false;resetAiOutput();render()}});
 function resetAiOutput(){
   document.getElementById('ai-output').classList.remove('show');
   document.getElementById('ai-output').innerHTML='';
@@ -1207,17 +625,105 @@ function hyper(N,K,n){
   return Math.max(0,Math.min(1,1-Math.exp(lc(N-K,n)-lc(N,n))));
 }
 
+// ── LAND COUNT (smart: 16 if defensible) ──
+function getTargetLandCount(){
+  const nl=nlCards();
+  if(nl.length<15) return 17;
+  const avgCmc=nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0);
+  const twoDrops=nl.filter(c=>c.cmc<=2).reduce((s,c)=>s+c.qty,0);
+  if(avgCmc<=2.5&&twoDrops>=5) return 16;
+  if(avgCmc<=3.0&&twoDrops>=3) return 16; // borderline but still switch
+  return 17;
+}
+
+// ── WARNING STRIP ──
+function renderWarnings(){
+  const strip=document.getElementById('warn-strip');
+  const pills=document.getElementById('warn-pills');
+  const nl=nlCards();
+  if(nl.reduce((s,c)=>s+c.qty,0)<8){strip.classList.remove('show');return}
+  const warnings=[];
+  const cr=totType('Creature');
+  const sp=pool.filter(c=>c.type!=='Land').reduce((s,c)=>s+c.qty,0);
+  // Creature count
+  if(cr<10) warnings.push({cls:'red',icon:'⚔',text:`Only ${cr} creatures`});
+  else if(cr<14) warnings.push({cls:'amber',icon:'⚔',text:`${cr} creatures — aim for 14+`});
+  // Removal
+  const removalCards=pool.filter(c=>c.type!=='Land'&&isRemoval(c));
+  const removalCount=removalCards.reduce((s,c)=>s+c.qty,0);
+  if(removalCount<3) warnings.push({cls:'red',icon:'✂',text:`${removalCount} removal piece${removalCount!==1?'s':''} — very low`});
+  else if(removalCount<5) warnings.push({cls:'amber',icon:'✂',text:`${removalCount} removal pieces`});
+  // Curve gaps
+  const cd={};nl.forEach(c=>{const k=c.cmc>=7?7:c.cmc;cd[k]=(cd[k]||0)+c.qty});
+  if(sp>=12&&(cd[2]||0)<2) warnings.push({cls:'amber',icon:'⏱',text:`Only ${cd[2]||0} two-drops`});
+  if(sp>=12&&(cd[3]||0)<2&&(cd[2]||0)<3) warnings.push({cls:'amber',icon:'⏱',text:`Thin at 2–3 CMC`});
+  if(warnings.length===0){strip.classList.remove('show');return}
+  strip.classList.add('show');
+  pills.innerHTML=warnings.map(w=>`<div class="wpill ${w.cls}">${w.icon} ${w.text}</div>`).join('');
+}
+
+// ── OFF-COLOR DETECTION ──
+function getTopColors(){
+  const pt=getPips();
+  const sorted=Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]);
+  const total=sorted.reduce((s,[,v])=>s+v,0);
+  if(!total||sorted.length<2) return null;
+  const top2Share=(sorted.slice(0,2).reduce((s,[,v])=>s+v,0))/total;
+  if(top2Share>=0.70) return sorted.slice(0,2).map(([c])=>c);
+  return null;
+}
+function getOffColorCards(topColors){
+  if(!topColors) return [];
+  return pool.filter(card=>{
+    if(card.type==='Land'||card.type==='Artifact') return false;
+    const cols=(card.colors||[]).filter(c=>c!=='C');
+    if(!cols.length) return false; // colorless, fine
+    return cols.every(c=>!topColors.includes(c));
+  });
+}
+function renderOffColorSuggestion(){
+  const strip=document.getElementById('offcolor-strip');
+  if(offColorDismissed||nlCards().reduce((s,c)=>s+c.qty,0)<12){strip.classList.remove('show');return}
+  const topColors=getTopColors();
+  if(!topColors){strip.classList.remove('show');return}
+  const offCards=getOffColorCards(topColors);
+  if(!offCards.length){strip.classList.remove('show');return}
+  const currentIds=offCards.map(c=>c.id).sort().join(',');
+  if(currentIds===lastOffColorIds&&strip.classList.contains('show')) return; // no change
+  lastOffColorIds=currentIds;
+  const c1=CFULL[topColors[0]],c2=CFULL[topColors[1]];
+  document.getElementById('offcolor-title').textContent=`🎨 Deck is shaping up ${c1}/${c2} — ${offCards.length} card${offCards.length>1?'s don\'t':'doesn\'t'} fit:`;
+  document.getElementById('offcolor-cards').innerHTML=offCards.map(c=>`<div class="offcolor-card">${c.qty>1?c.qty+'× ':''}${c.name}</div>`).join('');
+  strip.classList.add('show');
+}
+function moveOffColorToSideboard(){
+  const topColors=getTopColors();
+  const offCards=getOffColorCards(topColors);
+  offCards.forEach(card=>{
+    pool=pool.filter(x=>x.id!==card.id);
+    sideboard.push(card);
+  });
+  offColorDismissed=true;
+  render();
+  toast(`${offCards.length} card${offCards.length>1?'s':'} moved to sideboard`);
+}
+function dismissOffColor(){
+  offColorDismissed=true;
+  document.getElementById('offcolor-strip').classList.remove('show');
+}
+
 // ── MASTER RENDER ──
 function render(){
   updateFrameColor();
   renderHeader();renderStats();renderPool();renderCurve();renderAnalysis();renderLandCalc();
+  renderWarnings();renderOffColorSuggestion();
   document.getElementById('ai-section').style.display=totCards()>=5?'block':'none';
 }
 
 function renderHeader(){
-  const total=totCards(),cr=totType('Creature'),sp=pool.filter(c=>c.type!=='Land').reduce((s,c)=>s+c.qty,0);
+  const cr=totType('Creature'),sp=pool.filter(c=>c.type!=='Land').reduce((s,c)=>s+c.qty,0);
   const nl=nlCards(),avg=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(1):'—';
-  document.getElementById('hs-total').textContent=total;
+  document.getElementById('hs-total').textContent=totCards();
   document.getElementById('hs-cr').textContent=cr;
   document.getElementById('hs-sp').textContent=sp;
   document.getElementById('hs-cmc').textContent=avg;
@@ -1239,60 +745,86 @@ function renderStats(){
 
 function renderPool(){
   const el=document.getElementById('clist');
-  if(!pool.length){el.innerHTML=`<div class="empty"><span class="eicon">🃏</span>Your pool is empty.</div>`;return}
-  const types=['Creature','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Land','Other'];
-  let html='';
-  types.forEach(type=>{
-    const cards=pool.filter(c=>c.type===type).sort((a,b)=>a.cmc-b.cmc||a.name.localeCompare(b.name));
-    if(!cards.length)return;
-    html+=`<div class="cgh">${type} — ${cards.reduce((s,c)=>s+c.qty,0)}</div>`;
-    cards.forEach(card=>{
-      const pc=(card.colors||[]).find(c=>c!=='C')||'C';
-      const tk=card.type.replace(/\s/g,'');
-      html+=`<div class="crow c${pc==='C'?'CC':pc}">
-        <span class="cq">${card.qty}×</span>
-        <span class="cn">${card.name}</span>
-        <span class="cc">${card.cmcRaw||card.cmc}</span>
-        <span class="ct ct${tk}">${card.type.slice(0,3).toUpperCase()}</span>
-        <button class="crm" onclick="removeOne(${card.id})" title="Remove one">−</button>
-        <button class="crm" onclick="removeAll(${card.id})" title="Remove all">✕</button>
-      </div>`;
+  if(!pool.length){el.innerHTML=`<div class="empty"><span class="eicon">🃏</span>Your pool is empty.</div>`}
+  else{
+    const types=['Creature','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Land','Other'];
+    let html='';
+    types.forEach(type=>{
+      const cards=pool.filter(c=>c.type===type).sort((a,b)=>a.cmc-b.cmc||a.name.localeCompare(b.name));
+      if(!cards.length)return;
+      html+=`<div class="cgh">${type} — ${cards.reduce((s,c)=>s+c.qty,0)}</div>`;
+      cards.forEach(card=>{
+        const pc=(card.colors||[]).find(c=>c!=='C')||'C';
+        const tk=card.type.replace(/\s/g,'');
+        html+=`<div class="crow c${pc==='C'?'CC':pc}">
+          <span class="cq">${card.qty}×</span>
+          <span class="cn">${card.name}</span>
+          <span class="cc">${card.cmcRaw||card.cmc}</span>
+          <span class="ct ct${tk}">${card.type.slice(0,3).toUpperCase()}</span>
+          <button class="crm" onclick="removeOne(${card.id})">−</button>
+          <button class="crm" onclick="removeAll(${card.id})">✕</button>
+        </div>`;
+      });
     });
+    el.innerHTML=html;
+  }
+  // Sideboard
+  const sbEl=document.getElementById('sb-section');
+  if(!sideboard.length){sbEl.innerHTML='';return}
+  let html=`<div class="sb-section"><div class="sb-header"><span class="sb-title">Sideboard (${sideboard.reduce((s,c)=>s+c.qty,0)})</span><span class="sb-hint">Tap to restore</span></div>`;
+  sideboard.forEach(c=>{
+    html+=`<div class="sb-row"><span class="sb-name">${c.qty>1?c.qty+'× ':''}${c.name}</span><button class="sb-restore" onclick="restoreFromSideboard(${c.id})">↩ Restore</button></div>`;
   });
-  el.innerHTML=html;
+  html+=`</div>`;
+  sbEl.innerHTML=html;
 }
 
 function renderCurve(){
   const wrap=document.getElementById('curve-body');
   const nl=nlCards();
   if(!nl.length){wrap.innerHTML=`<div class="empty"><span class="eicon">📊</span>Add cards to see mana curve.</div>`;return}
-  const slots=['0','1','2','3','4','5','6','7+'],tots={},crs={};
-  slots.forEach(s=>{tots[s]=0;crs[s]=0});
-  nl.forEach(c=>{const k=c.cmc>=7?'7+':String(c.cmc);tots[k]=(tots[k]||0)+c.qty;if(c.type==='Creature')crs[k]=(crs[k]||0)+c.qty});
+  const slots=['0','1','2','3','4','5','6','7+'],tots={},crs={},artMap={};
+  slots.forEach(s=>{tots[s]=0;crs[s]=0;artMap[s]=[]});
+  nl.forEach(card=>{
+    const k=card.cmc>=7?'7+':String(card.cmc);
+    tots[k]=(tots[k]||0)+card.qty;
+    if(card.type==='Creature')crs[k]=(crs[k]||0)+card.qty;
+    if(card.img&&artMap[k].length<4) artMap[k].push({img:card.img,name:card.name});
+  });
   const mx=Math.max(...Object.values(tots),1);
-  const H=90;
-  wrap.innerHTML=`<div style="padding:4px 0 0">
-    <div class="cbars" style="height:${H+30}px;align-items:flex-end">
+  const H=80;
+
+  // Art row
+  const artRow=slots.map(s=>{
+    const cards=artMap[s];
+    if(!cards.length) return`<div class="curve-art-col" style="flex:1"></div>`;
+    const w=36,overlap=12;
+    const totalW=w+(cards.length-1)*(w-overlap);
+    const thumbs=cards.map((c,i)=>`<img class="card-thumb" src="${c.img}" title="${c.name}" style="left:${i*(w-overlap)}px;z-index:${i};width:${w}px;height:${Math.round(w*1.4)}px" loading="lazy">`).join('');
+    return`<div class="curve-art-col" style="flex:1"><div class="card-fan" style="min-height:${Math.round(w*1.4)+8}px;width:${totalW}px;max-width:100%">${thumbs}</div></div>`;
+  }).join('');
+
+  wrap.innerHTML=`<div class="curve-wrap">
+    <div class="curve-art-row">${artRow}</div>
+    <div class="cbars" style="height:${H+28}px;align-items:flex-end">
       ${slots.map(s=>{
-        const t=tots[s]||0,cr=crs[s]||0,sp=Math.max(0,t-cr);
+        const t=tots[s]||0,cr=crs[s]||0;
         const barH=t>0?Math.max(3,Math.round((t/mx)*H)):0;
         const crH=cr>0?Math.max(2,Math.round((cr/mx)*H)):0;
         const spH=Math.max(0,barH-crH);
-        return`<div class="ccol" style="height:${H+30}px">
+        return`<div class="ccol" style="height:${H+28}px">
           <div class="cnum" style="height:16px;line-height:16px">${t||''}</div>
           <div class="cba" style="height:${H}px;justify-content:flex-end">
-            ${t>0
-              ?`<div class="cbs" style="height:${spH}px"></div><div class="cbc" style="height:${crH}px"></div>`
-              :`<div style="height:2px;width:100%;background:var(--parchment-dark);border-radius:1px"></div>`
-            }
+            ${t>0?`<div class="cbs" style="height:${spH}px"></div><div class="cbc" style="height:${crH}px"></div>`
+            :`<div style="height:2px;width:100%;background:var(--parchment-dark);border-radius:1px"></div>`}
           </div>
-          <div class="clbl" style="height:14px;line-height:14px">${s}</div>
+          <div class="clbl" style="height:12px;line-height:12px">${s}</div>
         </div>`;
       }).join('')}
     </div>
     <div class="cleg">
       <span><span class="ld" style="background:linear-gradient(to top,#a07010,#e8c840)"></span>Spells</span>
-      <span><span class="ld" style="background:linear-gradient(to top,#185810,#50c860)"></span>Creatures</span>
+      <span><span class="ld" style="background:linear-gradient(to top,#185810,#50c060)"></span>Creatures</span>
     </div>
   </div>`;
 }
@@ -1301,24 +833,27 @@ function renderAnalysis(){
   const el=document.getElementById('sl'),total=totCards();
   if(total<5){el.innerHTML=`<div class="empty"><span class="eicon">🔮</span>Add cards to receive analysis.</div>`;return}
   const suggs=[],cr=totType('Creature'),inst=totType('Instant'),sorc=totType('Sorcery'),la=totType('Land'),sp=total-la;
+  const targetLands=getTargetLandCount();
   if(sp>0){
     if(cr<12)suggs.push({cls:'bad',icon:'⚠',text:`Only <strong>${cr} creatures</strong> — aim for 14–16 in a draft deck.`});
     else if(cr<=18)suggs.push({cls:'good',icon:'✓',text:`Solid creature count at <strong>${cr}</strong>.`});
     else suggs.push({cls:'warn',icon:'!',text:`<strong>${cr} creatures</strong> is high — ensure enough interaction.`});
   }
   if(sp>=8){
-    const ix=inst+sorc;
-    if(ix<5)suggs.push({cls:'warn',icon:'!',text:`Low interaction — only <strong>${ix} instants/sorceries</strong>. Aim for 6–8 pieces.`});
-    else suggs.push({cls:'good',icon:'✓',text:`<strong>${ix} instants & sorceries</strong> — solid interaction.`});
+    const remCount=pool.filter(c=>c.type!=='Land'&&isRemoval(c)).reduce((s,c)=>s+c.qty,0);
+    if(remCount<3)suggs.push({cls:'bad',icon:'✂',text:`Only <strong>${remCount} removal/interaction</strong> pieces — very low. Aim for 5+.`});
+    else if(remCount<5)suggs.push({cls:'warn',icon:'✂',text:`<strong>${remCount} removal pieces</strong> — a bit light, aim for 5–7.`});
+    else suggs.push({cls:'good',icon:'✓',text:`<strong>${remCount} removal/interaction</strong> pieces — solid.`});
   }
   const nl=nlCards(),cd={};
   nl.forEach(c=>{const k=c.cmc>=7?7:c.cmc;cd[k]=(cd[k]||0)+c.qty});
   const hi=(cd[5]||0)+(cd[6]||0)+(cd[7]||0),two=cd[2]||0;
   if(sp>=10&&two<3)suggs.push({cls:'warn',icon:'!',text:`Only <strong>${two} two-drops</strong>. Aim for 3–5 for consistent tempo.`});
-  if(sp>=10&&hi>sp*0.35)suggs.push({cls:'warn',icon:'!',text:`Top-heavy curve — <strong>${hi} cards at 5+ CMC</strong>. Consider cutting 1–2.`});
+  if(sp>=10&&hi>sp*0.35)suggs.push({cls:'warn',icon:'💎',text:`Top-heavy curve — <strong>${hi} cards at 5+ CMC</strong>. Consider cutting 1–2.`});
   if(sp>=12&&hi<=2&&two>=3)suggs.push({cls:'good',icon:'✓',text:`Well-distributed mana curve.`});
-  if(total>40)suggs.push({cls:'info',icon:'✂',text:`<strong>${total} cards</strong> — cut to 40 (23 spells + 17 lands). Cut <strong>${total-23} non-lands</strong>.`});
-  else if(sp>=20&&sp<=24)suggs.push({cls:'info',icon:'→',text:`<strong>${sp} spells</strong> — add <strong>${Math.max(0,17-la)} more lands</strong> to finish.`});
+  if(total>40)suggs.push({cls:'info',icon:'✂',text:`<strong>${total} cards</strong> — cut to 40 (23 spells + ${targetLands} lands). Cut <strong>${total-(23+targetLands)} non-lands</strong>.`});
+  else if(sp>=20&&sp<=24)suggs.push({cls:'info',icon:'→',text:`<strong>${sp} spells</strong> — add <strong>${Math.max(0,targetLands-la)} more lands</strong> to finish (targeting ${targetLands}).`});
+  // Splash
   const pt=getPips(),totalPips=Object.values(pt).reduce((s,v)=>s+v,0);
   if(totalPips>0){
     Object.entries(pt).sort((a,b)=>b[1]-a[1]).forEach(([c,pips])=>{
@@ -1343,12 +878,13 @@ function renderLandCalc(){
   const pt=getPips(),totalPips=Object.values(pt).reduce((s,v)=>s+v,0);
   if(!totalPips){el.innerHTML=`<div style="color:var(--ink-muted);font-size:13px;padding:8px;font-style:italic">Add colored spells to see recommendations.</div>`;return}
 
+  const targetLands=getTargetLandCount();
   const fixC={};let fixSlots=0;
   dl.forEach(land=>{
     const prod=(land.produced||[]).filter(c=>'WUBRG'.includes(c));
     if(prod.length){const sh=land.qty/prod.length;prod.forEach(c=>{fixC[c]=(fixC[c]||0)+sh});fixSlots+=land.qty}
   });
-  const basicsTotal=Math.max(0,17-fixSlots);
+  const basicsTotal=Math.max(0,targetLands-fixSlots);
   const effP={};Object.keys(pt).forEach(c=>{effP[c]=Math.max(0,(pt[c]||0)-(fixC[c]||0)*1.8)});
   const cw={};Object.keys(pt).forEach(c=>{const e=earliestCmc(c);cw[c]=e<=2?1.2:e<=3?1.05:e>=5?0.85:1.0});
   const wp={};Object.keys(effP).forEach(c=>{wp[c]=(effP[c]||0)*(cw[c]||1)});
@@ -1367,24 +903,25 @@ function renderLandCalc(){
     for(let t=1;t<=5;t++)probD[c].push(hyper(40,Math.round(sources),Math.min(6+t,40)));
   });
 
-  // Variable land advice
+  // Land advice label
   let landAdviceHtml='';
   if(sqty>=15){
-    const avgCmc=nl.length?nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0):3;
+    const avgCmc=nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0);
     const twoDrops=nl.filter(c=>c.cmc<=2).reduce((s,c)=>s+c.qty,0);
     const pc=sorted[0]?.[0];
-    let p17=0,p16=0;
+    let p_std=0,p_alt=0;
+    const stdLands=17,altLands=16;
     if(pc){
-      const s17=Math.round((alloc[pc]||0)+(fixC[pc]||0));
-      p17=hyper(40,s17,8);p16=hyper(39,Math.max(0,s17-1),8);
+      const src_std=Math.round((alloc[pc]||0)+(fixC[pc]||0));
+      const srcAdj=Math.max(0,src_std-(targetLands===16?0:1));
+      p_std=hyper(40,src_std,8);
+      p_alt=hyper(39,Math.max(0,src_std-1),8);
     }
-    const drop=Math.round((p17-p16)*100);
-    if(avgCmc<=2.5&&twoDrops>=5){
-      landAdviceHtml=`<div class="land-advice ok"><strong>16 lands is defensible.</strong><br>Avg CMC ${avgCmc.toFixed(1)}, ${twoDrops} early drops. T2 color hit drops ~${drop}% (${Math.round(p17*100)}% → ${Math.round(p16*100)}%) — acceptable trade for the extra spell.</div>`;
-    }else if(avgCmc<=3.0&&twoDrops>=3){
-      landAdviceHtml=`<div class="land-advice caution"><strong>16 lands is borderline.</strong><br>Avg CMC ${avgCmc.toFixed(1)}, ${twoDrops} early drops. T2 color drops ~${drop}% to ${Math.round(p16*100)}%. Viable if your mid-game is strong.</div>`;
-    }else{
-      landAdviceHtml=`<div class="land-advice no"><strong>Stick to 17 lands.</strong><br>Avg CMC ${avgCmc.toFixed(1)}, ${twoDrops} early drops. 16 lands drops T2 color to ${Math.round(p16*100)}% — too risky.</div>`;
+    const drop=Math.round((p_std-p_alt)*100);
+    if(targetLands===16){
+      landAdviceHtml=`<div class="land-advice ok"><strong>Running 16 lands</strong> — avg CMC ${avgCmc.toFixed(1)}, ${twoDrops} early drops supports this. T2 color hit: ~${Math.round(p_std*100)}%.</div>`;
+    } else {
+      landAdviceHtml=`<div class="land-advice no"><strong>Running 17 lands</strong> — avg CMC ${avgCmc.toFixed(1)}, curve too high for 16. T2 color hit: ~${Math.round(p_std*100)}%.</div>`;
     }
   }
 
@@ -1397,18 +934,14 @@ function renderLandCalc(){
     });
     html+=`</div><hr class="divider">`;
   }
-
   html+=`<div class="slbl">Recommended Basics</div><div class="bgrid">`;
   sorted.forEach(([c],i)=>{
     html+=`<div class="bcell${i<2?' pri':''}"><div class="bcl"><div class="bcsw bcsw${c}"></div><span class="bcn">${CNAMES[c]||c}</span></div><span class="bcc">${alloc[c]??0}</span></div>`;
   });
-  html+=`</div><div class="ltbar"><span class="ltbl">Total Lands</span><span class="ltbc">${Math.round(fixSlots)+basicsTotal}</span></div>`;
-
+  html+=`</div><div class="ltbar"><span class="ltbl">Total Lands</span><span class="ltbc">${targetLands}</span></div>`;
   const hasAdj=sorted.some(([c])=>cw[c]!==1.0);
-  html+=`<div style="font-size:11px;color:var(--ink-muted);margin-bottom:10px;font-style:italic">Pip-weighted${fixSlots>0?` · ${Math.round(fixSlots)} drafted + ${basicsTotal} basics`:''}${hasAdj?' · curve-adjusted':''}</div>`;
-
+  html+=`<div style="font-size:11px;color:var(--ink-muted);margin-bottom:10px;font-style:italic">Pip-weighted${fixSlots>0?` · ${Math.round(fixSlots)} drafted + ${basicsTotal} basics`:''}${hasAdj?' · curve-adjusted':''} · targeting ${targetLands} lands</div>`;
   html+=landAdviceHtml;
-
   html+=`<div class="psect"><div class="ptit">Color Availability by Turn</div><div class="pgrid">`;
   sorted.forEach(([c])=>{
     const col=CHEX[c]||'#707070';
@@ -1425,46 +958,111 @@ function renderLandCalc(){
       <span style="color:#8a5808">■</span> 75–89% &nbsp;
       <span style="color:#8a1808">■</span> &lt;75%
     </div></div>`;
-
   el.innerHTML=html;
 }
 
-// ── GEMINI AI ANALYSIS ──
-document.getElementById('ai-btn').addEventListener('click', async () => {
-  // Show key input if no key yet
-  if(!geminiKey){
-    const keyRow=document.getElementById('key-row');
-    const keyHint=document.getElementById('key-hint');
-    if(keyRow.style.display==='none'){
-      keyRow.style.display='flex';
-      keyHint.style.display='block';
-      document.getElementById('key-input').focus();
-      return;
-    }
-    const inputVal=document.getElementById('key-input').value.trim();
-    if(!inputVal){
-      document.getElementById('key-input').style.borderColor='#8a0808';
-      return;
-    }
-    geminiKey=inputVal;
-    document.getElementById('key-row').style.display='none';
-    document.getElementById('key-hint').style.display='none';
+// ── IMPORTER ──
+function openImporter(){
+  const existing=document.getElementById('importer-modal');
+  if(existing){existing.remove();return}
+  const modal=document.createElement('div');
+  modal.id='importer-modal';
+  modal.style.cssText='position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.78);padding:16px;';
+  modal.innerHTML=`
+    <div style="background:var(--parchment);border:4px solid #100c04;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.92);width:100%;max-width:520px;overflow:hidden;">
+      <div style="background:var(--frame-active);padding:8px 16px;border-bottom:2px solid rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:#1a1208;letter-spacing:0.1em;text-transform:uppercase;">Import from Arena</span>
+        <button onclick="document.getElementById('importer-modal').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#1a1208;line-height:1;padding:2px 6px;">✕</button>
+      </div>
+      <div style="padding:16px;">
+        <div style="font-family:'Crimson Pro',serif;font-size:13px;color:var(--ink-dim);margin-bottom:8px;font-style:italic;">
+          Paste your Arena deck export. Supports <span style="font-family:monospace;font-size:12px;color:var(--ink);">4 Lightning Bolt (M21) 123</span> or <span style="font-family:monospace;font-size:12px;color:var(--ink);">4 Lightning Bolt</span>
+        </div>
+        <textarea id="import-text" style="width:100%;height:200px;background:var(--parchment2);border:1px solid var(--parchment-dark);border-radius:5px;padding:10px;font-family:monospace;font-size:13px;color:var(--ink);resize:vertical;outline:none;box-shadow:inset 0 1px 3px rgba(0,0,0,0.15);" placeholder="4 Lightning Bolt (M21) 123&#10;2 Grizzly Bears&#10;..."></textarea>
+        <div id="import-status" style="font-size:12px;color:var(--ink-muted);font-style:italic;margin-top:6px;min-height:18px;font-family:'Crimson Pro',serif;"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button id="import-btn" onclick="runImport()" style="flex:1;background:linear-gradient(180deg,#ecd472,#c09020,#a07010,#ccaa38);border:2px solid #7a5010;border-radius:5px;color:#1a0c00;font-family:'Cinzel',serif;font-size:13px;font-weight:700;letter-spacing:0.08em;padding:9px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3);">✦ Import Cards</button>
+          <button onclick="document.getElementById('importer-modal').remove()" style="background:none;border:1px solid var(--parchment-dark);border-radius:5px;color:var(--ink-dim);font-family:'Cinzel',serif;font-size:12px;font-weight:700;padding:9px 16px;cursor:pointer;">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove()});
+  document.getElementById('import-text').focus();
+}
+async function runImport(){
+  const raw=document.getElementById('import-text').value.trim();
+  if(!raw)return;
+  const status=document.getElementById('import-status');
+  const btn=document.getElementById('import-btn');
+  btn.disabled=true;
+  const lines=raw.split('\n').map(l=>l.trim()).filter(l=>l&&!/^(deck|sideboard|commander|companion)$/i.test(l));
+  const parsed=[];
+  for(const line of lines){
+    const m=line.match(/^(\d+)\s+(.+?)(?:\s+\([^)]+\)\s+\d+)?$/);
+    if(m)parsed.push({qty:parseInt(m[1]),name:m[2].trim()});
+    else{const m2=line.match(/^(.+?)(?:\s+\([^)]+\)\s+\d+)?$/);if(m2)parsed.push({qty:1,name:m2[1].trim()})}
   }
+  if(!parsed.length){status.textContent='No cards found — check the format.';btn.disabled=false;return}
+  const deduped={};
+  parsed.forEach(({qty,name})=>{const k=name.toLowerCase();if(!deduped[k])deduped[k]={qty:0,name};deduped[k].qty+=qty});
+  const cards=Object.values(deduped);
+  status.textContent=`Looking up ${cards.length} cards…`;
+  let added=0,failed=[];
+  for(let i=0;i<cards.length;i++){
+    const{qty,name}=cards[i];
+    status.textContent=`Looking up ${i+1}/${cards.length}: ${name}…`;
+    try{
+      const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);
+      const card=await r.json();
+      if(card.object==='card'){
+        const tl=card.type_line||'';
+        let type='Other';
+        if(tl.includes('Creature'))type='Creature';
+        else if(tl.includes('Instant'))type='Instant';
+        else if(tl.includes('Sorcery'))type='Sorcery';
+        else if(tl.includes('Enchantment'))type='Enchantment';
+        else if(tl.includes('Artifact'))type='Artifact';
+        else if(tl.includes('Planeswalker'))type='Planeswalker';
+        else if(tl.includes('Land'))type='Land';
+        const cmc=card.cmc!==undefined?Math.round(card.cmc):0;
+        const colors=card.colors||[];
+        const pips=parsePips(card.mana_cost);
+        const produced=(card.produced_mana||[]).filter(c=>'WUBRG'.includes(c));
+        const oracle=card.oracle_text||card.card_faces?.[0]?.oracle_text||'';
+        const img=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.small||null;
+        const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase()&&c.type===type);
+        if(ex){ex.qty+=qty}
+        else pool.push({id:Date.now()+i,name:card.name,type,cmc,cmcRaw:cmc>=7?'7+':String(cmc),colors:colors.length?colors:['C'],qty,pips,produced,oracle,img});
+        added+=qty;
+      } else failed.push(name);
+    }catch{failed.push(name)}
+    await new Promise(res=>setTimeout(res,80));
+  }
+  offColorDismissed=false;
+  resetAiOutput();render();
+  if(failed.length)status.innerHTML=`<span style="color:#185810">Added ${added} cards.</span> <span style="color:#8a0808">Not found: ${failed.join(', ')}</span>`;
+  else{status.innerHTML=`<span style="color:#185810">✓ Added ${added} cards successfully!</span>`;setTimeout(()=>document.getElementById('importer-modal')?.remove(),1200)}
+  btn.disabled=false;
+}
 
+// ── GEMINI AI ──
+document.getElementById('ai-btn').addEventListener('click',async()=>{
+  if(!geminiKey){
+    const kr=document.getElementById('key-row'),kh=document.getElementById('key-hint');
+    if(kr.style.display==='none'){kr.style.display='flex';kh.style.display='block';document.getElementById('key-input').focus();return}
+    const v=document.getElementById('key-input').value.trim();
+    if(!v){document.getElementById('key-input').style.borderColor='#8a0808';return}
+    geminiKey=v;kr.style.display='none';kh.style.display='none';
+  }
   const btn=document.getElementById('ai-btn'),spin=document.getElementById('ai-spin'),btntxt=document.getElementById('ai-btn-txt'),output=document.getElementById('ai-output');
   btn.disabled=true;spin.classList.add('show');btntxt.textContent='Analyzing…';
   output.classList.remove('show');output.innerHTML='';
-
   const nl=nlCards();
-  const cardLines=pool.map(c=>{
-    const oracle=c.oracle||'';
-    return`${c.qty}x ${c.name} [${c.type}, CMC ${c.cmcRaw||c.cmc}, ${(c.colors||[]).join('')||'C'}]${oracle?` — "${oracle.slice(0,120)}${oracle.length>120?'…':''}"`:''}`;
-  }).join('\n');
-
+  const cardLines=pool.map(c=>{const o=c.oracle||'';return`${c.qty}x ${c.name} [${c.type}, CMC ${c.cmcRaw||c.cmc}, ${(c.colors||[]).join('')||'C'}]${o?` — "${o.slice(0,120)}${o.length>120?'…':''}"`:''}`;}).join('\n');
   const pt=getPips();
   const pipSummary=Object.entries(pt).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`${CFULL[c]||c}: ${n.toFixed(1)} pips`).join(', ');
   const avgCmc=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(2):'?';
-
   const prompt=`You are an expert Magic: The Gathering draft analyst. Analyze this draft pool and give honest, specific, actionable advice.
 
 DRAFT POOL (${totCards()} cards):
@@ -1476,7 +1074,7 @@ STATS:
 - Mana pip distribution: ${pipSummary}
 
 Please analyze:
-1. **Interaction & Removal** — identify ALL cards that interact with the opponent (removal, tempo, tricks, tappers, counters, etc). Include enchantments like those that tap or lock down creatures. Count total interaction pieces.
+1. **Interaction & Removal** — identify ALL cards that interact with the opponent (removal, tempo, tricks, tappers, counters, etc). Include enchantments that tap or lock down creatures. Count total interaction pieces.
 2. **Threats & Finishers** — key win conditions and powerful threats.
 3. **Curve Assessment** — is the curve appropriate? Any dangerous gaps?
 4. **Color Consistency** — are colors well-supported? Any splash concerns?
@@ -1484,39 +1082,26 @@ Please analyze:
 6. **Overall Grade** — A/B/C/D with a 2-sentence verdict.
 
 Be direct and specific. Use actual card names. Keep it under 350 words.`;
-
   try{
     const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        contents:[{parts:[{text:prompt}]}],
-        generationConfig:{maxOutputTokens:1000,temperature:0.7}
-      })
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1000,temperature:0.7}})
     });
     const data=await resp.json();
-    if(data.error){throw new Error(data.error.message||'API error')}
+    if(data.error)throw new Error(data.error.message||'API error');
     const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'No response received.';
-    // Convert markdown to readable HTML
     const formatted=text
-      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')  // bold
-      .replace(/\*(.+?)\*/g,'<em>$1</em>')               // italic
-      .replace(/^#{1,3}\s+(.+)$/gm,'<strong>$1</strong>') // headers
-      .replace(/\n\n/g,'<br><br>')                        // paragraph breaks
-      .replace(/\n/g,'<br>');                             // line breaks
-    output.innerHTML=formatted;
-    output.classList.add('show');
-    btntxt.textContent='Re-analyze';
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/^#{1,3}\s+(.+)$/gm,'<strong>$1</strong>')
+      .replace(/\n\n/g,'<br><br>')
+      .replace(/\n/g,'<br>');
+    output.innerHTML=formatted;output.classList.add('show');btntxt.textContent='Re-analyze';
   }catch(err){
     output.innerHTML=`<span style="color:#8a0808">Analysis failed: ${err.message}.<br>Check your API key and try again.</span>`;
-    output.classList.add('show');
-    btntxt.textContent='Retry';
-    geminiKey=''; // reset key so they can re-enter
-    document.getElementById('key-row').style.display='flex';
-    document.getElementById('key-hint').style.display='block';
-  }finally{
-    btn.disabled=false;spin.classList.remove('show');
-  }
+    output.classList.add('show');btntxt.textContent='Retry';
+    geminiKey='';document.getElementById('key-row').style.display='flex';document.getElementById('key-hint').style.display='block';
+  }finally{btn.disabled=false;spin.classList.remove('show')}
 });
 
 // ── TOAST ──
