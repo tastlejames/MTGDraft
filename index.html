@@ -55,7 +55,7 @@ body {
   font-size: 15px;
   line-height: 1.5;
   min-height: 100vh;
-  overflow-x: visible;
+  overflow-x: hidden;
 }
 
 /* Play mat background */
@@ -92,7 +92,7 @@ body::before {
 
 .card-frame-inner {
   border-radius: 10px;
-  overflow: visible;
+  overflow: hidden;
   background: var(--parchment);
   box-shadow: var(--inner-shadow);
 }
@@ -1497,7 +1497,13 @@ Be direct and specific. Use actual card names. Keep it under 350 words.`;
     const data=await resp.json();
     if(data.error){throw new Error(data.error.message||'API error')}
     const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'No response received.';
-    const formatted=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    // Convert markdown to readable HTML
+    const formatted=text
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')  // bold
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')               // italic
+      .replace(/^#{1,3}\s+(.+)$/gm,'<strong>$1</strong>') // headers
+      .replace(/\n\n/g,'<br><br>')                        // paragraph breaks
+      .replace(/\n/g,'<br>');                             // line breaks
     output.innerHTML=formatted;
     output.classList.add('show');
     btntxt.textContent='Re-analyze';
