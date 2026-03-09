@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Draft Table — MTG Draft Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#09090d;--surf:#13131a;--surf2:#18181f;--surf3:#1e1e28;--surf4:#242430;
+  --border:#2a2a38;--border2:#353548;
+  --gold:#c8a84b;--gold2:#e2c46a;--gold-dim:#7a6228;
+  --text:#d8d4e8;--text-dim:#7a7690;--text-muted:#3e3c50;
+  --W-col:#f0e8c8;--W-bg:rgba(240,232,200,0.12);--W-border:rgba(240,232,200,0.3);
+  --U-col:#4a9fd4;--U-bg:rgba(74,159,212,0.12);--U-border:rgba(74,159,212,0.3);
+  --B-col:#b07ee8;--B-bg:rgba(176,126,232,0.12);--B-border:rgba(176,126,232,0.3);
+  --R-col:#f05a3a;--R-bg:rgba(240,90,58,0.12);--R-border:rgba(240,90,58,0.3);
+  --G-col:#3ac87a;--G-bg:rgba(58,200,122,0.12);--G-border:rgba(58,200,122,0.3);
+  --shadow:0 4px 24px rgba(0,0,0,0.7);--shadow2:0 8px 40px rgba(0,0,0,0.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 15% 10%,rgba(200,168,75,.06) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 85% 90%,rgba(74,159,212,.05) 0%,transparent 60%),repeating-linear-gradient(0deg,transparent,transparent 80px,rgba(255,255,255,.008) 80px,rgba(255,255,255,.008) 81px),repeating-linear-gradient(90deg,transparent,transparent 80px,rgba(255,255,255,.008) 80px,rgba(255,255,255,.008) 81px);pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:1460px;margin:0 auto;padding:0 16px 48px}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 12px;border-bottom:1px solid var(--border);margin-bottom:18px;gap:16px;flex-wrap:wrap}
+.hd-left{display:flex;align-items:center;gap:10px}
+.logo{font-family:'Cinzel',serif;font-size:20px;font-weight:700;letter-spacing:.06em;color:var(--gold2);text-shadow:0 0 24px rgba(200,168,75,.35);white-space:nowrap}
+.badge{background:var(--surf3);border:1px solid var(--border2);border-radius:4px;padding:3px 9px;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase}
+.hd-stats{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.hst{text-align:center}
+.hst-v{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--gold2);line-height:1}
+.hst-l{font-size:10px;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-top:1px}
+.hdiv{width:1px;height:30px;background:var(--border)}
+.cib-row{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.cib{display:flex;align-items:center;gap:4px;padding:3px 8px 3px 5px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;border:1px solid transparent}
+.cib-W{background:var(--W-bg);border-color:var(--W-border);color:var(--W-col)}
+.cib-U{background:var(--U-bg);border-color:var(--U-border);color:var(--U-col)}
+.cib-B{background:var(--B-bg);border-color:var(--B-border);color:var(--B-col)}
+.cib-R{background:var(--R-bg);border-color:var(--R-border);color:var(--R-col)}
+.cib-G{background:var(--G-bg);border-color:var(--G-border);color:var(--G-col)}
+.cib-dot{width:8px;height:8px;border-radius:50%}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:310px 1fr;gap:14px;align-items:start}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* PANELS */
+.panel{background:var(--surf);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.panel+.panel{margin-top:12px}
+.ph{background:var(--surf2);border-bottom:1px solid var(--border);padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ph-t{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.pb{padding:13px}
+
+/* SEARCH */
+.sw{position:relative}
+.si{width:100%;background:var(--surf3);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'Barlow',sans-serif;font-size:15px;font-weight:500;padding:10px 14px;outline:none;transition:border-color .2s,box-shadow .2s}
+.si:focus{border-color:var(--gold-dim);box-shadow:0 0 0 2px rgba(200,168,75,.15)}
+.si::placeholder{color:var(--text-muted)}
+.acl{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surf2);border:1px solid var(--border2);border-radius:7px;z-index:200;max-height:250px;overflow-y:auto;box-shadow:var(--shadow2);display:none}
+.acl.open{display:block}
+.aci{padding:9px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);transition:background .1s;font-size:14px}
+.aci:last-child{border-bottom:none}
+.aci:hover,.aci.sel{background:var(--surf3)}
+
+/* ADD BUTTON - right under search */
+.addbtn{width:100%;margin-top:8px;padding:10px;background:linear-gradient(135deg,#9a7a28,var(--gold),#e2c46a);border:none;border-radius:7px;color:#1a1000;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:opacity .2s,transform .1s;box-shadow:0 2px 12px rgba(200,168,75,.25)}
+.addbtn:hover{opacity:.9}
+.addbtn:active{transform:scale(.98)}
+.addbtn:disabled{opacity:.3;cursor:not-allowed;box-shadow:none}
+
+/* CONTROLS */
+.cr2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.cl{font-size:10px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;font-weight:700}
+.cs{background:var(--surf3);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:8px 10px;font-family:'Barlow',sans-serif;font-size:13px;cursor:pointer;width:100%;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7690'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.cprow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.cp{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;border:2px solid transparent;cursor:pointer;opacity:.3;transition:opacity .15s,border-color .15s,transform .1s;font-family:'Barlow Condensed',sans-serif;user-select:none}
+.cp.on{opacity:1;border-color:rgba(255,255,255,.45);transform:scale(1.1)}
+.cp-W{background:radial-gradient(circle,#f0e8c8,#c8a860);color:#3a2a00}
+.cp-U{background:radial-gradient(circle,#6ab4e8,#2a7fc0);color:#fff}
+.cp-B{background:radial-gradient(circle,#b07ee8,#6a3aaa);color:#fff}
+.cp-R{background:radial-gradient(circle,#f07858,#c83020);color:#fff}
+.cp-G{background:radial-gradient(circle,#50d488,#1a9a50);color:#fff}
+.cp-C{background:radial-gradient(circle,#909090,#505050);color:#fff}
+.qrow{display:flex;align-items:center;gap:8px;margin-top:10px}
+.ql{font-size:10px;color:var(--text-dim);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.qb{background:var(--surf3);border:1px solid var(--border2);color:var(--text);width:28px;height:28px;border-radius:5px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;line-height:1}
+.qb:hover{background:var(--border2)}
+.qv{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;color:var(--gold2);min-width:20px;text-align:center}
+
+/* STATS STRIP */
+.sstrip{display:grid;grid-template-columns:repeat(5,1fr);background:var(--surf);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.sc{padding:10px 6px;text-align:center;border-right:1px solid var(--border)}
+.sc:last-child{border-right:none}
+.sc-v{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--gold2);line-height:1}
+.sc-l{font-size:10px;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.sc.good .sc-v{color:#3ac87a}.sc.warn .sc-v{color:#e8a020}.sc.bad .sc-v{color:#f05a3a}
+
+/* TABS */
+.tabs{display:flex;gap:2px;background:var(--surf2);padding:4px;border-radius:8px;margin-bottom:12px}
+.tab{flex:1;background:none;border:none;color:var(--text-dim);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:7px 4px;border-radius:5px;cursor:pointer;transition:background .15s,color .15s}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--surf4);color:var(--gold2);border:1px solid var(--border2)}
+.tc{display:none}.tc.active{display:block}
+
+/* TYPE CHIPS */
+.tchips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.tchip{background:var(--surf3);border:1px solid var(--border2);border-radius:20px;padding:3px 10px;font-size:12px;display:flex;align-items:center;gap:5px}
+.tcn{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:var(--gold2)}
+.tcl{color:var(--text-dim)}
+
+/* CARD LIST */
+.clist{display:flex;flex-direction:column;gap:2px}
+.cgh{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:8px 6px 2px}
+.crow{display:flex;align-items:center;gap:7px;padding:6px 10px;background:var(--surf2);border:1px solid transparent;border-radius:6px;transition:border-color .15s,background .15s;position:relative;overflow:hidden}
+.crow::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;opacity:0;transition:opacity .15s}
+.crow:hover{border-color:var(--border2);background:var(--surf3)}
+.crow:hover::before{opacity:1}
+.cW::before{background:var(--W-col)}.cU::before{background:var(--U-col)}.cB::before{background:var(--B-col)}
+.cR::before{background:var(--R-col)}.cG::before{background:var(--G-col)}.cCC::before{background:var(--text-dim)}
+.cq{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--gold);min-width:18px;text-align:right}
+.cn{flex:1;font-size:13px;font-weight:500;color:var(--text)}
+.cc{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text-dim)}
+.ct{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:4px}
+.ctCreature{background:rgba(58,200,122,.15);color:#3ac87a}
+.ctInstant,.ctSorcery{background:rgba(74,159,212,.15);color:#4a9fd4}
+.ctEnchantment{background:rgba(176,126,232,.15);color:#b07ee8}
+.ctArtifact{background:rgba(160,160,160,.15);color:#a0a0b0}
+.ctPlaneswalker{background:rgba(200,168,75,.2);color:var(--gold2)}
+.ctLand{background:rgba(139,90,43,.2);color:#c8844a}
+.ctOther{background:rgba(80,78,100,.3);color:var(--text-dim)}
+.crm{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:3px;transition:color .15s,background .15s;line-height:1}
+.crm:hover{color:#f05a3a;background:rgba(240,90,58,.1)}
+
+/* CURVE */
+.cbars{display:flex;align-items:flex-end;gap:5px}
+.ccol{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px}
+.cba{display:flex;flex-direction:column;justify-content:flex-end;width:100%}
+.cbs{width:100%;background:linear-gradient(to top,var(--gold-dim),var(--gold));border-radius:2px 2px 0 0;min-height:0}
+.cbc{width:100%;background:linear-gradient(to top,#1a7a40,#3ac87a);border-radius:2px 2px 0 0;min-height:0}
+.cnum{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--gold2);min-height:14px;line-height:1;text-align:center}
+.clbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text-dim)}
+.cleg{display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--text-dim)}
+.ld{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+
+/* ANALYSIS */
+.sl{display:flex;flex-direction:column;gap:8px}
+.sg{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:7px;font-size:13px;border-left:3px solid transparent;line-height:1.4}
+.sg.good{background:rgba(58,200,122,.07);border-color:#3ac87a}
+.sg.warn{background:rgba(232,160,32,.07);border-color:#e8a020}
+.sg.bad{background:rgba(240,90,58,.07);border-color:#f05a3a}
+.sg.info{background:rgba(74,159,212,.07);border-color:#4a9fd4}
+.sg.sp-ok{background:rgba(176,126,232,.08);border-color:#b07ee8}
+.sg.sp-bad{background:rgba(240,90,58,.08);border-color:#f05a3a}
+.sg strong{color:var(--gold2)}
+
+/* AI ANALYSIS */
+.ai-section{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.ai-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ai-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:6px}
+.ai-btn{background:linear-gradient(135deg,rgba(200,168,75,.15),rgba(200,168,75,.08));border:1px solid var(--gold-dim);color:var(--gold2);border-radius:6px;padding:6px 14px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.ai-btn:hover{background:linear-gradient(135deg,rgba(200,168,75,.25),rgba(200,168,75,.15));border-color:var(--gold)}
+.ai-btn:disabled{opacity:.4;cursor:not-allowed}
+.ai-spinner{width:12px;height:12px;border:2px solid rgba(200,168,75,.3);border-top-color:var(--gold2);border-radius:50%;animation:spin .7s linear infinite;display:none}
+.ai-spinner.show{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-output{background:var(--surf2);border:1px solid var(--border2);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap;display:none}
+.ai-output.show{display:block}
+.ai-output strong,.ai-output b{color:var(--gold2)}
+
+/* LAND CALC */
+.ldl{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.ldi{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--surf3);border-radius:6px;border:1px solid var(--border);font-size:13px}
+.ldin{color:var(--text);flex:1}
+.ldips{display:flex;gap:3px;align-items:center}
+.ldp{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;font-family:'Barlow Condensed',sans-serif}
+.ldpW{background:radial-gradient(circle,#f0e8c8,#c8a860);color:#3a2a00}
+.ldpU{background:radial-gradient(circle,#6ab4e8,#2a7fc0);color:#fff}
+.ldpB{background:radial-gradient(circle,#b07ee8,#6a3aaa);color:#fff}
+.ldpR{background:radial-gradient(circle,#f07858,#c83020);color:#fff}
+.ldpG{background:radial-gradient(circle,#50d488,#1a9a50);color:#fff}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.bcell{background:var(--surf3);border-radius:7px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border)}
+.bcell.pri{border-color:var(--border2)}
+.bcl{display:flex;align-items:center;gap:8px}
+.bcsw{width:20px;height:20px;border-radius:50%;flex-shrink:0}
+.bcswW{background:radial-gradient(circle,#f0e8c8,#c8a860)}.bcswU{background:radial-gradient(circle,#6ab4e8,#2a7fc0)}
+.bcswB{background:radial-gradient(circle,#b07ee8,#6a3aaa)}.bcswR{background:radial-gradient(circle,#f07858,#c83020)}
+.bcswG{background:radial-gradient(circle,#50d488,#1a9a50)}
+.bcn{font-size:12px;color:var(--text-dim);font-weight:500}
+.bcc{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--gold2)}
+.ltbar{background:linear-gradient(135deg,rgba(200,168,75,.1),rgba(200,168,75,.05));border:1px solid var(--gold-dim);border-radius:7px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ltbl{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase}
+.ltbc{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--gold2)}
+
+/* VARIABLE LAND ADVICE */
+.land-advice{border-radius:7px;padding:10px 12px;font-size:12px;line-height:1.5;margin-bottom:12px;border-left:3px solid}
+.land-advice.ok{background:rgba(58,200,122,.07);border-color:#3ac87a}
+.land-advice.caution{background:rgba(232,160,32,.07);border-color:#e8a020}
+.land-advice.no{background:rgba(240,90,58,.07);border-color:#f05a3a}
+.land-advice strong{color:var(--gold2)}
+
+/* PROB CHART */
+.psect{margin-top:14px}
+.ptit{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px}
+.pgrid{display:flex;flex-direction:column;gap:5px}
+.prow{display:flex;align-items:center;gap:8px}
+.pcl{width:56px;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px}
+.pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pbars{display:flex;gap:3px;flex:1}
+.pbar{flex:1;height:22px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;color:rgba(0,0,0,.75)}
+.ptlabs{display:flex;gap:3px;margin-top:3px;padding-left:64px}
+.ptlab{flex:1;text-align:center;font-size:10px;color:var(--text-muted);font-family:'Barlow Condensed',sans-serif}
+
+/* MISC */
+.slbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+.divider{border:none;border-top:1px solid var(--border);margin:10px 0}
+.empty{text-align:center;padding:28px 20px;color:var(--text-muted);font-size:13px;font-style:italic}
+.eicon{font-size:28px;margin-bottom:8px;opacity:.3}
+.dbtn{background:none;border:1px solid rgba(240,90,58,.25);color:rgba(240,90,58,.5);border-radius:5px;padding:4px 10px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.dbtn:hover{border-color:#f05a3a;color:#f05a3a;background:rgba(240,90,58,.08)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surf3);border:1px solid var(--gold-dim);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:500;color:var(--gold2);box-shadow:var(--shadow2);z-index:999;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--surf)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="hd-left">
+    <div class="logo">⬡ Draft Table</div>
+    <div class="badge">MTG Assistant</div>
+  </div>
+  <div class="hd-stats">
+    <div class="hst"><div class="hst-v" id="hs-total">0</div><div class="hst-l">Cards</div></div>
+    <div class="hdiv"></div>
+    <div class="hst"><div class="hst-v" id="hs-cr">0</div><div class="hst-l">Creatures</div></div>
+    <div class="hdiv"></div>
+    <div class="hst"><div class="hst-v" id="hs-sp">0</div><div class="hst-l">Spells</div></div>
+    <div class="hdiv"></div>
+    <div class="hst"><div class="hst-v" id="hs-cmc">—</div><div class="hst-l">Avg CMC</div></div>
+    <div class="hdiv"></div>
+    <div class="cib-row" id="hd-colors"></div>
+  </div>
+</header>
+
+<div class="layout">
+<div>
+  <div class="panel">
+    <div class="ph"><span class="ph-t">Add Pick</span><span id="prev-cost" style="font-size:12px;color:var(--text-dim);font-family:'Barlow Condensed',sans-serif;font-weight:700"></span></div>
+    <div class="pb">
+      <div class="sw">
+        <input class="si" id="si" type="text" placeholder="Card name…" autocomplete="off" spellcheck="false">
+        <div class="acl" id="acl"></div>
+      </div>
+      <!-- ADD BUTTON IMMEDIATELY UNDER SEARCH -->
+      <button class="addbtn" id="addbtn" disabled>＋ Add to Pool</button>
+      <div class="cr2">
+        <div><div class="cl">Type</div>
+          <select class="cs" id="sel-type">
+            <option>Creature</option><option>Instant</option><option>Sorcery</option>
+            <option>Enchantment</option><option>Artifact</option><option>Planeswalker</option>
+            <option>Land</option><option>Other</option>
+          </select>
+        </div>
+        <div><div class="cl">CMC</div>
+          <select class="cs" id="sel-cmc">
+            <option>0</option><option>1</option><option selected>2</option>
+            <option>3</option><option>4</option><option>5</option><option>6</option><option>7+</option>
+          </select>
+        </div>
+      </div>
+      <div class="cl" style="margin-top:10px">Color(s)</div>
+      <div class="cprow" id="cprow">
+        <div class="cp cp-W" data-c="W">W</div>
+        <div class="cp cp-U" data-c="U">U</div>
+        <div class="cp cp-B" data-c="B">B</div>
+        <div class="cp cp-R" data-c="R">R</div>
+        <div class="cp cp-G" data-c="G">G</div>
+        <div class="cp cp-C" data-c="C">∅</div>
+      </div>
+      <div class="qrow">
+        <span class="ql">Copies</span>
+        <button class="qb" id="qm">−</button>
+        <span class="qv" id="qv">1</span>
+        <button class="qb" id="qp">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph"><span class="ph-t">Land Calculator</span></div>
+    <div class="pb" id="lc-body"><div class="empty"><div class="eicon">🏔</div>Add spells to see recommendations</div></div>
+  </div>
+</div>
+
+<div>
+  <div class="sstrip">
+    <div class="sc" id="sc-tot"><div class="sc-v">0</div><div class="sc-l">Total</div></div>
+    <div class="sc" id="sc-cr"><div class="sc-v">0</div><div class="sc-l">Creatures</div></div>
+    <div class="sc" id="sc-sp"><div class="sc-v">0</div><div class="sc-l">Spells</div></div>
+    <div class="sc" id="sc-la"><div class="sc-v">0</div><div class="sc-l">Lands</div></div>
+    <div class="sc" id="sc-cmc"><div class="sc-v">—</div><div class="sc-l">Avg CMC</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="pb" style="padding-bottom:0">
+      <div class="tabs">
+        <button class="tab active" data-tab="pool">Pool</button>
+        <button class="tab" data-tab="curve">Curve</button>
+        <button class="tab" data-tab="analysis">Analysis</button>
+      </div>
+    </div>
+    <div class="tc active" id="tab-pool">
+      <div class="pb" style="padding-top:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="tchips" id="tchips" style="margin-bottom:0"></div>
+          <button class="dbtn" id="clr-btn">Clear All</button>
+        </div>
+        <div class="clist" id="clist"><div class="empty"><div class="eicon">🃏</div>Your pool is empty.</div></div>
+      </div>
+    </div>
+    <div class="tc" id="tab-curve">
+      <div class="pb" id="curve-body"><div class="empty"><div class="eicon">📊</div>Add cards to see mana curve.</div></div>
+    </div>
+    <div class="tc" id="tab-analysis">
+      <div class="pb">
+        <!-- RULE-BASED -->
+        <div class="sl" id="sl"><div class="empty"><div class="eicon">🔮</div>Add cards to receive analysis.</div></div>
+        <!-- AI SECTION -->
+        <div class="ai-section" id="ai-section" style="display:none">
+          <div class="ai-header">
+            <div class="ai-title">
+              <span>✦</span> AI Analysis
+            </div>
+            <button class="ai-btn" id="ai-btn">
+              <div class="ai-spinner" id="ai-spin"></div>
+              <span id="ai-btn-txt">Run Analysis</span>
+            </button>
+          </div>
+          <div class="ai-output" id="ai-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let pool=[], qty=1, selCard=null, acTmo=null, acRes=[], acIdx=-1;
+const CNAMES={W:'Plains',U:'Islands',B:'Swamps',R:'Mountains',G:'Forests'};
+const CFULL={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
+const CHEX={W:'#f0e8c8',U:'#4a9fd4',B:'#b07ee8',R:'#f05a3a',G:'#3ac87a'};
+
+// ── TABS ──
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tc').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('tab-'+t.dataset.tab).classList.add('active');
+}));
+
+// ── QTY (no cap) ──
+document.getElementById('qm').onclick=()=>{if(qty>1){qty--;document.getElementById('qv').textContent=qty}};
+document.getElementById('qp').onclick=()=>{qty++;document.getElementById('qv').textContent=qty};
+
+// ── COLOR PICKER ──
+document.querySelectorAll('.cp').forEach(p=>p.addEventListener('click',()=>p.classList.toggle('on')));
+function getColors(){const a=[...document.querySelectorAll('.cp.on')].map(p=>p.dataset.c);return a.length?a:['C']}
+function setColors(arr){document.querySelectorAll('.cp').forEach(p=>p.classList.remove('on'));arr.forEach(c=>{const p=document.querySelector(`.cp[data-c="${c}"]`);if(p)p.classList.add('on')})}
+
+// ── PIP PARSER ──
+function parsePips(mc){
+  const p={};if(!mc)return p;
+  for(const m of mc.matchAll(/\{([WUBRG])\}/g))p[m[1]]=(p[m[1]]||0)+1;
+  for(const m of mc.matchAll(/\{([WUBRG])\/([WUBRG])\}/g)){p[m[1]]=(p[m[1]]||0)+0.5;p[m[2]]=(p[m[2]]||0)+0.5}
+  for(const m of mc.matchAll(/\{([WUBRG])\/P\}/g))p[m[1]]=(p[m[1]]||0)+0.5;
+  return p;
+}
+
+// ── AUTOCOMPLETE ──
+const si=document.getElementById('si'),acl=document.getElementById('acl'),addbtn=document.getElementById('addbtn');
+si.addEventListener('input',()=>{
+  const q=si.value.trim();selCard=null;addbtn.disabled=true;document.getElementById('prev-cost').textContent='';
+  if(q.length<2){closeAc();return}
+  clearTimeout(acTmo);acTmo=setTimeout(()=>fetchAc(q),180);
+});
+si.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){acIdx=Math.min(acIdx+1,acRes.length-1);renderAc();e.preventDefault()}
+  else if(e.key==='ArrowUp'){acIdx=Math.max(acIdx-1,0);renderAc();e.preventDefault()}
+  else if(e.key==='Enter'){
+    if(acIdx>=0&&acRes[acIdx])selectAc(acRes[acIdx]);
+    else if(acRes.length)selectAc(acRes[0]);
+    else if(si.value.trim())enableManual();
+    e.preventDefault();
+  }else if(e.key==='Escape')closeAc();
+});
+async function fetchAc(q){try{const r=await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`);const d=await r.json();acRes=d.data||[];acIdx=-1;renderAc()}catch{closeAc()}}
+function renderAc(){
+  if(!acRes.length){closeAc();return}
+  acl.innerHTML=acRes.slice(0,10).map((n,i)=>`<div class="aci${i===acIdx?' sel':''}" data-i="${i}">${n}</div>`).join('');
+  acl.classList.add('open');
+  acl.querySelectorAll('.aci').forEach((el,i)=>{
+    el.addEventListener('mousedown',e=>{e.preventDefault();selectAc(acRes[i])});
+    el.addEventListener('mouseenter',()=>{acIdx=i;acl.querySelectorAll('.aci').forEach((x,xi)=>x.classList.toggle('sel',xi===acIdx))});
+  });
+}
+async function selectAc(name){
+  si.value=name;closeAc();
+  try{const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);const c=await r.json();if(c.object==='card')applyCard(c);else enableManual()}catch{enableManual()}
+}
+function applyCard(card){
+  selCard=card;
+  const tl=card.type_line||'';
+  let type='Other';
+  if(tl.includes('Creature'))type='Creature';
+  else if(tl.includes('Instant'))type='Instant';
+  else if(tl.includes('Sorcery'))type='Sorcery';
+  else if(tl.includes('Enchantment'))type='Enchantment';
+  else if(tl.includes('Artifact'))type='Artifact';
+  else if(tl.includes('Planeswalker'))type='Planeswalker';
+  else if(tl.includes('Land'))type='Land';
+  document.getElementById('sel-type').value=type;
+  const cmc=card.cmc!==undefined?Math.round(card.cmc):2;
+  document.getElementById('sel-cmc').value=cmc>=7?'7+':String(cmc);
+  const colors=card.colors||[];setColors(colors.length?colors:['C']);
+  selCard._pips=parsePips(card.mana_cost);
+  selCard._produced=(card.produced_mana||[]).filter(c=>'WUBRG'.includes(c));
+  selCard._oracle=card.oracle_text||card.card_faces?.[0]?.oracle_text||'';
+  document.getElementById('prev-cost').textContent=card.mana_cost||'';
+  addbtn.disabled=false;
+}
+function enableManual(){selCard=null;addbtn.disabled=false}
+function closeAc(){acl.classList.remove('open');acl.innerHTML='';acRes=[];acIdx=-1}
+document.addEventListener('click',e=>{if(!e.target.closest('.sw'))closeAc()});
+
+// ── ADD ──
+addbtn.addEventListener('click',addCard);
+function addCard(){
+  const name=si.value.trim();if(!name)return;
+  const type=document.getElementById('sel-type').value;
+  const cmcRaw=document.getElementById('sel-cmc').value;
+  const cmc=cmcRaw==='7+'?7:parseInt(cmcRaw);
+  const colors=getColors();
+  const pips=selCard?._pips||{};
+  const produced=selCard?._produced||[];
+  const oracle=selCard?._oracle||'';
+  const ex=pool.find(c=>c.name.toLowerCase()===name.toLowerCase()&&c.type===type);
+  if(ex){ex.qty+=qty;toast(`+${qty} ${name}`)}
+  else{pool.push({id:Date.now(),name,type,cmc,cmcRaw,colors,qty,pips,produced,oracle});toast(`Added: ${name}`)}
+  si.value='';document.getElementById('prev-cost').textContent='';
+  selCard=null;addbtn.disabled=true;qty=1;document.getElementById('qv').textContent='1';
+  document.querySelectorAll('.cp').forEach(p=>p.classList.remove('on'));
+  // Reset AI output when pool changes
+  document.getElementById('ai-output').classList.remove('show');
+  document.getElementById('ai-output').textContent='';
+  document.getElementById('ai-btn-txt').textContent='Run Analysis';
+  render();
+}
+function removeOne(id){const c=pool.find(x=>x.id===id);if(!c)return;if(c.qty>1)c.qty--;else pool=pool.filter(x=>x.id!==id);render()}
+function removeAll(id){pool=pool.filter(x=>x.id!==id);render()}
+document.getElementById('clr-btn').addEventListener('click',()=>{if(!pool.length)return;if(confirm('Clear all cards?')){pool=[];render()}});
+
+// ── HELPERS ──
+const totCards=()=>pool.reduce((s,c)=>s+c.qty,0);
+const totType=t=>pool.filter(c=>c.type===t).reduce((s,c)=>s+c.qty,0);
+const nlCards=()=>pool.filter(c=>c.type!=='Land');
+const lCards=()=>pool.filter(c=>c.type==='Land');
+function getPips(){
+  const pt={};
+  nlCards().forEach(card=>{
+    const p=card.pips||{};
+    if(Object.keys(p).length)Object.entries(p).forEach(([c,n])=>{pt[c]=(pt[c]||0)+n*card.qty});
+    else(card.colors||[]).filter(c=>c!=='C').forEach(c=>{pt[c]=(pt[c]||0)+card.qty});
+  });
+  return pt;
+}
+function earliestCmc(c){
+  const cards=nlCards().filter(card=>{
+    const p=card.pips||{};
+    return Object.keys(p).length?(p[c]||0)>0:(card.colors||[]).includes(c);
+  });
+  return cards.length?Math.min(...cards.map(x=>x.cmc)):99;
+}
+// Hypergeometric P(X>=1)
+function hyper(N,K,n){
+  if(K<=0||n<=0)return 0;if(K>=N)return 1;
+  function lc(a,b){if(b<0||b>a)return-Infinity;if(b===0||b===a)return 0;let r=0;for(let i=0;i<b;i++)r+=Math.log(a-i)-Math.log(i+1);return r}
+  return Math.max(0,Math.min(1,1-Math.exp(lc(N-K,n)-lc(N,n))));
+}
+
+// ── RENDER ──
+function render(){renderHeader();renderStats();renderPool();renderCurve();renderAnalysis();renderLandCalc();updateAiSection()}
+
+function updateAiSection(){
+  document.getElementById('ai-section').style.display=totCards()>=5?'block':'none';
+}
+
+function renderHeader(){
+  const total=totCards(),cr=totType('Creature'),sp=pool.filter(c=>c.type!=='Land').reduce((s,c)=>s+c.qty,0);
+  const nl=nlCards(),avg=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(1):'—';
+  document.getElementById('hs-total').textContent=total;
+  document.getElementById('hs-cr').textContent=cr;
+  document.getElementById('hs-sp').textContent=sp;
+  document.getElementById('hs-cmc').textContent=avg;
+  const pt=getPips();
+  document.getElementById('hd-colors').innerHTML=Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]).map(([c,n])=>
+    `<div class="cib cib-${c}"><div class="cib-dot" style="background:${CHEX[c]}"></div>${Math.round(n)}</div>`
+  ).join('');
+}
+
+function renderStats(){
+  const total=totCards(),cr=totType('Creature'),sp=pool.filter(c=>c.type!=='Land').reduce((s,c)=>s+c.qty,0),la=totType('Land');
+  const nl=nlCards(),avg=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(1):'—';
+  function sc(id,v,cls=''){const e=document.getElementById(id);e.querySelector('.sc-v').textContent=v;e.className='sc'+(cls?' '+cls:'')}
+  sc('sc-tot',total);sc('sc-cr',cr,cr>=14?'good':cr>=10?'':sp>8?'warn':'');
+  sc('sc-sp',sp);sc('sc-la',la);sc('sc-cmc',avg);
+  const types=['Creature','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Land','Other'];
+  document.getElementById('tchips').innerHTML=types.map(t=>{const n=totType(t);if(!n)return'';return`<div class="tchip"><span class="tcn">${n}</span><span class="tcl">${t}</span></div>`}).join('');
+}
+
+function renderPool(){
+  const el=document.getElementById('clist');
+  if(!pool.length){el.innerHTML=`<div class="empty"><div class="eicon">🃏</div>Your pool is empty.</div>`;return}
+  const types=['Creature','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Land','Other'];
+  let html='';
+  types.forEach(type=>{
+    const cards=pool.filter(c=>c.type===type).sort((a,b)=>a.cmc-b.cmc||a.name.localeCompare(b.name));
+    if(!cards.length)return;
+    html+=`<div class="cgh">${type} (${cards.reduce((s,c)=>s+c.qty,0)})</div>`;
+    cards.forEach(card=>{
+      const pc=(card.colors||[]).find(c=>c!=='C')||'C';
+      const tk=card.type.replace(/\s/g,'');
+      html+=`<div class="crow c${pc==='C'?'CC':pc}">
+        <span class="cq">${card.qty}×</span>
+        <span class="cn">${card.name}</span>
+        <span class="cc">${card.cmcRaw||card.cmc}</span>
+        <span class="ct ct${tk}">${card.type.slice(0,3).toUpperCase()}</span>
+        <button class="crm" onclick="removeOne(${card.id})" title="Remove one">−</button>
+        <button class="crm" onclick="removeAll(${card.id})" title="Remove all">✕</button>
+      </div>`;
+    });
+  });
+  el.innerHTML=html;
+}
+
+function renderCurve(){
+  const wrap=document.getElementById('curve-body');
+  const nl=nlCards();
+  if(!nl.length){wrap.innerHTML=`<div class="empty"><div class="eicon">📊</div>Add cards to see mana curve.</div>`;return}
+  const slots=['0','1','2','3','4','5','6','7+'],tots={},crs={};
+  slots.forEach(s=>{tots[s]=0;crs[s]=0});
+  nl.forEach(c=>{const k=c.cmc>=7?'7+':String(c.cmc);tots[k]=(tots[k]||0)+c.qty;if(c.type==='Creature')crs[k]=(crs[k]||0)+c.qty});
+  const mx=Math.max(...Object.values(tots),1);
+  const H=90; // fixed pixel height for bar area
+
+  wrap.innerHTML=`<div style="padding:8px 4px 0">
+    <div class="cbars" style="height:${H+30}px;align-items:flex-end">
+      ${slots.map(s=>{
+        const t=tots[s]||0,cr=crs[s]||0,sp=t-cr;
+        // Scale heights proportionally within H pixels
+        const barH=Math.max(t>0?2:0, Math.round((t/mx)*H));
+        const crH=t>0?Math.max(cr>0?2:0, Math.round((cr/mx)*H)):0;
+        const spH=Math.max(0,barH-crH);
+        return`<div class="ccol" style="height:${H+30}px">
+          <div class="cnum" style="height:14px">${t||''}</div>
+          <div class="cba" style="height:${H}px">
+            ${t>0
+              ?`<div class="cbs" style="height:${spH}px"></div><div class="cbc" style="height:${crH}px"></div>`
+              :`<div style="height:2px;width:100%;background:var(--border);border-radius:1px;margin-top:auto"></div>`
+            }
+          </div>
+          <div class="clbl" style="height:16px">${s}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="cleg">
+      <span><span class="ld" style="background:var(--gold)"></span>Spells</span>
+      <span><span class="ld" style="background:#3ac87a"></span>Creatures</span>
+    </div>
+  </div>`;
+}
+
+function renderAnalysis(){
+  const el=document.getElementById('sl'),total=totCards();
+  if(total<5){el.innerHTML=`<div class="empty"><div class="eicon">🔮</div>Add cards to receive analysis.</div>`;return}
+  const suggs=[],cr=totType('Creature'),inst=totType('Instant'),sorc=totType('Sorcery'),la=totType('Land'),sp=total-la;
+  if(sp>0){
+    if(cr<12)suggs.push({cls:'bad',icon:'⚠️',text:`Only <strong>${cr} creatures</strong> — aim for 14–16 in a draft deck.`});
+    else if(cr<=18)suggs.push({cls:'good',icon:'✅',text:`Solid creature count at <strong>${cr}</strong>.`});
+    else suggs.push({cls:'warn',icon:'⚡',text:`<strong>${cr} creatures</strong> is high — ensure you have enough interaction.`});
+  }
+  if(sp>=8){
+    const ix=inst+sorc;
+    if(ix<5)suggs.push({cls:'warn',icon:'⚡',text:`Low interaction — only <strong>${ix} instants/sorceries</strong>. Aim for 6–8 pieces.`});
+    else suggs.push({cls:'good',icon:'✅',text:`<strong>${ix} instants & sorceries</strong> — solid interaction count.`});
+  }
+  const nl=nlCards(),cd={};
+  nl.forEach(c=>{const k=c.cmc>=7?7:c.cmc;cd[k]=(cd[k]||0)+c.qty});
+  const hi=(cd[5]||0)+(cd[6]||0)+(cd[7]||0),two=cd[2]||0;
+  if(sp>=10&&two<3)suggs.push({cls:'warn',icon:'🕐',text:`Only <strong>${two} two-drops</strong>. Aim for 3–5 for consistent tempo.`});
+  if(sp>=10&&hi>sp*0.35)suggs.push({cls:'warn',icon:'💎',text:`Top-heavy curve — <strong>${hi} cards at 5+ CMC</strong>. Consider cutting 1–2.`});
+  if(sp>=12&&hi<=2&&two>=3)suggs.push({cls:'good',icon:'📈',text:`Well-distributed mana curve.`});
+  if(total>40)suggs.push({cls:'info',icon:'✂️',text:`<strong>${total} cards</strong> — cut to 40 (23 spells + 17 lands). Need to cut <strong>${total-23} non-lands</strong>.`});
+  else if(sp>=20&&sp<=24)suggs.push({cls:'info',icon:'📋',text:`<strong>${sp} spells</strong> — add <strong>${Math.max(0,17-la)} more lands</strong> to finish.`});
+  // Splash
+  const pt=getPips(),totalPips=Object.values(pt).reduce((s,v)=>s+v,0);
+  if(totalPips>0){
+    Object.entries(pt).sort((a,b)=>b[1]-a[1]).forEach(([c,pips])=>{
+      const share=pips/totalPips,earliest=earliestCmc(c);
+      const cardCount=pool.filter(x=>x.type!=='Land'&&(x.colors||[]).includes(c)).reduce((s,x)=>s+x.qty,0);
+      if(share<0.15&&earliest>=4&&cardCount>0){
+        const fix=lCards().filter(l=>(l.produced||[]).includes(c)).reduce((s,l)=>s+l.qty,0);
+        const pipDemand=pips/cardCount,viable=fix>=2||pipDemand<=1;
+        const cn=CFULL[c]||c;
+        if(viable)suggs.push({cls:'sp-ok',icon:'💧',text:`<strong>${cn} splash</strong> (${cardCount} card${cardCount>1?'s':''}, earliest CMC ${earliest}). ${fix>=2?`${fix} fixing lands — viable.`:`Low pip demand — viable with 1–2 more fixing lands.`}`});
+        else suggs.push({cls:'sp-bad',icon:'⚠️',text:`<strong>Risky ${cn} splash</strong> — ${cardCount} card${cardCount>1?'s':''}, ${pipDemand.toFixed(1)} avg pips, only ${fix} fixing land${fix!==1?'s':''}. Cut unless exceptional.`});
+      }
+    });
+  }
+  if(!suggs.length)suggs.push({cls:'info',icon:'🔮',text:'Keep adding cards for deck analysis.'});
+  el.innerHTML=suggs.map(s=>`<div class="sg ${s.cls}"><span style="font-size:15px;flex-shrink:0;margin-top:1px">${s.icon}</span><span>${s.text}</span></div>`).join('');
+}
+
+// ── LAND CALCULATOR ──
+function renderLandCalc(){
+  const el=document.getElementById('lc-body'),nl=nlCards(),dl=lCards(),sqty=nl.reduce((s,c)=>s+c.qty,0);
+  if(sqty<5){el.innerHTML=`<div class="empty"><div class="eicon">🏔</div>Add spells to see recommendations</div>`;return}
+  const pt=getPips(),totalPips=Object.values(pt).reduce((s,v)=>s+v,0);
+  if(!totalPips){el.innerHTML=`<div style="color:var(--text-dim);font-size:13px;padding:8px">Add colored spells to see recommendations.</div>`;return}
+
+  // Fixing contribution
+  const fixC={};let fixSlots=0;
+  dl.forEach(land=>{
+    const prod=(land.produced||[]).filter(c=>'WUBRG'.includes(c));
+    if(prod.length){const sh=land.qty/prod.length;prod.forEach(c=>{fixC[c]=(fixC[c]||0)+sh});fixSlots+=land.qty}
+  });
+
+  const basicsTotal=Math.max(0,17-fixSlots);
+
+  // Effective demand after fixing credit
+  const effP={};
+  Object.keys(pt).forEach(c=>{effP[c]=Math.max(0,(pt[c]||0)-(fixC[c]||0)*1.8)});
+  const totEff=Object.values(effP).reduce((s,v)=>s+v,0);
+
+  // Curve-aware weights
+  const cw={};
+  Object.keys(pt).forEach(c=>{const e=earliestCmc(c);cw[c]=e<=2?1.2:e<=3?1.05:e>=5?0.85:1.0});
+  const wp={};Object.keys(effP).forEach(c=>{wp[c]=(effP[c]||0)*(cw[c]||1)});
+  const totWp=Object.values(wp).reduce((s,v)=>s+v,0);
+
+  // Allocate
+  const sorted=Object.entries(wp).sort((a,b)=>b[1]-a[1]),alloc={};
+  let rem=basicsTotal;
+  sorted.forEach(([c,w],i)=>{
+    if(i<sorted.length-1){const p=Math.round((w/(totWp||1))*basicsTotal);alloc[c]=p;rem-=p}
+    else alloc[c]=Math.max(0,rem);
+  });
+
+  // Probability per color turns 1–5
+  const probD={};
+  sorted.forEach(([c])=>{
+    const sources=(alloc[c]||0)+(fixC[c]||0);
+    probD[c]=[];
+    for(let t=1;t<=5;t++)probD[c].push(hyper(40,Math.round(sources),Math.min(6+t,40)));
+  });
+
+  // ── VARIABLE LAND MATH ──
+  // Check if 16 lands is defensible: look at avg CMC and probability impact
+  const totalLands17=Math.round(fixSlots)+basicsTotal;
+  let landAdviceHtml='';
+  if(sqty>=15){
+    const nl2=nlCards();
+    const avgCmc=nl2.length?nl2.reduce((s,c)=>s+c.cmc*c.qty,0)/nl2.reduce((s,c)=>s+c.qty,0):3;
+    const twoDrops=(nl2.filter(c=>c.cmc<=2).reduce((s,c)=>s+c.qty,0));
+
+    // Calculate key probabilities at 17 vs 16 lands for primary color
+    const primaryColor=sorted[0]?.[0];
+    let p17_t2=0,p16_t2=0,p17_t3=0,p16_t3=0;
+    if(primaryColor){
+      const src17=Math.round((alloc[primaryColor]||0)+(fixC[primaryColor]||0));
+      const src16=Math.max(0,src17-1);
+      p17_t2=hyper(40,src17,8);
+      p16_t2=hyper(39,src16,8);
+      p17_t3=hyper(40,src17,9);
+      p16_t3=hyper(39,src16,9);
+    }
+    const drop=p17_t2-p16_t2;
+    const pctDrop=Math.round(drop*100);
+
+    if(avgCmc<=2.5&&twoDrops>=5){
+      landAdviceHtml=`<div class="land-advice ok">
+        <strong>16 lands is mathematically defensible.</strong><br>
+        Your avg CMC of ${avgCmc.toFixed(1)} and ${twoDrops} early drops mean you rarely need land #4 to function. 
+        Going to 16 drops your T2 color hit rate by ~${pctDrop}% (${Math.round(p17_t2*100)}% → ${Math.round(p16_t2*100)}%) — an acceptable trade for the extra spell.
+      </div>`;
+    } else if(avgCmc<=3.0&&twoDrops>=3){
+      landAdviceHtml=`<div class="land-advice caution">
+        <strong>16 lands is borderline.</strong><br>
+        Avg CMC ${avgCmc.toFixed(1)} with ${twoDrops} early drops — T2 color availability drops ~${pctDrop}% to ${Math.round(p16_t2*100)}%. 
+        Viable if your mid-game is strong, but you'll risk being a turn slow in ~1 in ${Math.max(3,Math.round(1/Math.max(0.01,drop)))} games.
+      </div>`;
+    } else {
+      landAdviceHtml=`<div class="land-advice no">
+        <strong>Stick to 17 lands.</strong><br>
+        Avg CMC ${avgCmc.toFixed(1)} with ${twoDrops} early drops — 16 lands drops T2 color availability to ${Math.round(p16_t2*100)}% and risks missing key early plays too often.
+      </div>`;
+    }
+  }
+
+  // ── BUILD HTML ──
+  let html='';
+
+  if(dl.length){
+    html+=`<div class="slbl">Drafted Lands</div><div class="ldl">`;
+    dl.forEach(land=>{
+      const prod=(land.produced||[]).filter(c=>'WUBRG'.includes(c));
+      html+=`<div class="ldi">
+        <span class="ldin">${land.qty}× ${land.name}</span>
+        <div class="ldips">${prod.map(c=>`<div class="ldp ldp${c}">${c}</div>`).join('')||'<span style="font-size:11px;color:var(--text-muted)">colorless</span>'}</div>
+      </div>`;
+    });
+    html+=`</div><hr class="divider">`;
+  }
+
+  html+=`<div class="slbl">Recommended Basics</div><div class="bgrid">`;
+  sorted.forEach(([c],i)=>{
+    html+=`<div class="bcell${i<2?' pri':''}">
+      <div class="bcl"><div class="bcsw bcsw${c}"></div><span class="bcn">${CNAMES[c]||c}</span></div>
+      <span class="bcc">${alloc[c]??0}</span>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  html+=`<div class="ltbar"><span class="ltbl">Total Lands</span><span class="ltbc">${totalLands17}</span></div>`;
+
+  const hasAdj=sorted.some(([c])=>cw[c]!==1.0);
+  html+=`<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;font-style:italic">Pip-weighted${fixSlots>0?` · ${Math.round(fixSlots)} drafted + ${basicsTotal} basics`:''}${hasAdj?' · curve-adjusted':''}</div>`;
+
+  // Variable land advice
+  html+=landAdviceHtml;
+
+  // Prob chart
+  html+=`<div class="psect">
+    <div class="ptit">Color Availability by Turn</div>
+    <div class="pgrid">`;
+  sorted.forEach(([c])=>{
+    const col=CHEX[c]||'#aaa';
+    const bars=probD[c].map((p,i)=>{
+      const pct=Math.round(p*100);
+      const bg=p>=0.9?'#3ac87a':p>=0.75?'#e8a020':'#f05a3a';
+      return`<div class="pbar" style="background:${bg};opacity:${0.45+p*0.55}" title="T${i+1}: ${pct}%">${pct}%</div>`;
+    }).join('');
+    html+=`<div class="prow">
+      <div class="pcl"><div class="pdot" style="background:${col}"></div><span style="color:${col}">${CFULL[c]||c}</span></div>
+      <div class="pbars">${bars}</div>
+    </div>`;
+  });
+  html+=`</div>
+    <div class="ptlabs">${[1,2,3,4,5].map(t=>`<div class="ptlab">T${t}</div>`).join('')}</div>
+    <div style="margin-top:6px;font-size:10px;color:var(--text-muted)">
+      <span style="color:#3ac87a">■</span> ≥90% &nbsp;
+      <span style="color:#e8a020">■</span> 75–89% &nbsp;
+      <span style="color:#f05a3a">■</span> &lt;75%
+    </div>
+  </div>`;
+
+  el.innerHTML=html;
+}
+
+// ── AI ANALYSIS ──
+document.getElementById('ai-btn').addEventListener('click', async () => {
+  if(!pool.length)return;
+  const btn=document.getElementById('ai-btn');
+  const spin=document.getElementById('ai-spin');
+  const btntxt=document.getElementById('ai-btn-txt');
+  const output=document.getElementById('ai-output');
+
+  btn.disabled=true;spin.classList.add('show');btntxt.textContent='Analyzing…';
+  output.classList.remove('show');output.textContent='';
+
+  // Build pool summary for Claude
+  const nl=nlCards(),dl=lCards();
+  const cardLines=pool.map(c=>{
+    const oracle=c.oracle||'';
+    return `${c.qty}x ${c.name} [${c.type}, CMC ${c.cmcRaw||c.cmc}, ${(c.colors||[]).join('')||'C'}]${oracle?` — "${oracle.slice(0,120)}${oracle.length>120?'…':''}"`:''}`;
+  }).join('\n');
+
+  const pt=getPips();
+  const pipSummary=Object.entries(pt).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`${CFULL[c]||c}: ${n.toFixed(1)} pips`).join(', ');
+  const avgCmc=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(2):'?';
+  const creatures=totType('Creature'),instants=totType('Instant'),sorceries=totType('Sorcery'),lands=totType('Land');
+
+  const prompt=`You are an expert Magic: The Gathering draft analyst. Analyze this draft pool and give honest, specific, actionable advice.
+
+DRAFT POOL (${totCards()} cards):
+${cardLines}
+
+STATS:
+- Creatures: ${creatures}, Instants: ${instants}, Sorceries: ${sorceries}, Lands: ${lands}
+- Avg CMC (non-land): ${avgCmc}
+- Mana pip distribution: ${pipSummary}
+
+Please analyze:
+1. **Interaction & Removal** — identify ALL cards that interact with the opponent (removal, tempo, combat tricks, tappers, counters, etc). Include enchantments like Uneasy Alliance that lock down creatures. Count total interaction pieces.
+2. **Threats & Finishers** — key win conditions and powerful threats.
+3. **Curve Assessment** — is this curve good for the expected game speed? Any gaps?
+4. **Color Consistency** — are the colors well-supported? Any splash concerns?
+5. **Top Cuts** — if over 23 non-land cards, name the specific weakest cards to cut.
+6. **Overall Grade** — A/B/C/D with a 2-sentence verdict.
+
+Be direct and specific. Use card names. Keep it under 350 words.`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await resp.json();
+    const text=data.content?.map(b=>b.text||'').join('')||'No response received.';
+    // Simple markdown bold conversion
+    const formatted=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    output.innerHTML=formatted;
+    output.classList.add('show');
+    btntxt.textContent='Re-analyze';
+  }catch(err){
+    output.textContent='Analysis failed. Make sure you have network access and try again.';
+    output.classList.add('show');
+    btntxt.textContent='Retry';
+  }finally{
+    btn.disabled=false;spin.classList.remove('show');
+  }
+});
+
+// ── TOAST ──
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+
+render();
+</script>
+</body>
+</html>
