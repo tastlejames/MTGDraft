@@ -15,7 +15,7 @@
   --frame-U: linear-gradient(160deg,#a8c8e8,#6898c8,#2858a8,#6898c8,#a0c0e0);
   --frame-B: linear-gradient(160deg,#686068,#383038,#181018,#383038,#585058);
   --frame-R: linear-gradient(160deg,#e89870,#c85828,#981808,#c85828,#e08060);
-  --frame-G: linear-gradient(160deg,#90c870,#488030,#185010,#488030,#80b860);
+  --frame-G: linear-gradient(160deg,#6aaa50,#306820,#0e3808,#306820,#5a9840);
   --frame-gold: linear-gradient(160deg,#f0d878,#c8a030,#906010,#c8a030,#e8cc60);
   --frame-neutral: linear-gradient(160deg,#d0c8a8,#a89870,#706040,#a89870,#c8b888);
 
@@ -23,10 +23,10 @@
   --frame-active: linear-gradient(160deg,#d0c8a8,#a89870,#706040,#a89870,#c8b888);
 
   --bg: #0a0806;
-  --parchment: #f2e8d0;
-  --parchment2: #ede0c4;
-  --parchment3: #e5d5b0;
-  --parchment-dark: #d4c090;
+  --parchment: #e8dac0;
+  --parchment2: #e0d0b0;
+  --parchment3: #d8c8a0;
+  --parchment-dark: #c8b080;
   --ink: #1a1208;
   --ink-dim: #4a3c28;
   --ink-muted: #8a7a60;
@@ -173,7 +173,7 @@ body::before {
 .mU{background:radial-gradient(circle at 40% 35%,#80b8e8,#2060b0);color:#fff}
 .mB{background:radial-gradient(circle at 40% 35%,#806880,#280828);color:#e0c8e0}
 .mR{background:radial-gradient(circle at 40% 35%,#f09060,#b02808);color:#fff}
-.mG{background:radial-gradient(circle at 40% 35%,#60c878,#106820);color:#fff}
+.mG{background:radial-gradient(circle at 40% 35%,#50a860,#0e5818);color:#fff}
 .mC{background:radial-gradient(circle at 40% 35%,#b0b0b0,#606060);color:#fff}
 .pip-count {
   position: absolute; top: -5px; right: -5px;
@@ -354,7 +354,7 @@ body::before {
 .cp-U{background:radial-gradient(circle at 40% 35%,#80b8e8,#2060b0);color:#fff}
 .cp-B{background:radial-gradient(circle at 40% 35%,#806880,#280828);color:#e0c8e0}
 .cp-R{background:radial-gradient(circle at 40% 35%,#f09060,#b02808);color:#fff}
-.cp-G{background:radial-gradient(circle at 40% 35%,#60c878,#106820);color:#fff}
+.cp-G{background:radial-gradient(circle at 40% 35%,#50a860,#0e5818);color:#fff}
 .cp-C{background:radial-gradient(circle at 40% 35%,#b0b0b0,#606060);color:#fff}
 
 /* QTY */
@@ -613,7 +613,7 @@ body::before {
 .ldpU{background:radial-gradient(circle,#80b8e8,#2060b0);color:#fff}
 .ldpB{background:radial-gradient(circle,#806880,#280828);color:#e0c0e0}
 .ldpR{background:radial-gradient(circle,#f09060,#b02808);color:#fff}
-.ldpG{background:radial-gradient(circle,#60c878,#106820);color:#fff}
+.ldpG{background:radial-gradient(circle,#50a860,#0e5818);color:#fff}
 
 .bgrid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; }
 .bcell {
@@ -627,7 +627,7 @@ body::before {
 .bcsw { width:18px; height:18px; border-radius:50%; flex-shrink:0; border:1px solid rgba(0,0,0,0.3); box-shadow:0 1px 3px rgba(0,0,0,0.3); }
 .bcswW{background:radial-gradient(circle,#f8f0d0,#c8a830)}.bcswU{background:radial-gradient(circle,#80b8e8,#2060b0)}
 .bcswB{background:radial-gradient(circle,#806880,#280828)}.bcswR{background:radial-gradient(circle,#f09060,#b02808)}
-.bcswG{background:radial-gradient(circle,#60c878,#106820)}
+.bcswG{background:radial-gradient(circle,#50a860,#0e5818)}
 .bcn { font-size:12px; color:var(--ink-dim); font-weight:600; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.06em; text-transform:uppercase; }
 .bcc { font-family:'Cinzel',serif; font-size:22px; font-weight:700; color:var(--ink); }
 
@@ -725,6 +725,15 @@ body::before {
       <div class="hstat"><div class="hstat-v" id="hs-sp">0</div><div class="hstat-l">Spells</div></div>
       <div class="hstat"><div class="hstat-v" id="hs-cmc">—</div><div class="hstat-l">Avg CMC</div></div>
       <div class="color-id-bar" id="hd-colors"></div>
+      <button onclick="openImporter()" style="
+        background:linear-gradient(180deg,#e8cc70,#c09020,#a07010,#c8a030);
+        border:2px solid #7a5010;border-radius:5px;color:#1a0c00;
+        font-family:'Cinzel',serif;font-size:11px;font-weight:700;
+        letter-spacing:0.08em;padding:6px 12px;cursor:pointer;
+        box-shadow:0 2px 6px rgba(0,0,0,0.3),inset 0 1px rgba(255,255,255,0.25);
+        white-space:nowrap;flex-shrink:0;">
+        ⬆ Import
+      </button>
     </div>
   </div>
 </div>
@@ -876,15 +885,184 @@ const FRAME_GRAD = {
 };
 
 // ── FRAME COLOR UPDATER ──
+// Per-color midpoints for blending
+const FRAME_MID = {
+  W:'#d8c060', U:'#3868b8', B:'#302030', R:'#b83818', G:'#206818'
+};
+const FRAME_LIGHT = {
+  W:'#f0e8b0', U:'#90b8e0', B:'#585058', R:'#e08060', G:'#4a8830'
+};
+const FRAME_DARK = {
+  W:'#a89030', U:'#1848a0', B:'#100810', R:'#901008', G:'#0a3008'
+};
+
 function updateFrameColor() {
   const pt = getPips();
   const sorted = Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]);
   let grad = FRAME_GRAD.neutral;
-  if (sorted.length >= 1) {
-    const top = sorted[0][0];
-    grad = FRAME_GRAD[top] || FRAME_GRAD.neutral;
+
+  if (sorted.length === 0) {
+    grad = FRAME_GRAD.neutral;
+  } else if (sorted.length === 1) {
+    grad = FRAME_GRAD[sorted[0][0]] || FRAME_GRAD.neutral;
+  } else if (sorted.length === 2) {
+    const [c1, c2] = [sorted[0][0], sorted[1][0]];
+    const l1=FRAME_LIGHT[c1], m1=FRAME_MID[c1], d1=FRAME_DARK[c1];
+    const l2=FRAME_LIGHT[c2], m2=FRAME_MID[c2], d2=FRAME_DARK[c2];
+    grad = `linear-gradient(160deg,${l1},${m1},${d1},${m2},${l2})`;
+  } else {
+    // 3+ colors → gold multicolor
+    grad = FRAME_GRAD.gold;
   }
   document.documentElement.style.setProperty('--frame-active', grad);
+}
+
+// ── ARENA IMPORTER ──
+function openImporter() {
+  const existing = document.getElementById('importer-modal');
+  if (existing) { existing.remove(); return; }
+
+  const modal = document.createElement('div');
+  modal.id = 'importer-modal';
+  modal.style.cssText = `
+    position:fixed;inset:0;z-index:500;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,0.75);padding:16px;
+  `;
+  modal.innerHTML = `
+    <div style="background:var(--parchment);border:4px solid #1a1208;border-radius:12px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.9),inset 0 0 0 2px rgba(255,255,255,0.1);
+      width:100%;max-width:520px;overflow:hidden;">
+      <div style="background:var(--frame-active);padding:8px 16px;border-bottom:2px solid rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:#1a1208;letter-spacing:0.1em;text-transform:uppercase;">Import from Arena</span>
+        <button onclick="document.getElementById('importer-modal').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#1a1208;line-height:1;padding:2px 4px;">✕</button>
+      </div>
+      <div style="padding:16px;">
+        <div style="font-family:'Crimson Pro',serif;font-size:13px;color:var(--ink-dim);margin-bottom:8px;font-style:italic;">
+          Paste your Arena deck export below. Supports formats like:<br>
+          <span style="font-family:monospace;font-size:12px;color:var(--ink);">4 Lightning Bolt (M21) 123</span> or <span style="font-family:monospace;font-size:12px;color:var(--ink);">4 Lightning Bolt</span>
+        </div>
+        <textarea id="import-text" style="width:100%;height:200px;background:var(--parchment2);
+          border:1px solid var(--parchment-dark);border-radius:5px;
+          padding:10px;font-family:monospace;font-size:13px;color:var(--ink);
+          resize:vertical;outline:none;box-shadow:inset 0 1px 3px rgba(0,0,0,0.15);"
+          placeholder="4 Lightning Bolt (M21) 123&#10;2 Grizzly Bears&#10;..."></textarea>
+        <div id="import-status" style="font-size:12px;color:var(--ink-muted);font-style:italic;margin-top:6px;min-height:18px;font-family:'Crimson Pro',serif;"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button id="import-btn" onclick="runImport()" style="
+            flex:1;background:linear-gradient(180deg,#e8cc70,#c09020,#a07010,#c8a030);
+            border:2px solid #7a5010;border-radius:5px;color:#1a0c00;
+            font-family:'Cinzel',serif;font-size:13px;font-weight:700;letter-spacing:0.08em;
+            padding:9px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3);">
+            ✦ Import Cards
+          </button>
+          <button onclick="document.getElementById('importer-modal').remove()" style="
+            background:none;border:1px solid var(--parchment-dark);border-radius:5px;
+            color:var(--ink-dim);font-family:'Cinzel',serif;font-size:12px;font-weight:700;
+            padding:9px 16px;cursor:pointer;">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+  document.getElementById('import-text').focus();
+}
+
+async function runImport() {
+  const raw = document.getElementById('import-text').value.trim();
+  if (!raw) return;
+  const status = document.getElementById('import-status');
+  const btn = document.getElementById('import-btn');
+  btn.disabled = true;
+
+  // Parse lines — skip section headers like "Deck", "Sideboard", blank lines
+  const lines = raw.split('\n').map(l=>l.trim()).filter(l=>{
+    if(!l) return false;
+    if(/^(deck|sideboard|commander|companion)$/i.test(l)) return false;
+    return true;
+  });
+
+  const parsed = [];
+  for (const line of lines) {
+    // Match: optional qty, card name, optional (SET) NUM
+    const m = line.match(/^(\d+)\s+(.+?)(?:\s+\([^)]+\)\s+\d+)?$/);
+    if (m) {
+      parsed.push({ qty: parseInt(m[1]), name: m[2].trim() });
+    } else {
+      // Try bare name with no qty
+      const m2 = line.match(/^(.+?)(?:\s+\([^)]+\)\s+\d+)?$/);
+      if (m2) parsed.push({ qty: 1, name: m2[1].trim() });
+    }
+  }
+
+  if (!parsed.length) {
+    status.textContent = 'No cards found — check the format and try again.';
+    btn.disabled = false;
+    return;
+  }
+
+  // Dedupe by name, sum quantities
+  const deduped = {};
+  parsed.forEach(({qty, name}) => {
+    const key = name.toLowerCase();
+    if (!deduped[key]) deduped[key] = { qty: 0, name };
+    deduped[key].qty += qty;
+  });
+  const cards = Object.values(deduped);
+
+  status.textContent = `Looking up ${cards.length} card${cards.length>1?'s':''}…`;
+
+  let added = 0, failed = [];
+
+  for (let i = 0; i < cards.length; i++) {
+    const { qty, name } = cards[i];
+    status.textContent = `Looking up ${i+1}/${cards.length}: ${name}…`;
+    try {
+      const r = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);
+      const card = await r.json();
+      if (card.object === 'card') {
+        const tl = card.type_line || '';
+        let type = 'Other';
+        if(tl.includes('Creature')) type='Creature';
+        else if(tl.includes('Instant')) type='Instant';
+        else if(tl.includes('Sorcery')) type='Sorcery';
+        else if(tl.includes('Enchantment')) type='Enchantment';
+        else if(tl.includes('Artifact')) type='Artifact';
+        else if(tl.includes('Planeswalker')) type='Planeswalker';
+        else if(tl.includes('Land')) type='Land';
+        const cmc = card.cmc !== undefined ? Math.round(card.cmc) : 0;
+        const cmcRaw = cmc >= 7 ? '7+' : String(cmc);
+        const colors = card.colors || [];
+        const pips = parsePips(card.mana_cost);
+        const produced = (card.produced_mana||[]).filter(c=>'WUBRG'.includes(c));
+        const oracle = card.oracle_text || card.card_faces?.[0]?.oracle_text || '';
+        const ex = pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase()&&c.type===type);
+        if (ex) { ex.qty += qty; }
+        else { pool.push({id:Date.now()+i, name:card.name, type, cmc, cmcRaw, colors:colors.length?colors:['C'], qty, pips, produced, oracle}); }
+        added += qty;
+      } else {
+        failed.push(name);
+      }
+    } catch {
+      failed.push(name);
+    }
+    // Small delay to be polite to Scryfall
+    await new Promise(res => setTimeout(res, 80));
+  }
+
+  resetAiOutput();
+  render();
+
+  if (failed.length) {
+    status.innerHTML = `<span style="color:#185810">Added ${added} cards.</span> <span style="color:#8a0808">Not found: ${failed.join(', ')}</span>`;
+  } else {
+    status.innerHTML = `<span style="color:#185810">✓ Added ${added} cards successfully!</span>`;
+    setTimeout(() => document.getElementById('importer-modal')?.remove(), 1200);
+  }
+  btn.disabled = false;
 }
 
 // ── TABS ──
