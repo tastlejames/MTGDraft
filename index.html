@@ -181,7 +181,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .vis-card.selected{border-color:var(--gold-trim2);box-shadow:0 0 12px rgba(200,160,48,0.6);z-index:10;transform:scale(1.04)}
 .vis-card:active{transform:scale(0.97)}
 /* Overlap: tighter stacking — show ~25% of each card */
-.vis-col-stack .vis-card:not(:first-child){margin-top:-60%}
+.vis-col-stack .vis-card:not(:first-child){margin-top:-74%}
 /* Basic lands stack extra tight — only ~15% visible */
 .vis-col-stack .vis-card.vis-basic:not(:first-child){margin-top:-84%}
 /* Quick-side mode highlight */
@@ -323,17 +323,27 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .ai-title{font-family:'Cinzel',serif;font-size:12px;font-weight:700;letter-spacing:0.1em;color:var(--ink-dim);display:flex;align-items:center;gap:6px}
 .ai-btn{background:linear-gradient(180deg,#e8cc70,#c09020,#a07010,#c8a030);border:2px solid #7a5010;border-radius:5px;color:#1a0c00;font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:0.08em;padding:6px 14px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3),inset 0 1px rgba(255,255,255,0.25);display:flex;align-items:center;gap:6px}
 .ai-btn:hover{opacity:0.88}.ai-btn:disabled{opacity:0.4;cursor:not-allowed}
-.ai-spinner{width:11px;height:11px;border:2px solid rgba(26,12,0,0.3);border-top-color:#1a0c00;border-radius:50%;animation:spin .7s linear infinite;display:none}
-.ai-spinner.show{display:block}
+.ai-spinner{width:14px;height:14px;border:2px solid rgba(26,12,0,0.3);border-top-color:#1a0c00;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.ai-spinner.show{display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
 .key-row{display:flex;gap:6px;margin-bottom:10px}
 .key-input{flex:1;background:var(--parchment2);border:1px solid var(--parchment-dark);border-radius:4px;color:var(--ink);font-family:'Crimson Pro',serif;font-size:13px;padding:7px 10px;outline:none}
 .key-input:focus{border-color:var(--gold-trim3)}
 .key-input::placeholder{color:var(--ink-muted);font-style:italic}
 .key-hint{font-size:11px;color:var(--ink-muted);font-style:italic;margin-bottom:8px}
-.ai-output{background:linear-gradient(180deg,var(--parchment2),var(--parchment3));border:1px solid var(--parchment-dark);border-radius:5px;padding:12px 14px;font-size:13px;line-height:1.7;color:var(--ink);font-family:'Crimson Pro',serif;box-shadow:var(--inner-shadow);display:none;word-wrap:break-word}
-.ai-output.show{display:block}
-.ai-output strong,.ai-output b{color:#3a2000;font-weight:700}
+/* AI Overlay */
+.ai-overlay{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,0.8);display:none;flex-direction:column}
+.ai-overlay.open{display:flex}
+.ai-overlay-header{background:linear-gradient(180deg,#2a2010,#1a1408);border-bottom:3px solid var(--gold-trim3);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ai-overlay-title{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--gold-trim2);letter-spacing:0.08em;display:flex;align-items:center;gap:8px}
+.ai-overlay-close{background:none;border:none;color:var(--gold-trim);font-size:22px;cursor:pointer;padding:4px 8px}
+.ai-overlay-body{flex:1;overflow-y:auto;padding:16px;background:var(--parchment);-webkit-overflow-scrolling:touch}
+.ai-overlay-content{font-size:14px;line-height:1.8;color:var(--ink);font-family:'Crimson Pro',serif;word-wrap:break-word;white-space:normal}
+.ai-overlay-content strong,.ai-overlay-content b{color:#3a2000;font-weight:700}
+.ai-overlay-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:12px}
+.ai-overlay-loading .ai-load-spin{width:24px;height:24px;border:3px solid var(--parchment-dark);border-top-color:var(--gold-trim);border-radius:50%;animation:spin .7s linear infinite}
+.ai-overlay-loading-text{font-family:'Crimson Pro',serif;font-size:14px;color:var(--ink-dim);font-style:italic}
+.ai-overlay-footer{background:var(--parchment2);border-top:2px solid var(--parchment-dark);padding:10px 16px;display:flex;gap:8px;flex-shrink:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
 .ldl{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
 .ldi{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--parchment3);border-radius:4px;border:1px solid var(--parchment-dark);font-size:13px;font-family:'Crimson Pro',serif}
 .ldin{color:var(--ink);flex:1}
@@ -548,11 +558,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <div class="ai-section" id="ai-section" style="display:none">
               <div class="ai-header">
                 <div class="ai-title">✦ AI Analysis <span style="font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:500;letter-spacing:0.06em;color:var(--ink-muted)">(Gemini)</span></div>
-                <button class="ai-btn" id="ai-btn"><div class="ai-spinner" id="ai-spin"></div><span id="ai-btn-txt">Run Analysis</span></button>
               </div>
-              <div class="key-row" id="key-row" style="display:none"><input class="key-input" id="key-input" type="password" placeholder="Paste your Gemini API key…"></div>
+              <div class="key-row" id="key-row" style="display:none">
+                <input class="key-input" id="key-input" type="password" placeholder="Paste your Gemini API key…">
+                <button class="ai-btn" id="ai-key-submit">Go</button>
+              </div>
               <div class="key-hint" id="key-hint" style="display:none">Key stored in memory only — never saved or transmitted except to Google's API.</div>
-              <div class="ai-output" id="ai-output"></div>
+              <button class="ai-btn" id="ai-btn" style="width:100%"><div class="ai-spinner" id="ai-spin"></div><span id="ai-btn-txt">✦ Run AI Analysis</span></button>
             </div>
           </div>
         </div>
@@ -588,6 +600,25 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="sb-header"><div class="sb-header-title">⬡ Review Picks</div><button class="sb-close" onclick="closeSideboard()">✕</button></div>
   <div class="sb-body" id="sb-body"></div>
   <div class="sb-footer"><button class="gold-btn" style="flex:1" onclick="closeSideboard()">Done</button></div>
+</div>
+
+<!-- ═══ AI ANALYSIS OVERLAY ═══ -->
+<div class="ai-overlay" id="ai-overlay">
+  <div class="ai-overlay-header">
+    <div class="ai-overlay-title">✦ AI Analysis</div>
+    <button class="ai-overlay-close" onclick="closeAiOverlay()">✕</button>
+  </div>
+  <div class="ai-overlay-body" id="ai-overlay-body">
+    <div class="ai-overlay-loading" id="ai-loading">
+      <div class="ai-load-spin"></div>
+      <div class="ai-overlay-loading-text">Analyzing your pool…</div>
+    </div>
+    <div class="ai-overlay-content" id="ai-overlay-content" style="display:none"></div>
+  </div>
+  <div class="ai-overlay-footer">
+    <button class="gold-btn" style="flex:1" id="ai-rerun-btn" onclick="rerunAiAnalysis()" style="display:none">✦ Re-analyze</button>
+    <button onclick="closeAiOverlay()" style="flex-shrink:0;background:none;border:1px solid var(--parchment-dark);border-radius:5px;color:var(--ink-dim);font-family:'Cinzel',serif;font-size:12px;font-weight:700;padding:9px 16px;cursor:pointer">Close</button>
+  </div>
 </div>
 
 <!-- ═══ BOTTOM NAV ═══ -->
@@ -1205,7 +1236,6 @@ function addCard(){const name=si.value.trim();if(!name)return;const type=documen
 function removeOne(id){const c=pool.find(x=>x.id===id);if(!c)return;if(c.qty>1)c.qty--;else pool=pool.filter(x=>x.id!==id);resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}
 function removeAll(id){pool=pool.filter(x=>x.id!==id);resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}
 document.getElementById('clr-btn').addEventListener('click',()=>{if(!pool.length)return;if(confirm('Clear all cards?')){pool=[];resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}});
-function resetAiOutput(){document.getElementById('ai-output').classList.remove('show');document.getElementById('ai-output').innerHTML='';document.getElementById('ai-btn-txt').textContent='Run Analysis'}
 
 // ═══ BUILDER RENDER ═══
 function render(){updateFrameColor();renderHeader();renderStats();renderExtStats();renderPool();renderCurve();renderAnalysis();renderLandCalc();document.getElementById('ai-section').style.display=totCards()>=5?'block':'none';updateDraftMiniStats();updateNavBadge()}
@@ -1453,16 +1483,104 @@ function quickAddAllBasics(){
 }
 
 // ═══ GEMINI AI ═══
-document.getElementById('ai-btn').addEventListener('click',async()=>{
-  if(!geminiKey){const kr=document.getElementById('key-row'),kh=document.getElementById('key-hint');if(kr.style.display==='none'){kr.style.display='flex';kh.style.display='block';document.getElementById('key-input').focus();return}const iv=document.getElementById('key-input').value.trim();if(!iv){document.getElementById('key-input').style.borderColor='#8a0808';return}geminiKey=iv;kr.style.display='none';kh.style.display='none'}
-  const btn=document.getElementById('ai-btn'),spin=document.getElementById('ai-spin'),btntxt=document.getElementById('ai-btn-txt'),output=document.getElementById('ai-output');
-  btn.disabled=true;spin.classList.add('show');btntxt.textContent='Analyzing…';output.classList.remove('show');output.innerHTML='';
-  const nl=nlCards();const cardLines=pool.map(c=>{const o=c.oracle||'';return`${c.qty}x ${c.name} [${c.type}, CMC ${c.cmcRaw||c.cmc}, ${(c.colors||[]).join('')||'C'}]${o?` — "${o.slice(0,120)}"`:''}`;}).join('\n');
-  const pt=getSmartPips();const pipSum=Object.entries(pt).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`${CFULL[c]||c}: ${n.toFixed(1)}`).join(', ');
+function resetAiOutput(){document.getElementById('ai-btn-txt').textContent='✦ Run AI Analysis'}
+
+// Main button: if key exists, go straight to overlay. If not, show key input.
+document.getElementById('ai-btn').addEventListener('click',()=>{
+  if(geminiKey){
+    openAiOverlayAndRun();
+  } else {
+    const kr=document.getElementById('key-row'),kh=document.getElementById('key-hint');
+    if(kr.style.display==='none'){kr.style.display='flex';kh.style.display='block';document.getElementById('key-input').focus()}
+    else{kr.style.display='none';kh.style.display='none'}
+  }
+});
+
+// Key submit: save key, hide input, open overlay
+document.getElementById('ai-key-submit').addEventListener('click',()=>{
+  const iv=document.getElementById('key-input').value.trim();
+  if(!iv){document.getElementById('key-input').style.borderColor='#8a0808';return}
+  geminiKey=iv;
+  document.getElementById('key-row').style.display='none';
+  document.getElementById('key-hint').style.display='none';
+  openAiOverlayAndRun();
+});
+
+// Also allow Enter key in the input
+document.getElementById('key-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();document.getElementById('ai-key-submit').click()}
+});
+
+function openAiOverlayAndRun(){
+  const overlay=document.getElementById('ai-overlay');
+  const loading=document.getElementById('ai-loading');
+  const content=document.getElementById('ai-overlay-content');
+  const rerunBtn=document.getElementById('ai-rerun-btn');
+  overlay.classList.add('open');
+  loading.style.display='flex';
+  content.style.display='none';
+  content.innerHTML='';
+  rerunBtn.style.display='none';
+  runAiAnalysis();
+}
+
+function closeAiOverlay(){
+  document.getElementById('ai-overlay').classList.remove('open');
+}
+
+function rerunAiAnalysis(){
+  const loading=document.getElementById('ai-loading');
+  const content=document.getElementById('ai-overlay-content');
+  const rerunBtn=document.getElementById('ai-rerun-btn');
+  loading.style.display='flex';
+  content.style.display='none';
+  content.innerHTML='';
+  rerunBtn.style.display='none';
+  runAiAnalysis();
+}
+
+async function runAiAnalysis(){
+  const loading=document.getElementById('ai-loading');
+  const content=document.getElementById('ai-overlay-content');
+  const rerunBtn=document.getElementById('ai-rerun-btn');
+
+  const nl=nlCards();
+  const cardLines=pool.map(c=>{const o=c.oracle||'';return`${c.qty}x ${c.name} [${c.type}, CMC ${c.cmcRaw||c.cmc}, ${(c.colors||[]).join('')||'C'}]${o?` — "${o.slice(0,120)}"`:''}`;}).join('\n');
+  const pt=getSmartPips();
+  const pipSum=Object.entries(pt).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`${CFULL[c]||c}: ${n.toFixed(1)}`).join(', ');
   const avgCmc=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(2):'?';
   const prompt=`You are an expert MTG draft analyst. Analyze this pool honestly.\n\nPOOL (${totCards()}):\n${cardLines}\n\nSTATS: Creatures: ${totType('Creature')}, Instants: ${totType('Instant')}, Sorceries: ${totType('Sorcery')}, Lands: ${totType('Land')}\nAvg CMC: ${avgCmc}\nPips: ${pipSum}\n\nAnalyze: 1) Interaction & Removal 2) Threats 3) Curve 4) Color Consistency 5) Top Cuts if >23 spells 6) Grade A/B/C/D\n\nBe direct, use card names, under 350 words.`;
-  try{const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1000,temperature:0.7}})});const data=await resp.json();if(data.error)throw new Error(data.error.message);const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'No response.';output.innerHTML=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/^#{1,3}\s+(.+)$/gm,'<strong>$1</strong>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');output.classList.add('show');btntxt.textContent='Re-analyze';}catch(err){output.innerHTML=`<span style="color:#8a0808">Failed: ${err.message}</span>`;output.classList.add('show');btntxt.textContent='Retry';geminiKey='';document.getElementById('key-row').style.display='flex';document.getElementById('key-hint').style.display='block'}finally{btn.disabled=false;spin.classList.remove('show')}
-});
+
+  try{
+    const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1500,temperature:0.7}})
+    });
+    const data=await resp.json();
+    if(data.error)throw new Error(data.error.message);
+    const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'No response.';
+    const formatted=text
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/^#{1,3}\s+(.+)$/gm,'<strong style="display:block;margin-top:10px;margin-bottom:4px;font-size:15px">$1</strong>')
+      .replace(/\n\n/g,'<br><br>')
+      .replace(/\n/g,'<br>');
+    loading.style.display='none';
+    content.innerHTML=formatted;
+    content.style.display='block';
+    rerunBtn.style.display='block';
+    document.getElementById('ai-btn-txt').textContent='✦ Re-analyze';
+  }catch(err){
+    loading.style.display='none';
+    content.innerHTML=`<div style="text-align:center;padding:20px"><span style="color:#8a0808;font-size:14px;font-weight:600">Analysis failed: ${err.message}</span><br><br><span style="color:var(--ink-muted);font-size:13px;font-style:italic">Check your API key and try again.</span></div>`;
+    content.style.display='block';
+    rerunBtn.style.display='block';
+    geminiKey='';
+    document.getElementById('key-row').style.display='flex';
+    document.getElementById('key-hint').style.display='block';
+    document.getElementById('ai-btn-txt').textContent='✦ Run AI Analysis';
+  }
+}
 
 render();
 </script>
