@@ -712,30 +712,23 @@ function getSmartPips(){
   return totalRaw;
 }
 
-// For land calc: get "effective demand" per color, treating hybrid as flexible
+// For land calc: get "effective demand" per color — hybrid pips add 0 demand (always castable with existing sources)
 function getLandPips(){
-  const strict={},hybridDemand={};
+  const strict={};
   nlCards().forEach(card=>{
     const mc=card.manaCost||'';
+    // Only count strict mono-color pips — these are the real land demand
     for(const m of mc.matchAll(/\{([WUBRG])\}/g))strict[m[1]]=(strict[m[1]]||0)+card.qty;
-    for(const m of mc.matchAll(/\{([WUBRG])\/([WUBRG])\}/g)){
-      // hybrid: counts as 0.5 for each, but resolved below
-      hybridDemand[m[1]]=(hybridDemand[m[1]]||0)+card.qty*0.3;
-      hybridDemand[m[2]]=(hybridDemand[m[2]]||0)+card.qty*0.3;
-    }
-    for(const m of mc.matchAll(/\{([WUBRG])\/P\}/g))hybridDemand[m[1]]=(hybridDemand[m[1]]||0)+card.qty*0.3;
+    // Hybrid pips {W/G}, {W/P} etc. are intentionally excluded — they create 0 additional demand
+    // because they can always be paid with whichever color you already run
+    // Fallback: if no mana cost data, use card pips or colors
     if(!mc&&card.pips&&Object.keys(card.pips).length){
       Object.entries(card.pips).forEach(([c,n])=>{strict[c]=(strict[c]||0)+n*card.qty});
     } else if(!mc){
       (card.colors||[]).filter(c=>c!=='C').forEach(c=>{strict[c]=(strict[c]||0)+card.qty});
     }
   });
-  // Merge: hybrid demand is reduced because it's flexible
-  const merged={};
-  new Set([...Object.keys(strict),...Object.keys(hybridDemand)]).forEach(c=>{
-    merged[c]=(strict[c]||0)+(hybridDemand[c]||0);
-  });
-  return merged;
+  return strict;
 }
 
 function earliestCmc(c){
