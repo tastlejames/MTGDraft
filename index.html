@@ -266,19 +266,19 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .cleanup-footer{background:var(--parchment2);border-top:2px solid var(--parchment-dark);padding:10px 16px;display:flex;gap:8px;flex-shrink:0;padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
 
 /* Share View */
-.share-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.95);display:none;flex-direction:column;align-items:center;justify-content:center;padding:10px}
+.share-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.95);display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 6px 6px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .share-overlay.open{display:flex}
 .share-close{position:absolute;top:12px;right:16px;background:none;border:none;color:rgba(255,255,255,0.6);font-size:28px;cursor:pointer;z-index:410;padding:4px 8px}
 .share-close:hover{color:#fff}
-.share-card{background:#1a1408;border:3px solid #3a2810;border-radius:10px;overflow:hidden;max-width:780px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.8)}
+.share-card{background:#1a1408;border:3px solid #3a2810;border-radius:10px;overflow:hidden;width:100%;max-width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.8)}
 .share-header{background:linear-gradient(180deg,#2a2010,#1a1408);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #3a2810;flex-wrap:wrap;gap:4px}
 .share-title{font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--gold-trim2);letter-spacing:0.06em}
 .share-stats{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--gold-trim);letter-spacing:0.04em;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .share-key{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:rgba(200,160,48,0.6);letter-spacing:0.04em}
-.share-body{padding:6px 8px;overflow:hidden}
-.share-columns{display:flex;gap:2px}
-.share-col{min-width:0;flex:1;max-width:110px}
-.share-col-label{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:800;color:var(--gold-trim);text-align:center;letter-spacing:0.06em;margin-bottom:1px;white-space:nowrap}
+.share-body{padding:8px 10px;overflow:hidden}
+.share-columns{display:flex;gap:3px}
+.share-col{min-width:0;flex:1}
+.share-col-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;color:var(--gold-trim);text-align:center;letter-spacing:0.06em;margin-bottom:2px;white-space:nowrap}
 .share-col-stack{display:flex;flex-direction:column}
 .share-card-item{position:relative;width:100%;border-radius:3px;overflow:hidden;border:2px solid transparent;flex-shrink:0}
 .share-card-item img{width:100%;display:block;border-radius:2px}
