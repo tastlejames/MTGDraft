@@ -180,6 +180,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .vis-card img{width:100%;display:block;border-radius:4px}
 .vis-card.selected{border-color:var(--gold-trim2);box-shadow:0 0 12px rgba(200,160,48,0.6);z-index:10;transform:scale(1.04)}
 .vis-card:active{transform:scale(0.97)}
+/* Castability indicators */
+.vis-card.cast-amber{border-color:#c89020;box-shadow:0 0 6px rgba(200,144,32,0.4)}
+.vis-card.cast-red{border-color:#c03020;box-shadow:0 0 6px rgba(192,48,32,0.4)}
+.vis-cast-badge{position:absolute;top:3px;left:3px;font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:800;padding:1px 4px;border-radius:3px;z-index:5;text-shadow:0 1px rgba(0,0,0,0.5)}
+.vis-cast-badge.amber{background:rgba(200,144,32,0.9);color:#fff}
+.vis-cast-badge.red{background:rgba(192,48,32,0.9);color:#fff}
 /* Overlap: tighter stacking — show ~25% of each card */
 .vis-col-stack .vis-card:not(:first-child){margin-top:-74%}
 /* Basic lands stack extra tight — only ~15% visible */
@@ -818,6 +824,79 @@ function earliestCmc(c){
   return cards.length?Math.min(...cards.map(x=>x.cmc)):99;
 }
 function hyper(N,K,n){if(K<=0||n<=0)return 0;if(K>=N)return 1;function lc(a,b){if(b<0||b>a)return-Infinity;if(b===0||b===a)return 0;let r=0;for(let i=0;i<b;i++)r+=Math.log(a-i)-Math.log(i+1);return r}return Math.max(0,Math.min(1,1-Math.exp(lc(N-K,n)-lc(N,n))))}
+
+// Hypergeometric: probability of at least `min` successes from N items with K successes, drawing n
+function hyperAtLeast(N,K,n,min){
+  if(K<=0||n<=0)return 0;if(K>=N)return 1;if(min<=0)return 1;if(min===1)return hyper(N,K,n);
+  function lc(a,b){if(b<0||b>a)return-Infinity;if(b===0||b===a)return 0;let r=0;for(let i=0;i<b;i++)r+=Math.log(a-i)-Math.log(i+1);return r}
+  // P(X >= min) = 1 - sum(P(X=k) for k=0..min-1)
+  let pLess=0;
+  for(let k=0;k<min;k++){
+    const lp=lc(K,k)+lc(N-K,n-k)-lc(N,n);
+    if(lp>-Infinity)pLess+=Math.exp(lp);
+  }
+  return Math.max(0,Math.min(1,1-pLess));
+}
+
+// Get projected sources per color from land calc recommendations (without needing basics in pool)
+function getProjectedSources(){
+  const nl=nlCards(),dl=lCards();
+  const pt=getLandPips(),totalPips=Object.values(pt).reduce((s,v)=>s+v,0);
+  if(!totalPips)return{};
+  const TARGET=getTargetLands();
+  let draftedSlots=0;const fixSrc={};
+  dl.forEach(land=>{draftedSlots+=land.qty;(land.produced||[]).filter(c=>'WUBRG'.includes(c)).forEach(c=>{fixSrc[c]=(fixSrc[c]||0)+land.qty})});
+  const basicsTotal=Math.max(0,TARGET-draftedSlots);
+  const {alloc}=computeBasicAllocation(pt,fixSrc,basicsTotal);
+  // Total sources = recommended basics + drafted land sources
+  const sources={};
+  Object.keys(pt).forEach(c=>{sources[c]=(alloc[c]||0)+(fixSrc[c]||0)});
+  return sources;
+}
+
+// Compute castability % for a card given projected sources
+function computeCastability(card,projectedSources){
+  if(card.type==='Land')return 1; // lands are always "castable"
+  const mc=card.manaCost||'';
+  if(!mc){
+    // No mana cost data — check colors as fallback
+    const colors=(card.colors||[]).filter(c=>c!=='C');
+    if(!colors.length)return 1; // colorless, always castable
+    // Assume 1 pip per color
+    const turn=Math.max(card.cmc,1);
+    const n=Math.min(6+turn,40);
+    let minProb=1;
+    colors.forEach(c=>{
+      const src=projectedSources[c]||0;
+      const p=hyper(40,Math.round(src),n);
+      if(p<minProb)minProb=p;
+    });
+    return minProb;
+  }
+  // Parse pips per color from mana cost
+  const pipsPerColor={};
+  for(const m of mc.matchAll(/\{([WUBRG])\}/g))pipsPerColor[m[1]]=(pipsPerColor[m[1]]||0)+1;
+  // Hybrid pips: count as the color you have more sources of (they're flexible)
+  for(const m of mc.matchAll(/\{([WUBRG])\/([WUBRG])\}/g)){
+    const sa=projectedSources[m[1]]||0,sb=projectedSources[m[2]]||0;
+    const pick=sa>=sb?m[1]:m[2];
+    pipsPerColor[pick]=(pipsPerColor[pick]||0)+1;
+  }
+  // Phyrexian hybrid: assume you pay life (no color needed)
+  // If no colored pips at all, it's colorless
+  if(!Object.keys(pipsPerColor).length)return 1;
+  const turn=Math.max(card.cmc,1);
+  const n=Math.min(6+turn,40); // cards seen by that turn (on play)
+  // For each color, compute probability of having enough sources
+  // Multi-color: take minimum across all colors (need ALL)
+  let minProb=1;
+  Object.entries(pipsPerColor).forEach(([c,pipsNeeded])=>{
+    const src=projectedSources[c]||0;
+    const p=pipsNeeded>=2?hyperAtLeast(40,Math.round(src),n,pipsNeeded):hyper(40,Math.round(src),n);
+    if(p<minProb)minProb=p;
+  });
+  return minProb;
+}
 function parsePips(mc){const p={};if(!mc)return p;for(const m of mc.matchAll(/\{([WUBRG])\}/g))p[m[1]]=(p[m[1]]||0)+1;for(const m of mc.matchAll(/\{([WUBRG])\/([WUBRG])\}/g)){p[m[1]]=(p[m[1]]||0)+0.5;p[m[2]]=(p[m[2]]||0)+0.5}for(const m of mc.matchAll(/\{([WUBRG])\/P\}/g))p[m[1]]=(p[m[1]]||0)+0.5;return p}
 function parseCardData(card){
   const tl=card.type_line||card.card_faces?.[0]?.type_line||'';let type='Other';
@@ -1221,6 +1300,9 @@ function renderVisualCurve(){
   const clickFn=visQuickSide?'visQuickSideTap':'visSelect';
   const qsClass=visQuickSide?'quick-side-mode':'';
 
+  // Compute castability indicators (only with 8+ non-land cards)
+  const projSrc=nl.reduce((s,c)=>s+c.qty,0)>=8?getProjectedSources():null;
+
   let html='<div class="vis-columns">';
   slots.forEach(s=>{
     const cards=bySlot[s];
@@ -1230,7 +1312,14 @@ function renderVisualCurve(){
       const sel=(!visQuickSide&&visSelectedId===card.id)?'selected':'';
       const img=card.imageSmall||card.imageUri||'';
       const basicCls=isBasicLand(card)?'vis-basic':'';
-      html+=`<div class="vis-card ${sel} ${qsClass} ${basicCls}" onclick="${clickFn}(${card.id},'${card.name.replace(/'/g,"\\'")}')" data-id="${card.id}">${img?`<img src="${img}" alt="${card.name}" loading="lazy">`:`<div style="aspect-ratio:488/680;background:${getBasicFallbackColor(card.name)};display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;padding:4px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.6)">${card.name}</div>`}</div>`;
+      // Castability indicator
+      let castCls='',castBadge='';
+      if(projSrc&&card.type!=='Land'){
+        const prob=computeCastability(card,projSrc);
+        if(prob<0.65){castCls='cast-red';castBadge=`<div class="vis-cast-badge red">${Math.round(prob*100)}%</div>`}
+        else if(prob<0.85){castCls='cast-amber';castBadge=`<div class="vis-cast-badge amber">${Math.round(prob*100)}%</div>`}
+      }
+      html+=`<div class="vis-card ${sel} ${qsClass} ${basicCls} ${castCls}" onclick="${clickFn}(${card.id},'${card.name.replace(/'/g,"\\'")}')" data-id="${card.id}">${castBadge}${img?`<img src="${img}" alt="${card.name}" loading="lazy">`:`<div style="aspect-ratio:488/680;background:${getBasicFallbackColor(card.name)};display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;padding:4px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.6)">${card.name}</div>`}</div>`;
     });
     html+=`</div></div>`;
   });
