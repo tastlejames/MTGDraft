@@ -1537,7 +1537,7 @@ function renderLandCalc(){
   html+=`<div class="ltbar" style="flex:1;margin-bottom:0"><span class="ltbl">Total Lands</span><span class="ltbc">${draftedLandSlots+basicsTotal}</span></div>`;
   html+=`<button onclick="quickAddAllBasics()" class="gold-btn" style="margin-left:8px;font-size:10px;padding:7px 12px;letter-spacing:0.06em">Add All</button>`;
   html+=`</div>`;
-  html+=`<div style="font-size:11px;color:var(--ink-muted);margin-bottom:10px;font-style:italic">Pip-weighted${draftedLandSlots>0?` · ${draftedLandSlots} drafted + ${basicsTotal} basics`:''}${sorted.some(([c])=>cw[c]!==1.0)?' · curve-adjusted':''} · hybrid-aware</div>`;
+  html+=`<div style="font-size:11px;color:var(--ink-muted);margin-bottom:10px;font-style:italic">Pip-weighted${draftedLandSlots>0?` · ${draftedLandSlots} drafted + ${basicsTotal} basics`:''} · dampened · hybrid-aware</div>`;
   html+=landAdviceHtml;
 
   // Determine which colors are splash vs main based on pip share
