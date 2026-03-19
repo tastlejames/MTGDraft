@@ -31,9 +31,9 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--ink);font-family:'Crimson Pro',Georgia,serif;font-size:15px;line-height:1.5;min-height:100vh;min-height:100dvh;overflow-x:hidden;padding-bottom:68px}
+body{background:var(--bg);color:var(--ink);font-family:'Crimson Pro',Georgia,serif;font-size:15px;line-height:1.5;min-height:100vh;min-height:100dvh;overflow-x:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,#1a1208 0%,#0a0806 70%);pointer-events:none;z-index:0}
-.mode-view{display:none;position:relative;z-index:1;padding-bottom:env(safe-area-inset-bottom,0px)}
+.mode-view{display:none;position:relative;z-index:1}
 .mode-view.active{display:block}
 
 /* Shared */
