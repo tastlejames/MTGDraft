@@ -187,6 +187,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .vis-card img{width:100%;display:block;border-radius:4px}
 .vis-card.selected{border-color:var(--gold-trim2);box-shadow:0 0 12px rgba(200,160,48,0.6);z-index:10;transform:scale(1.04)}
 .vis-card:active{transform:scale(0.97)}
+/* Card magnify overlay */
+.card-magnify{position:fixed;inset:0;z-index:380;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;padding:20px;padding-top:calc(20px + env(safe-area-inset-top,0px))}
+.card-magnify.open{display:flex}
+.card-magnify img{max-width:300px;width:100%;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.8)}
 /* Castability indicators */
 .vis-card.cast-amber{border-color:#c89020;box-shadow:0 0 6px rgba(200,144,32,0.4)}
 .vis-card.cast-red{border-color:#c03020;box-shadow:0 0 6px rgba(192,48,32,0.4)}
@@ -483,7 +487,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="draft-header">
     <div class="dh-top">
       <div><div class="draft-title">⬡ Draft</div><div class="draft-subtitle">Quick Pick Mode</div></div>
-      <div class="draft-pick-counter"><div class="pc-num" id="d-pick-count">0</div><div class="pc-label">Picks</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button onclick="confirmReset()" style="padding:4px 8px;background:none;border:1px solid rgba(200,160,48,0.2);border-radius:4px;color:var(--gold-trim);font-size:14px;cursor:pointer;opacity:0.5;line-height:1" title="Reset">↺</button>
+        <div class="draft-pick-counter"><div class="pc-num" id="d-pick-count">0</div><div class="pc-label">Picks</div></div>
+      </div>
     </div>
     <div class="dh-stats" id="d-mini-stats">
       <div class="dh-stat"><div class="dh-stat-v" id="dm-cr">0</div><div class="dh-stat-l">Creatures</div></div>
@@ -502,6 +509,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <button class="source-tab" data-src="chaos" onclick="switchSource('chaos')">Chaos Draft</button>
           <button class="source-tab" data-src="cube" onclick="switchSource('cube')">Cube</button>
         </div>
+        <button onclick="loadDemo()" style="width:100%;padding:8px;background:linear-gradient(180deg,rgba(200,160,48,0.12),rgba(200,160,48,0.06));border:1px dashed var(--gold-trim3);border-radius:6px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;margin-bottom:8px">⬡ Load Demo Deck</button>
         <!-- Single set -->
         <div class="source-content active" id="src-set">
           <div class="set-search-wrap">
@@ -741,6 +749,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <button class="gold-btn" style="flex:1" id="cleanup-confirm" onclick="confirmCleanup()">✦ Move Selected to Sideboard</button>
     <button onclick="closeCleanup()" style="flex-shrink:0;background:none;border:1px solid var(--parchment-dark);border-radius:5px;color:var(--ink-dim);font-family:'Cinzel',serif;font-size:12px;font-weight:700;padding:9px 16px;cursor:pointer">Cancel</button>
   </div>
+</div>
+
+<!-- ═══ CARD MAGNIFY OVERLAY ═══ -->
+<div class="card-magnify" id="card-magnify" onclick="closeMagnify()">
+  <img id="magnify-img" src="" alt="">
 </div>
 
 <!-- ═══ SHARE VIEW OVERLAY ═══ -->
@@ -1368,9 +1381,9 @@ function renderVisualCurve(){
   let html='<div class="vis-columns">';
   slots.forEach(s=>{
     const cards=bySlot[s];
+    if(!cards.length)return; // skip empty columns — gives more width to populated ones
     html+=`<div class="vis-col"><div class="vis-col-label">${s} <span class="vis-col-count">(${cards.length})</span></div><div class="vis-col-stack">`;
-    if(!cards.length) html+=`<div style="height:30px"></div>`;
-    else cards.forEach(card=>{
+    cards.forEach(card=>{
       const sel=(!visQuickSide&&visSelectedId===card.id)?'selected':'';
       const img=card.imageSmall||card.imageUri||'';
       const basicCls=isBasicLand(card)?'vis-basic':'';
@@ -1423,12 +1436,17 @@ function visQuickSideTap(id,name){
 function visSelect(id,name){
   if(visSelectedId===id){visDeselect();return}
   visSelectedId=id;
-  // Highlight the card
   document.querySelectorAll('.vis-card').forEach(c=>c.classList.toggle('selected',parseFloat(c.dataset.id)===id));
-  // Show floating action bar
   document.getElementById('vis-action-name').textContent=name;
   document.getElementById('vis-action-float').classList.add('show');
+  // Show magnified card image
+  const card=pool.find(c=>c.id===id)||sideboard.find(c=>c.id===id);
+  if(card){
+    const img=card.imageUri||card.imageSmall||'';
+    if(img){document.getElementById('magnify-img').src=img;document.getElementById('card-magnify').classList.add('open')}
+  }
 }
+function closeMagnify(){document.getElementById('card-magnify').classList.remove('open')}
 function visDeselect(){
   visSelectedId=null;
   document.querySelectorAll('.vis-card').forEach(c=>c.classList.remove('selected'));
@@ -1902,6 +1920,92 @@ function openShareView(){
 
 function closeShareView(){
   document.getElementById('share-overlay').classList.remove('open');
+}
+
+// ═══ DEMO MODE ═══
+const DEMO_DECK=`Deck
+1 April O'Neil, Hacktivist (TMT) 29
+1 Sewer-veillance Cam (TMT) 53
+2 Mechanized Ninja Cavalry (TMT) 156
+1 Brilliance Unleashed (TMT) 141
+1 Nobody (TMT) 161
+3 Manhole Missile (TMT) 94
+2 Buzz Bots (TMT) 32
+1 Ray Fillet, Man Ray (TMT) 49
+2 Mouser Foundry (TMT) 96
+1 Ooze Spill (TMT) 48
+1 Donatello, Turtle Techie (TMT) 37
+1 Bespoke Bō (TMT) 31
+1 Mouser Mark III (TMT) 159
+1 Utrom Scientists (TMT) 56
+1 Metalhead (TMT) 44
+1 Don & Raph, Hard Science (TMT) 144
+8 Island (UNF) 236
+1 Retro-Mutation (TMT) 51
+1 Old Hob, Alleycat Blues (TMT) 99
+6 Mountain (UNF) 238
+1 Bot Bashing Time (TMT) 85
+1 Dimension X (TMT) 183
+1 TCRI Building (TMT) 189
+
+Sideboard
+1 Michelangelo, Weirdness to 11 (TMT) 121
+1 Frog Butler (TMT) 114
+1 Saved by the Shell (TMT) 132
+1 Ragamuffin Raptor (TMT) 130
+1 Groundchuck & Dirtbag (TMT) 115
+1 Hamato Guardian Stance (TMT) 8
+1 Leonardo, Leader in Blue (TMT) 16`;
+
+async function loadDemo(){
+  pool=[];sideboard=[];
+  toast('Loading demo deck…');
+  const lines=DEMO_DECK.split('\n');
+  let inSideboard=false;
+  const mainCards=[],sideCards=[];
+  for(const line of lines){
+    if(line.trim()==='Sideboard'){inSideboard=true;continue}
+    if(line.trim()==='Deck'||!line.trim())continue;
+    const m=line.match(/^(\d+)\s+(.+?)\s+\([^)]+\)\s+\S+$/);
+    if(m){(inSideboard?sideCards:mainCards).push({qty:parseInt(m[1]),name:m[2]})}
+  }
+  // Fetch all cards from Scryfall
+  const allCards=[...mainCards,...sideCards];
+  for(let i=0;i<allCards.length;i++){
+    const{qty,name}=allCards[i];
+    try{
+      const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);
+      const card=await r.json();
+      if(card.object==='card'){
+        const p=parseCardData(card);
+        const img=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';
+        const imgSmall=card.image_uris?.small||card.card_faces?.[0]?.image_uris?.small||'';
+        const isSide=i>=mainCards.length;
+        const target=isSide?sideboard:pool;
+        target.push({id:Date.now()+Math.random(),name:card.name,type:p.type,allTypes:p.allTypes,cmc:p.cmc,cmcRaw:p.cmcRaw,colors:p.colors,qty,pips:p.pips,produced:p.produced,oracle:p.oracle,imageUri:img,manaCost:p._manaCost||'',imageSmall:imgSmall});
+      }
+    }catch{}
+    await new Promise(r=>setTimeout(r,80));
+  }
+  document.getElementById('set-selector').style.display='none';
+  document.getElementById('draft-main')&&(document.getElementById('draft-main').style.display='block');
+  toast(`Demo loaded: ${pool.reduce((s,c)=>s+c.qty,0)} cards`);
+  updateNavBadge();updateDraftMiniStats();render();renderVisualCurve();
+}
+
+// ═══ RESET ═══
+function confirmReset(){
+  if(!pool.length&&!sideboard.length&&!setCards.length){toast('Nothing to reset');return}
+  if(confirm('Reset everything? This clears your pool, sideboard, and loaded set.')){
+    pool=[];sideboard=[];setCards=[];lastPicks=[];loadedSetName='';loadedSetCode='';chaosSets=[];
+    setBasicImages={};visSelectedId=null;draftColorFilter=[];draftMvFilter='';draftTypeFilter='';draftLandMode=false;draftLockFilters=false;cleanupChecked={};
+    document.getElementById('lock-toggle').classList.remove('on');
+    document.getElementById('set-loaded-wrap').style.display='none';
+    document.getElementById('set-selector').style.display='block';
+    if(document.getElementById('draft-main'))document.getElementById('draft-main').style.display='none';
+    updateNavBadge();updateDraftMiniStats();render();renderVisualCurve();
+    toast('Reset complete');
+  }
 }
 
 // ═══ LOCK FILTERS TOGGLE ═══
