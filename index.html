@@ -256,7 +256,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .cleanup-card-meta{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--ink-muted);font-weight:700}
 .cleanup-card-check{width:22px;height:22px;border-radius:4px;border:2px solid var(--parchment-dark);background:var(--parchment);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--gold-trim3);flex-shrink:0;transition:all 0.12s}
 .cleanup-card-check.checked{background:var(--gold-trim);border-color:var(--gold-trim3);color:#1a0c00}
-.cleanup-footer{background:var(--parchment2);border-top:2px solid var(--parchment-dark);padding:10px 16px;display:flex;gap:8px;flex-shrink:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.cleanup-footer{background:var(--parchment2);border-top:2px solid var(--parchment-dark);padding:10px 16px;display:flex;gap:8px;flex-shrink:0;padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
 
 /* ═══ BUILDER VIEW ═══ */
 #view-builder{max-width:1460px;margin:0 auto;padding:16px 16px 20px}
@@ -516,7 +516,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <div class="mv-btn" data-mv="3">3</div>
             <div class="mv-btn" data-mv="4">4</div>
             <div class="mv-btn" data-mv="5">5</div>
-            <div class="mv-btn" data-mv="6">6+</div>
+            <div class="mv-btn" data-mv="6+">6+</div>
           </div>
         </div>
         <div class="filter-actions">
@@ -635,7 +635,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="vis-toggle-row">
       <button onclick="openCleanup()" style="padding:4px 10px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:5px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap" id="cleanup-btn">🧹 Clean Up</button>
       <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--gold-trim);letter-spacing:0.06em">QUICK SIDE</span>
-      <div class="vis-toggle" id="vis-quick-toggle" onclick="toggleQuickSide()"></div>
+      <div class="vis-toggle on" id="vis-quick-toggle" onclick="toggleQuickSide()"></div>
     </div>
   </div>
   <div id="vis-body"><div class="empty" style="color:var(--gold-trim);opacity:0.6"><span class="eicon">📊</span>Add cards to see your deck.</div></div>
@@ -717,7 +717,7 @@ let draftColorFilter=[],draftMvFilter='',draftTypeFilter='',draftLandMode=false;
 let dManualAcRes=[],dManualAcTmo=null,dManualSelCard=null;
 let chaosSets=[]; // [{code,name}]
 let visSelectedId=null;
-let visQuickSide=false;
+let visQuickSide=true;
 let lastPicks=[]; // track last 3 cards added (card objects)
 let draftLockFilters=false;
 let cleanupChecked={}; // {cardId: true/false} for cleanup preview
@@ -1187,7 +1187,24 @@ function renderVisualCurve(){
   const avg=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(1):'—';
   statsEl.textContent=`${total} cards · ${cr} creatures · ${avg} avg`;
 
-  if(!nl.length&&!lCards().length){body.innerHTML='<div class="empty" style="color:var(--gold-trim);opacity:0.6"><span class="eicon">📊</span>Add cards to see your deck.</div>';return}
+  if(!nl.length&&!lCards().length){
+    let emptyHtml='<div class="empty" style="color:var(--gold-trim);opacity:0.6"><span class="eicon">📊</span>'+(sideboard.length?'Main deck is empty. Cards are in your sideboard.':'Add cards to see your deck.')+'</div>';
+    // Still show sideboard if it has cards
+    if(sideboard.length){
+      emptyHtml+=`<div class="vis-sb-strip"><div class="vis-sb-label">Sideboard (${sideboard.reduce((s,c)=>s+c.qty,0)})</div><div class="vis-sb-row">`;
+      sideboard.forEach(card=>{
+        const img=card.imageSmall||card.imageUri||'';
+        emptyHtml+=`<div class="vis-sb-stack" onclick="visSbTap(${card.id})">`;
+        for(let i=0;i<card.qty;i++){
+          const mt=i>0?'margin-top:-78%;':'';
+          emptyHtml+=`<div class="vis-sb-card" style="${mt}">${img?`<img src="${img}" alt="${card.name}" loading="lazy">`:`<div style="aspect-ratio:488/680;background:${getBasicFallbackColor(card.name)};display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;padding:3px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.6)">${card.name}</div>`}</div>`;
+        }
+        emptyHtml+=`</div>`;
+      });
+      emptyHtml+=`</div></div>`;
+    }
+    body.innerHTML=emptyHtml;return;
+  }
 
   const slots=['0','1','2','3','4','5','6','7+'];
   const bySlot={};slots.forEach(s=>bySlot[s]=[]);
