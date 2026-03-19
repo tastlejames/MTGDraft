@@ -1437,6 +1437,61 @@ function getTargetLands(){
   return(avgCmc>3.2||twoDrops<2)?17:16;
 }
 
+// Shared basic land allocation with dampened ratio + minimum source floor
+function computeBasicAllocation(pt,fixSources,basicsTotal){
+  const totalPipCount=Object.values(pt).reduce((s,v)=>s+v,0);
+
+  // Step 1: Reduce effective demand by what drafted lands already provide
+  const effP={};Object.keys(pt).forEach(c=>{effP[c]=Math.max(0,(pt[c]||0)-(fixSources[c]||0)*1.5)});
+
+  // Step 2: Apply curve weighting
+  const cw={};Object.keys(pt).forEach(c=>{const e=earliestCmc(c);cw[c]=e<=2?1.2:e<=3?1.05:e>=5?0.85:1.0});
+  const wp={};Object.keys(effP).forEach(c=>{wp[c]=(effP[c]||0)*(cw[c]||1)});
+
+  // Step 3: Dampen the ratio using square root to compress extreme splits
+  // Raw 2:1 becomes ~1.41:1, raw 3:1 becomes ~1.73:1
+  const dampened={};Object.keys(wp).forEach(c=>{dampened[c]=Math.sqrt(Math.max(0,wp[c]))});
+  const totDamp=Object.values(dampened).reduce((s,v)=>s+v,0);
+
+  // Step 4: Initial allocation from dampened ratio
+  const sorted=Object.entries(dampened).sort((a,b)=>b[1]-a[1]);
+  const alloc={};
+  let rem=basicsTotal;
+  sorted.forEach(([c,d],i)=>{
+    if(i<sorted.length-1){const p=Math.round((d/(totDamp||1))*basicsTotal);alloc[c]=p;rem-=p}
+    else alloc[c]=Math.max(0,rem);
+  });
+
+  // Step 5: Enforce minimum source floor
+  // Non-splash colors (>=18% pip share) get minimum 5 basics (if basicsTotal allows)
+  // Splash colors (<18% pip share) get minimum 2 basics
+  if(sorted.length>=2&&basicsTotal>=4){
+    let needsRedist=false;
+    sorted.forEach(([c])=>{
+      const share=(pt[c]||0)/(totalPipCount||1);
+      const isSplash=share<0.18&&sorted.length>1;
+      const floor=isSplash?2:5;
+      const totalWithFix=(alloc[c]||0)+(fixSources[c]||0);
+      if(totalWithFix<floor){
+        const needed=Math.min(floor-(fixSources[c]||0),basicsTotal); // how many basics needed to reach floor
+        if(needed>(alloc[c]||0)){alloc[c]=Math.max(alloc[c]||0,needed);needsRedist=true}
+      }
+    });
+    // Redistribute if floors bumped anything up: take from the largest
+    if(needsRedist){
+      const totalAlloc=Object.values(alloc).reduce((s,v)=>s+v,0);
+      if(totalAlloc>basicsTotal){
+        const excess=totalAlloc-basicsTotal;
+        // Take excess from the color with the most basics
+        const biggest=sorted[0][0];
+        alloc[biggest]=Math.max(0,(alloc[biggest]||0)-excess);
+      }
+    }
+  }
+
+  return{alloc,sorted};
+}
+
 function renderLandCalc(){
   const el=document.getElementById('lc-body'),nl=nlCards(),dl=lCards(),sqty=nl.reduce((s,c)=>s+c.qty,0);
   if(sqty<5){el.innerHTML='<div class="empty"><span class="eicon">🏔</span>Add spells to see recommendations</div>';return}
@@ -1456,15 +1511,8 @@ function renderLandCalc(){
 
   const basicsTotal=Math.max(0,TARGET_LANDS-draftedLandSlots);
 
-  // Distribute basics by pip demand, adjusted for what drafted lands already cover
-  // Reduce demand by drafted sources (but don't let it go below 0)
-  const effP={};Object.keys(pt).forEach(c=>{effP[c]=Math.max(0,(pt[c]||0)-(fixSources[c]||0)*1.5)});
-  const cw={};Object.keys(pt).forEach(c=>{const e=earliestCmc(c);cw[c]=e<=2?1.2:e<=3?1.05:e>=5?0.85:1.0});
-  const wp={};Object.keys(effP).forEach(c=>{wp[c]=(effP[c]||0)*(cw[c]||1)});
-  const totWp=Object.values(wp).reduce((s,v)=>s+v,0);
-  const sorted=Object.entries(wp).sort((a,b)=>b[1]-a[1]),alloc={};
-  let rem=basicsTotal;
-  sorted.forEach(([c,w],i)=>{if(i<sorted.length-1){const p=Math.round((w/(totWp||1))*basicsTotal);alloc[c]=p;rem-=p}else alloc[c]=Math.max(0,rem)});
+  // Compute allocation using shared function with dampening + floor
+  const {alloc,sorted}=computeBasicAllocation(pt,fixSources,basicsTotal);
 
   // Land count advice
   let landAdviceHtml='';
@@ -1582,12 +1630,7 @@ function quickAddAllBasics(){
   let draftedSlots=0;const fixSrc={};
   dl.forEach(land=>{draftedSlots+=land.qty;(land.produced||[]).filter(c=>'WUBRG'.includes(c)).forEach(c=>{fixSrc[c]=(fixSrc[c]||0)+land.qty})});
   const basicsTotal=Math.max(0,TARGET-draftedSlots);
-  const effP={};Object.keys(pt).forEach(c=>{effP[c]=Math.max(0,(pt[c]||0)-(fixSrc[c]||0)*1.5)});
-  const cw={};Object.keys(pt).forEach(c=>{const e=earliestCmc(c);cw[c]=e<=2?1.2:e<=3?1.05:e>=5?0.85:1.0});
-  const wp={};Object.keys(effP).forEach(c=>{wp[c]=(effP[c]||0)*(cw[c]||1)});
-  const totWp=Object.values(wp).reduce((s,v)=>s+v,0);
-  const sorted=Object.entries(wp).sort((a,b)=>b[1]-a[1]),alloc={};
-  let rem=basicsTotal;sorted.forEach(([c,w],i)=>{if(i<sorted.length-1){const p=Math.round((w/(totWp||1))*basicsTotal);alloc[c]=p;rem-=p}else alloc[c]=Math.max(0,rem)});
+  const {alloc,sorted}=computeBasicAllocation(pt,fixSrc,basicsTotal);
   sorted.forEach(([c])=>{const count=alloc[c]||0;if(count>0)quickAddBasic(c,count)});
 }
 
