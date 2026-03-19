@@ -273,9 +273,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .cleanup-footer{background:var(--parchment2);border-top:2px solid var(--parchment-dark);padding:10px 16px;display:flex;gap:8px;flex-shrink:0;padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
 
 /* Share View */
-.share-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.95);display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 6px 6px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.share-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.95);display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(50px + env(safe-area-inset-top,0px)) 6px 6px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .share-overlay.open{display:flex}
-.share-close{position:absolute;top:12px;right:16px;background:none;border:none;color:rgba(255,255,255,0.6);font-size:28px;cursor:pointer;z-index:410;padding:4px 8px}
+.share-close{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:16px;background:none;border:none;color:rgba(255,255,255,0.6);font-size:28px;cursor:pointer;z-index:410;padding:4px 8px}
 .share-close:hover{color:#fff}
 .share-card{background:#1a1408;border:3px solid #3a2810;border-radius:10px;overflow:hidden;width:100%;max-width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.8)}
 .share-header{background:linear-gradient(180deg,#2a2010,#1a1408);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #3a2810;flex-wrap:wrap;gap:4px}
