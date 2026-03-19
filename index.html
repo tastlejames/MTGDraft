@@ -178,8 +178,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .vis-bar-left{display:flex;align-items:center;gap:10px}
 .vis-bar-title{font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold-trim2);letter-spacing:0.06em}
 .vis-bar-stats{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--gold-trim);letter-spacing:0.06em}
-.vis-columns{display:flex;gap:3px;min-width:min-content;padding-bottom:4px}
-.vis-col{display:flex;flex-direction:column;align-items:center;min-width:0;flex:1}
+.vis-columns{display:flex;gap:3px;min-width:min-content;padding-bottom:4px;overflow-x:auto}
+.vis-col{display:flex;flex-direction:column;align-items:center;min-width:70px;flex:1}
 .vis-col-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold-trim);letter-spacing:0.06em;text-align:center;padding:3px 0;background:rgba(0,0,0,0.3);border-radius:4px 4px 0 0;width:100%;margin-bottom:2px}
 .vis-col-count{font-size:10px;opacity:0.7}
 .vis-col-stack{display:flex;flex-direction:column;width:100%;position:relative}
@@ -959,6 +959,10 @@ function parsePips(mc){const p={};if(!mc)return p;for(const m of mc.matchAll(/\{
 function parseCardData(card){
   const tl=card.type_line||card.card_faces?.[0]?.type_line||'';let type='Other';
   if(tl.includes('Creature'))type='Creature';else if(tl.includes('Instant'))type='Instant';else if(tl.includes('Sorcery'))type='Sorcery';else if(tl.includes('Enchantment'))type='Enchantment';else if(tl.includes('Artifact'))type='Artifact';else if(tl.includes('Planeswalker'))type='Planeswalker';else if(tl.includes('Land'))type='Land';
+  // Track all types for multi-type cards (Artifact Creature, Enchantment Creature, etc.)
+  const allTypes=[];
+  ['Creature','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Land'].forEach(t=>{if(tl.includes(t))allTypes.push(t)});
+  if(!allTypes.length)allTypes.push('Other');
   const cmc=card.cmc!==undefined?Math.round(card.cmc):0;const cmcRaw=cmc>=7?'7+':String(cmc);
   // DFC fix: use front face colors/mana_cost when top-level is empty
   let colors=card.colors||[];
@@ -967,12 +971,12 @@ function parseCardData(card){
   const pips=parsePips(mc);
   const produced=(card.produced_mana||[]).filter(c=>'WUBRG'.includes(c));
   const oracle=card.oracle_text||card.card_faces?.[0]?.oracle_text||'';
-  return{type,cmc,cmcRaw,colors:colors.length?colors:['C'],pips,produced,oracle,_manaCost:mc};
+  return{type,allTypes,cmc,cmcRaw,colors:colors.length?colors:['C'],pips,produced,oracle,_manaCost:mc};
 }
-function addCardToPool(name,type,cmc,cmcRaw,colors,qtyToAdd,pips,produced,oracle,imageUri,manaCost,imageSmall){
+function addCardToPool(name,type,cmc,cmcRaw,colors,qtyToAdd,pips,produced,oracle,imageUri,manaCost,imageSmall,allTypes){
   const ex=pool.find(c=>c.name.toLowerCase()===name.toLowerCase()&&c.type===type);
   if(ex){ex.qty+=qtyToAdd}
-  else{pool.push({id:Date.now()+Math.random(),name,type,cmc,cmcRaw,colors,qty:qtyToAdd,pips,produced,oracle,imageUri,manaCost:manaCost||'',imageSmall:imageSmall||''})}
+  else{pool.push({id:Date.now()+Math.random(),name,type,allTypes:allTypes||[type],cmc,cmcRaw,colors,qty:qtyToAdd,pips,produced,oracle,imageUri,manaCost:manaCost||'',imageSmall:imageSmall||''})}
   resetAiOutput();updateNavBadge();updateDraftMiniStats();render();
 }
 function updateNavBadge(){const b=document.getElementById('nav-badge'),t=totCards();if(t>0){b.style.display='flex';b.textContent=t}else b.style.display='none'}
@@ -1245,7 +1249,7 @@ function renderDraftGrid(){
 }
 function quickAdd(name){
   const card=setCards.find(c=>c.name===name);if(!card)return;
-  addCardToPool(card.name,card.type,card.cmc,card.cmcRaw,card.colors,1,card.pips,card.produced,card.oracle,card.imageUri,card.manaCost,card.imageSmall);
+  addCardToPool(card.name,card.type,card.cmc,card.cmcRaw,card.colors,1,card.pips,card.produced,card.oracle,card.imageUri,card.manaCost,card.imageSmall,card.allTypes);
   // Track last picks
   lastPicks.unshift({...card,_addedAt:Date.now()});
   if(lastPicks.length>3)lastPicks.length=3;
@@ -1280,7 +1284,7 @@ function doManualAdd(){
   if(!dManualSelCard)return;const card=dManualSelCard;const p=parseCardData(card);
   const img=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';
   const imgSmall=card.image_uris?.small||card.card_faces?.[0]?.image_uris?.small||'';
-  addCardToPool(card.name,p.type,p.cmc,p.cmcRaw,p.colors,1,p.pips,p.produced,p.oracle,img,card.mana_cost||'',imgSmall);
+  addCardToPool(card.name,p.type,p.cmc,p.cmcRaw,p.colors,1,p.pips,p.produced,p.oracle,img,card.mana_cost||'',imgSmall,p.allTypes);
   lastPicks.unshift({name:card.name,imageSmall:imgSmall,imageUri:img,colors:p.colors,type:p.type,cmc:p.cmc,_addedAt:Date.now()});
   if(lastPicks.length>3)lastPicks.length=3;
   updateLastPicksBtn();
@@ -1458,7 +1462,7 @@ async function runImport(){
   const deduped={};parsed.forEach(({qty,name})=>{const key=name.toLowerCase();if(!deduped[key])deduped[key]={qty:0,name};deduped[key].qty+=qty});
   const cards=Object.values(deduped);status.textContent=`Looking up ${cards.length} cards…`;let added=0,failed=[];
   for(let i=0;i<cards.length;i++){const{qty,name}=cards[i];status.textContent=`${i+1}/${cards.length}: ${name}…`;
-    try{const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);const card=await r.json();if(card.object==='card'){const p=parseCardData(card);const img=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';addCardToPool(card.name,p.type,p.cmc,p.cmcRaw,p.colors,qty,p.pips,p.produced,p.oracle,img,card.mana_cost||'');added+=qty}else failed.push(name)}catch{failed.push(name)}
+    try{const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);const card=await r.json();if(card.object==='card'){const p=parseCardData(card);const img=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';addCardToPool(card.name,p.type,p.cmc,p.cmcRaw,p.colors,qty,p.pips,p.produced,p.oracle,img,card.mana_cost||'','',p.allTypes);added+=qty}else failed.push(name)}catch{failed.push(name)}
     await new Promise(r=>setTimeout(r,80));
   }
   render();
@@ -1482,13 +1486,13 @@ si.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){acIdx=Math.min(acIdx+1
 async function fetchAc(q){try{const r=await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`);const d=await r.json();acRes=d.data||[];acIdx=-1;renderAc()}catch{closeAc()}}
 function renderAc(){if(!acRes.length){closeAc();return}acl.innerHTML=acRes.slice(0,10).map((n,i)=>`<div class="aci${i===acIdx?' sel':''}">${n}</div>`).join('');acl.classList.add('open');acl.querySelectorAll('.aci').forEach((el,i)=>{el.addEventListener('mousedown',e=>{e.preventDefault();selectAc(acRes[i])});el.addEventListener('mouseenter',()=>{acIdx=i;acl.querySelectorAll('.aci').forEach((x,xi)=>x.classList.toggle('sel',xi===acIdx))})})}
 async function selectAc(name){si.value=name;closeAc();try{const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);const c=await r.json();if(c.object==='card')applyCard(c);else enableManual()}catch{enableManual()}}
-function applyCard(card){selCard=card;const p=parseCardData(card);document.getElementById('sel-type').value=p.type;document.getElementById('sel-cmc').value=p.cmcRaw;setColors(p.colors);selCard._pips=p.pips;selCard._produced=p.produced;selCard._oracle=p.oracle;selCard._imageUri=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';selCard._imageSmall=card.image_uris?.small||card.card_faces?.[0]?.image_uris?.small||'';selCard._manaCost=card.mana_cost||'';document.getElementById('prev-cost').textContent=card.mana_cost||'';addbtn.disabled=false}
+function applyCard(card){selCard=card;const p=parseCardData(card);document.getElementById('sel-type').value=p.type;document.getElementById('sel-cmc').value=p.cmcRaw;setColors(p.colors);selCard._pips=p.pips;selCard._produced=p.produced;selCard._oracle=p.oracle;selCard._imageUri=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';selCard._imageSmall=card.image_uris?.small||card.card_faces?.[0]?.image_uris?.small||'';selCard._manaCost=card.mana_cost||'';selCard._allTypes=p.allTypes;document.getElementById('prev-cost').textContent=card.mana_cost||'';addbtn.disabled=false}
 function enableManual(){selCard=null;addbtn.disabled=false}
 function closeAc(){acl.classList.remove('open');acl.innerHTML='';acRes=[];acIdx=-1}
 document.addEventListener('click',e=>{if(!e.target.closest('.sw'))closeAc()});
 
 addbtn.addEventListener('click',addCard);
-function addCard(){const name=si.value.trim();if(!name)return;const type=document.getElementById('sel-type').value;const cmcRaw=document.getElementById('sel-cmc').value;const cmc=cmcRaw==='7+'?7:parseInt(cmcRaw);const colors=getColors();addCardToPool(name,type,cmc,cmcRaw,colors,qty,selCard?._pips||{},selCard?._produced||[],selCard?._oracle||'',selCard?._imageUri||'',selCard?._manaCost||'',selCard?._imageSmall||'');toast(`Added: ${name}`);si.value='';document.getElementById('prev-cost').textContent='';selCard=null;addbtn.disabled=true;qty=1;document.getElementById('qv').textContent='1';document.querySelectorAll('.cp').forEach(p=>p.classList.remove('on'))}
+function addCard(){const name=si.value.trim();if(!name)return;const type=document.getElementById('sel-type').value;const cmcRaw=document.getElementById('sel-cmc').value;const cmc=cmcRaw==='7+'?7:parseInt(cmcRaw);const colors=getColors();addCardToPool(name,type,cmc,cmcRaw,colors,qty,selCard?._pips||{},selCard?._produced||[],selCard?._oracle||'',selCard?._imageUri||'',selCard?._manaCost||'',selCard?._imageSmall||'',selCard?._allTypes||[type]);toast(`Added: ${name}`);si.value='';document.getElementById('prev-cost').textContent='';selCard=null;addbtn.disabled=true;qty=1;document.getElementById('qv').textContent='1';document.querySelectorAll('.cp').forEach(p=>p.classList.remove('on'))}
 function removeOne(id){const c=pool.find(x=>x.id===id);if(!c)return;if(c.qty>1)c.qty--;else pool=pool.filter(x=>x.id!==id);resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}
 function removeAll(id){pool=pool.filter(x=>x.id!==id);resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}
 document.getElementById('clr-btn').addEventListener('click',()=>{if(!pool.length)return;if(confirm('Clear all cards?')){pool=[];resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}});
@@ -1512,7 +1516,9 @@ function renderStats(){
 function renderExtStats(){
   const wrap=document.getElementById('ext-stats-wrap');
   if(totCards()<5){wrap.innerHTML='';return}
-  const inst=totType('Instant'),sorc=totType('Sorcery'),ench=totType('Enchantment'),art=totType('Artifact'),pw=totType('Planeswalker');
+  // Count using allTypes so Artifact Creatures show in both Creatures (via totType) and Artifacts (here)
+  const countByAllTypes=t=>pool.filter(c=>(c.allTypes||[c.type]).includes(t)).reduce((s,c)=>s+c.qty,0);
+  const inst=countByAllTypes('Instant'),sorc=countByAllTypes('Sorcery'),ench=countByAllTypes('Enchantment'),art=countByAllTypes('Artifact'),pw=countByAllTypes('Planeswalker');
   wrap.innerHTML=`<div class="ext-stats">
     <div class="ext-stat"><div class="ext-stat-v">${inst}</div><div class="ext-stat-l">Instants</div></div>
     <div class="ext-stat"><div class="ext-stat-v">${sorc}</div><div class="ext-stat-l">Sorceries</div></div>
