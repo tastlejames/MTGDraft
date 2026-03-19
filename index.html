@@ -270,24 +270,24 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .share-overlay.open{display:flex}
 .share-close{position:absolute;top:12px;right:16px;background:none;border:none;color:rgba(255,255,255,0.6);font-size:28px;cursor:pointer;z-index:410;padding:4px 8px}
 .share-close:hover{color:#fff}
-.share-card{background:#1a1408;border:3px solid #3a2810;border-radius:10px;overflow:hidden;max-width:960px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.8)}
+.share-card{background:#1a1408;border:3px solid #3a2810;border-radius:10px;overflow:hidden;max-width:780px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.8)}
 .share-header{background:linear-gradient(180deg,#2a2010,#1a1408);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #3a2810;flex-wrap:wrap;gap:4px}
 .share-title{font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--gold-trim2);letter-spacing:0.06em}
 .share-stats{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--gold-trim);letter-spacing:0.04em;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .share-key{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:rgba(200,160,48,0.6);letter-spacing:0.04em}
-.share-body{padding:8px 10px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
-.share-columns{display:flex;gap:3px;min-width:0}
-.share-col{min-width:0;flex:1}
-.share-col-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:800;color:var(--gold-trim);text-align:center;letter-spacing:0.06em;margin-bottom:2px;white-space:nowrap}
+.share-body{padding:6px 8px;overflow:hidden}
+.share-columns{display:flex;gap:2px}
+.share-col{min-width:0;flex:1;max-width:110px}
+.share-col-label{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:800;color:var(--gold-trim);text-align:center;letter-spacing:0.06em;margin-bottom:1px;white-space:nowrap}
 .share-col-stack{display:flex;flex-direction:column}
-.share-card-item{position:relative;width:100%;border-radius:4px;overflow:hidden;border:2px solid transparent;flex-shrink:0}
-.share-card-item img{width:100%;display:block;border-radius:3px}
+.share-card-item{position:relative;width:100%;border-radius:3px;overflow:hidden;border:2px solid transparent;flex-shrink:0}
+.share-card-item img{width:100%;display:block;border-radius:2px}
 .share-card-item.cast-amber{border-color:#c89020}
 .share-card-item.cast-red{border-color:#c03020}
 .share-sb-section{padding:6px 10px;border-top:1px solid #3a2810}
 .share-sb-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:800;color:var(--gold-trim);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px}
 .share-sb-row{display:flex;gap:3px;flex-wrap:wrap}
-.share-sb-card{width:60px;border-radius:3px;overflow:hidden}
+.share-sb-card{width:45px;border-radius:2px;overflow:hidden}
 .share-sb-card img{width:100%;display:block;border-radius:2px}
 .share-land-summary{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--gold-trim);letter-spacing:0.04em;display:flex;flex-direction:column;gap:1px;align-items:center;padding:4px 2px}
 .share-land-row{display:flex;align-items:center;gap:3px}
@@ -1809,13 +1809,13 @@ function openShareView(){
     for(let i=0;i<c.qty;i++)bySlot[k].push({...c,_copyIdx:i});
   });
 
-  // Tight overlap: show ~18% of each card (just name bar + tiny art sliver)
-  const overlapPct=-90;
+  // Tight overlap: just name bar visible (~9% of card showing)
+  const overlapPct=-91;
 
   html+=`<div class="share-body"><div class="share-columns">`;
   slots.forEach(s=>{
     const cards=bySlot[s];
-    if(!cards.length&&s!=='0')return; // skip empty columns except 0
+    if(!cards.length)return; // skip empty columns entirely
     html+=`<div class="share-col"><div class="share-col-label">${s} (${cards.length})</div><div class="share-col-stack">`;
     cards.forEach((card,i)=>{
       const img=card.imageSmall||card.imageUri||'';
