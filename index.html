@@ -183,9 +183,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 /* Castability indicators */
 .vis-card.cast-amber{border-color:#c89020;box-shadow:0 0 6px rgba(200,144,32,0.4)}
 .vis-card.cast-red{border-color:#c03020;box-shadow:0 0 6px rgba(192,48,32,0.4)}
-.vis-cast-badge{position:absolute;top:3px;left:3px;font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:800;padding:1px 4px;border-radius:3px;z-index:5;text-shadow:0 1px rgba(0,0,0,0.5)}
-.vis-cast-badge.amber{background:rgba(200,144,32,0.9);color:#fff}
-.vis-cast-badge.red{background:rgba(192,48,32,0.9);color:#fff}
+.vis-cast-badge{position:absolute;top:3px;left:3px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;padding:2px 5px;border-radius:4px;z-index:5;text-shadow:0 1px rgba(0,0,0,0.5);letter-spacing:0.02em}
+.vis-cast-badge.amber{background:rgba(200,144,32,0.92);color:#fff}
+.vis-cast-badge.red{background:rgba(192,48,32,0.92);color:#fff}
 /* Overlap: tighter stacking — show ~25% of each card */
 .vis-col-stack .vis-card:not(:first-child){margin-top:-74%}
 /* Basic lands stack extra tight — only ~15% visible */
@@ -856,13 +856,12 @@ function getProjectedSources(){
 
 // Compute castability % for a card given projected sources
 function computeCastability(card,projectedSources){
-  if(card.type==='Land')return 1; // lands are always "castable"
+  if(card.type==='Land')return 1;
   const mc=card.manaCost||'';
   if(!mc){
     // No mana cost data — check colors as fallback
     const colors=(card.colors||[]).filter(c=>c!=='C');
-    if(!colors.length)return 1; // colorless, always castable
-    // Assume 1 pip per color
+    if(!colors.length)return 1;
     const turn=Math.max(card.cmc,1);
     const n=Math.min(6+turn,40);
     let minProb=1;
@@ -873,28 +872,44 @@ function computeCastability(card,projectedSources){
     });
     return minProb;
   }
-  // Parse pips per color from mana cost
-  const pipsPerColor={};
-  for(const m of mc.matchAll(/\{([WUBRG])\}/g))pipsPerColor[m[1]]=(pipsPerColor[m[1]]||0)+1;
-  // Hybrid pips: count as the color you have more sources of (they're flexible)
-  for(const m of mc.matchAll(/\{([WUBRG])\/([WUBRG])\}/g)){
-    const sa=projectedSources[m[1]]||0,sb=projectedSources[m[2]]||0;
-    const pick=sa>=sb?m[1]:m[2];
-    pipsPerColor[pick]=(pipsPerColor[pick]||0)+1;
-  }
-  // Phyrexian hybrid: assume you pay life (no color needed)
-  // If no colored pips at all, it's colorless
-  if(!Object.keys(pipsPerColor).length)return 1;
+
   const turn=Math.max(card.cmc,1);
   const n=Math.min(6+turn,40); // cards seen by that turn (on play)
-  // For each color, compute probability of having enough sources
-  // Multi-color: take minimum across all colors (need ALL)
+
+  // Parse strict mono-color pips
+  const strictPips={};
+  for(const m of mc.matchAll(/\{([WUBRG])\}/g))strictPips[m[1]]=(strictPips[m[1]]||0)+1;
+
+  // Parse hybrid pips — group by color pair (sorted key for consistency)
+  const hybridGroups={}; // key: "R_U" => count of pips from that pair
+  for(const m of mc.matchAll(/\{([WUBRG])\/([WUBRG])\}/g)){
+    const pair=[m[1],m[2]].sort().join('_');
+    hybridGroups[pair]=(hybridGroups[pair]||0)+1;
+  }
+  // Phyrexian hybrid {U/P} etc — free (pay life), skip entirely
+
+  // If no colored requirements at all, always castable
+  if(!Object.keys(strictPips).length&&!Object.keys(hybridGroups).length)return 1;
+
   let minProb=1;
-  Object.entries(pipsPerColor).forEach(([c,pipsNeeded])=>{
+
+  // Compute probability for each strict color requirement
+  Object.entries(strictPips).forEach(([c,pipsNeeded])=>{
     const src=projectedSources[c]||0;
     const p=pipsNeeded>=2?hyperAtLeast(40,Math.round(src),n,pipsNeeded):hyper(40,Math.round(src),n);
     if(p<minProb)minProb=p;
   });
+
+  // Compute probability for each hybrid color pair
+  // Combined source pool = sources of color A + sources of color B
+  // Need `count` sources from that combined pool
+  Object.entries(hybridGroups).forEach(([pair,count])=>{
+    const[a,b]=pair.split('_');
+    const combinedSrc=(projectedSources[a]||0)+(projectedSources[b]||0);
+    const p=count>=2?hyperAtLeast(40,Math.round(combinedSrc),n,count):hyper(40,Math.round(combinedSrc),n);
+    if(p<minProb)minProb=p;
+  });
+
   return minProb;
 }
 function parsePips(mc){const p={};if(!mc)return p;for(const m of mc.matchAll(/\{([WUBRG])\}/g))p[m[1]]=(p[m[1]]||0)+1;for(const m of mc.matchAll(/\{([WUBRG])\/([WUBRG])\}/g)){p[m[1]]=(p[m[1]]||0)+0.5;p[m[2]]=(p[m[2]]||0)+0.5}for(const m of mc.matchAll(/\{([WUBRG])\/P\}/g))p[m[1]]=(p[m[1]]||0)+0.5;return p}
