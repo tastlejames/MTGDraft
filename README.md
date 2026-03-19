@@ -58,6 +58,8 @@ An Arena-style deck layout showing actual card art organized by mana value.
 Smart mana base recommendations with correct dual land math.
 
 - **16-Land Standard** — Defaults to 16 lands when defensible; only recommends 17 for heavy curves (avg CMC > 3.2 or < 2 early drops)
+- **Dampened Ratio Distribution** — Uses square root compression on pip demand so secondary colors don't get starved (a raw 2:1 pip ratio produces ~1.4:1 land split, not 2:1)
+- **Minimum Source Floor** — Non-splash colors always get at least 5 sources; splash colors get at least 2. Prevents uncastable secondary colors
 - **Correct Dual Land Logic** — Each dual/tri/fetch counts as 1 land slot but a full source for every color it produces
 - **Hybrid Mana Awareness** — Hybrid pips create zero additional land demand (they're always castable with your existing colors); display logic assigns them to your primary color
 - **Tappable Basics** — Recommended basic counts are buttons; tap to add, or use "Add All"
@@ -106,6 +108,16 @@ The color availability chart uses the [hypergeometric distribution](https://en.w
 - **Draws (n):** Cards seen by that turn (7 for opening hand + 1 per draw step)
 
 Dual lands count as 1 slot toward total land count but as a full source for each color they produce. This correctly reflects that a Breeding Pool is just as likely to provide green mana as a Forest when you draw it.
+
+### Land Split Algorithm
+
+Basic land distribution uses a dampened ratio model informed by Frank Karsten's colored source research:
+
+1. **Pip counting** — Only strict mono-color pips (`{W}`, `{U}`, etc.) create land demand. Hybrid pips are excluded (zero demand) since they're payable with either color.
+2. **Drafted land offset** — Each drafted land reduces demand for its colors, weighted at 1.5x to reflect that non-basic lands are slightly more valuable than a single basic.
+3. **Curve weighting** — Colors with early-curve cards (CMC ≤ 2) get a 1.2x demand boost; late-curve colors (CMC ≥ 5) get 0.85x.
+4. **Square root dampening** — The weighted demands are square-rooted before computing ratios. This compresses extreme splits: a raw 2:1 demand ratio becomes ~1.4:1 in land count, matching how experienced players and Arena distribute lands.
+5. **Minimum source floor** — Non-splash colors (≥18% pip share) are guaranteed at least 5 total sources (basics + drafted lands). Splash colors get a floor of 2. Based on Karsten's finding that dropping below ~5 sources makes a color nearly uncastable.
 
 ---
 
