@@ -549,12 +549,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="panel-body">
         <div class="filter-label">Color</div>
         <div class="color-filters" id="d-colors">
-          <div class="cf-btn cf-W" data-c="W">W</div>
-          <div class="cf-btn cf-U" data-c="U">U</div>
-          <div class="cf-btn cf-B" data-c="B">B</div>
-          <div class="cf-btn cf-R" data-c="R">R</div>
-          <div class="cf-btn cf-G" data-c="G">G</div>
-          <div class="cf-btn cf-C" data-c="C">C</div>
+          <div class="cf-btn cf-W" data-c="W"><img src="https://svgs.scryfall.io/card-symbols/W.svg" width="22" height="22" alt="W"></div>
+          <div class="cf-btn cf-U" data-c="U"><img src="https://svgs.scryfall.io/card-symbols/U.svg" width="22" height="22" alt="U"></div>
+          <div class="cf-btn cf-B" data-c="B"><img src="https://svgs.scryfall.io/card-symbols/B.svg" width="22" height="22" alt="B"></div>
+          <div class="cf-btn cf-R" data-c="R"><img src="https://svgs.scryfall.io/card-symbols/R.svg" width="22" height="22" alt="R"></div>
+          <div class="cf-btn cf-G" data-c="G"><img src="https://svgs.scryfall.io/card-symbols/G.svg" width="22" height="22" alt="G"></div>
+          <div class="cf-btn cf-C" data-c="C"><img src="https://svgs.scryfall.io/card-symbols/C.svg" width="22" height="22" alt="C"></div>
         </div>
         <div id="d-land-btn" class="cf-btn cf-land" onclick="toggleLandMode()" style="width:100%;height:40px;border-radius:6px;margin-bottom:8px;background:linear-gradient(135deg,#b89870,#8a7050,#6a5030);color:#e8dac0;font-size:13px;opacity:0.45;display:flex;align-items:center;justify-content:center;gap:6px;border:3px solid rgba(0,0,0,0.3);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:0.1em;box-shadow:0 2px 6px rgba(0,0,0,0.3);transition:opacity 0.12s,transform 0.1s;-webkit-user-select:none;user-select:none">🏔 LANDS</div>
         <div id="d-mv-section">
@@ -621,7 +621,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <div><div class="cl">CMC</div><select class="cs" id="sel-cmc"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7+</option></select></div>
           </div>
           <div class="cl" style="margin-top:10px">Color(s)</div>
-          <div class="cprow" id="cprow"><div class="cp cp-W" data-c="W">W</div><div class="cp cp-U" data-c="U">U</div><div class="cp cp-B" data-c="B">B</div><div class="cp cp-R" data-c="R">R</div><div class="cp cp-G" data-c="G">G</div><div class="cp cp-C" data-c="C">∅</div></div>
+          <div class="cprow" id="cprow"><div class="cp cp-W" data-c="W"><img src="https://svgs.scryfall.io/card-symbols/W.svg" width="20" height="20" alt="W"></div><div class="cp cp-U" data-c="U"><img src="https://svgs.scryfall.io/card-symbols/U.svg" width="20" height="20" alt="U"></div><div class="cp cp-B" data-c="B"><img src="https://svgs.scryfall.io/card-symbols/B.svg" width="20" height="20" alt="B"></div><div class="cp cp-R" data-c="R"><img src="https://svgs.scryfall.io/card-symbols/R.svg" width="20" height="20" alt="R"></div><div class="cp cp-G" data-c="G"><img src="https://svgs.scryfall.io/card-symbols/G.svg" width="20" height="20" alt="G"></div><div class="cp cp-C" data-c="C">∅</div></div>
           <div class="qrow"><span class="ql">Copies</span><button class="qb" id="qm">−</button><span class="qv" id="qv">1</span><button class="qb" id="qp">+</button></div>
         </div>
       </div></div>
@@ -794,6 +794,7 @@ function toggleQuickSide(){
 const CNAMES={W:'Plains',U:'Islands',B:'Swamps',R:'Mountains',G:'Forests'};
 const CFULL={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
 const CHEX={W:'#c8a830',U:'#2060b0',B:'#806880',R:'#b02808',G:'#106820'};
+function manaImg(c,size=16){return`<img src="https://svgs.scryfall.io/card-symbols/${c}.svg" width="${size}" height="${size}" style="vertical-align:middle" alt="${c}">`}
 const FRAME_GRAD={W:'linear-gradient(160deg,#f5eecb,#e8d898,#c8b060,#e8d898,#f0e8b8)',U:'linear-gradient(160deg,#a8c8e8,#6898c8,#2858a8,#6898c8,#a0c0e0)',B:'linear-gradient(160deg,#686068,#383038,#181018,#383038,#585058)',R:'linear-gradient(160deg,#e89870,#c85828,#981808,#c85828,#e08060)',G:'linear-gradient(160deg,#90c870,#488030,#185010,#488030,#80b860)',gold:'linear-gradient(160deg,#f0d878,#c8a030,#906010,#c8a030,#e8cc60)',neutral:'linear-gradient(160deg,#d0c8a8,#a89870,#706040,#a89870,#c8b888)'};
 const FRAME_MID={W:'#d8c060',U:'#3868b8',B:'#302030',R:'#b83818',G:'#206818'};
 const FRAME_LIGHT={W:'#f0e8b0',U:'#90b8e0',B:'#585058',R:'#e08060',G:'#4a8830'};
@@ -1522,7 +1523,7 @@ function renderHeader(){
   const total=totCards(),cr=totType('Creature'),sp=pool.filter(c=>c.type!=='Land').reduce((s,c)=>s+c.qty,0);
   const nl=nlCards(),avg=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(1):'—';
   document.getElementById('hs-total').textContent=total;document.getElementById('hs-cr').textContent=cr;document.getElementById('hs-sp').textContent=sp;document.getElementById('hs-cmc').textContent=avg;
-  const pt=getSmartPips();document.getElementById('hd-colors').innerHTML=Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]).map(([c,n])=>`<div class="cid-mana m${c}" title="${CFULL[c]||c}: ${Math.round(n)} pips">${c}<span class="pip-count">${Math.round(n)}</span></div>`).join('');
+  const pt=getSmartPips();document.getElementById('hd-colors').innerHTML=Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]).map(([c,n])=>`<div class="cid-mana m${c}" title="${CFULL[c]||c}: ${Math.round(n)} pips">${manaImg(c,18)}<span class="pip-count">${Math.round(n)}</span></div>`).join('');
 }
 function renderStats(){
   const total=totCards(),cr=totType('Creature'),sp=pool.filter(c=>c.type!=='Land').reduce((s,c)=>s+c.qty,0),la=totType('Land');
@@ -1701,7 +1702,7 @@ function renderLandCalc(){
   let html=`<div class="slbl">Recommended Basics <span style="font-weight:500;font-style:italic;letter-spacing:0">(tap to add)</span></div><div class="bgrid">`;
   sorted.forEach(([c],i)=>{
     const count=alloc[c]||0;
-    html+=`<div class="bcell${i<2?' pri':''}" style="cursor:pointer" onclick="quickAddBasic('${c}',${count})"><div class="bcl"><div class="bcsw bcsw${c}"></div><span class="bcn">${CNAMES[c]||c}</span></div><span class="bcc">${count}</span></div>`;
+    html+=`<div class="bcell${i<2?' pri':''}" style="cursor:pointer" onclick="quickAddBasic('${c}',${count})"><div class="bcl">${manaImg(c,20)}<span class="bcn">${CNAMES[c]||c}</span></div><span class="bcc">${count}</span></div>`;
   });
   html+=`</div>`;
   html+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">`;
@@ -1742,7 +1743,7 @@ function renderLandCalc(){
         const bg=p>=0.9?'#2a6830':p>=0.75?'#8a5808':'#8a1808';
         return`<div class="pbar" style="background:${bg};opacity:${0.5+p*0.5}" title="T${t}: ${pct}%">${pct}%</div>`;
       }).join('');
-      html+=`<div class="prow"><div class="pcl"><div class="pdot" style="background:${col}"></div><span style="color:${col}">${CFULL[ci.c]||ci.c}</span></div><div class="pbars">${bars}</div></div>`;
+      html+=`<div class="prow"><div class="pcl">${manaImg(ci.c,14)}<span style="color:${col};margin-left:3px">${CFULL[ci.c]||ci.c}</span></div><div class="pbars">${bars}</div></div>`;
     });
     html+=`</div><div class="ptlabs">${mainTurns.map(t=>`<div class="ptlab">T${t}</div>`).join('')}</div>`;
   }
@@ -1760,7 +1761,7 @@ function renderLandCalc(){
         const bg=p>=0.9?'#2a6830':p>=0.75?'#8a5808':'#8a1808';
         return`<div class="pbar" style="background:${bg};opacity:${0.5+p*0.5}" title="T${t}: ${pct}%">${pct}%</div>`;
       }).join('');
-      html+=`<div class="prow"><div class="pcl"><div class="pdot" style="background:${col}"></div><span style="color:${col}">${CFULL[ci.c]||ci.c}</span></div><div class="pbars">${bars}</div></div>`;
+      html+=`<div class="prow"><div class="pcl">${manaImg(ci.c,14)}<span style="color:${col};margin-left:3px">${CFULL[ci.c]||ci.c}</span></div><div class="pbars">${bars}</div></div>`;
       // Actionable splash advice
       const t5prob=hyper(deckSize,Math.round(ci.totalSrc),11);
       if(ci.totalSrc<=2&&t5prob<0.7){
@@ -1825,7 +1826,7 @@ function openShareView(){
   html+=`<span>${totalCards} cards</span>`;
   html+=`<span>·</span><span>${creatures} creatures</span>`;
   html+=`<span>·</span><span>${avgCmc} avg</span>`;
-  colorPips.forEach(c=>{html+=`<span style="color:${CHEX[c]||'#888'}">${c}</span>`});
+  colorPips.forEach(c=>{html+=manaImg(c,14)});
   html+=`</div></div>`;
   if(projSrc){
     html+=`<div class="share-key">🟡 65-84% · 🔴 &lt;65% castability on curve</div>`;
@@ -1889,9 +1890,10 @@ function openShareView(){
   if(Object.keys(basicCounts).length||nonBasicLands.length){
     html+=`<div class="share-col"><div class="share-col-label">LANDS</div>`;
     html+=`<div class="share-land-summary">`;
-    const BASIC_COLORS={Plains:'#c8a830',Island:'#2060b0',Swamp:'#806880',Mountain:'#b02808',Forest:'#106820'};
+    const BASIC_MANA={Plains:'W',Island:'U',Swamp:'B',Mountain:'R',Forest:'G'};
     Object.entries(basicCounts).forEach(([name,count])=>{
-      html+=`<div class="share-land-row"><span class="share-land-count">${count}</span><span style="color:${BASIC_COLORS[name]||'#aaa'}">${name}</span></div>`;
+      const sym=BASIC_MANA[name]||'C';
+      html+=`<div class="share-land-row">${manaImg(sym,14)}<span class="share-land-count">${count}</span><span style="color:${CHEX[sym]||'#aaa'}">${name}</span></div>`;
     });
     nonBasicLands.forEach(land=>{
       const img=land.imageSmall||land.imageUri||'';
@@ -2094,7 +2096,7 @@ function openCleanup(){
   html+=`<div class="cleanup-colors"><span class="cleanup-colors-label">Main:</span>`;
   const pipClasses={W:'cp-W',U:'cp-U',B:'cp-B',R:'cp-R',G:'cp-G'};
   mainColors.forEach(c=>{
-    html+=`<div class="cleanup-color-pip ${pipClasses[c]||''}" style="width:24px;height:24px;font-size:11px">${c}</div>`;
+    html+=`<div style="display:inline-block">${manaImg(c,22)}</div>`;
   });
   html+=`</div>`;
 
