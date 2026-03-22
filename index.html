@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -611,38 +611,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div></div>
   <div class="layout">
     <div>
-      <div class="panel" id="panel-add"><div class="panel-inner">
-        <div class="type-line"><span class="type-line-text">Add Card</span><span id="prev-cost" style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--ink-dim)"></span></div>
-        <div class="panel-body">
-          <div class="sw"><input class="si" id="si" type="text" placeholder="Card name…" autocomplete="off" spellcheck="false"><div class="acl" id="acl"></div></div>
-          <button class="addbtn" id="addbtn" disabled>✦ Add to Pool</button>
-          <div class="cr2" style="margin-top:12px">
-            <div><div class="cl">Type</div><select class="cs" id="sel-type"><option>Creature</option><option>Instant</option><option>Sorcery</option><option>Enchantment</option><option>Artifact</option><option>Planeswalker</option><option>Land</option><option>Other</option></select></div>
-            <div><div class="cl">CMC</div><select class="cs" id="sel-cmc"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7+</option></select></div>
-          </div>
-          <div class="cl" style="margin-top:10px">Color(s)</div>
-          <div class="cprow" id="cprow"><div class="cp cp-W" data-c="W"><img src="https://svgs.scryfall.io/card-symbols/W.svg" width="20" height="20" alt="W"></div><div class="cp cp-U" data-c="U"><img src="https://svgs.scryfall.io/card-symbols/U.svg" width="20" height="20" alt="U"></div><div class="cp cp-B" data-c="B"><img src="https://svgs.scryfall.io/card-symbols/B.svg" width="20" height="20" alt="B"></div><div class="cp cp-R" data-c="R"><img src="https://svgs.scryfall.io/card-symbols/R.svg" width="20" height="20" alt="R"></div><div class="cp cp-G" data-c="G"><img src="https://svgs.scryfall.io/card-symbols/G.svg" width="20" height="20" alt="G"></div><div class="cp cp-C" data-c="C">∅</div></div>
-          <div class="qrow"><span class="ql">Copies</span><button class="qb" id="qm">−</button><span class="qv" id="qv">1</span><button class="qb" id="qp">+</button></div>
-        </div>
-      </div></div>
-      <div class="panel" id="panel-land"><div class="panel-inner">
-        <div class="type-line"><span class="type-line-text">Land — Calculator</span><button onclick="toggleLandCalcInfo()" style="background:none;border:1px solid rgba(0,0,0,0.2);border-radius:50%;width:20px;height:20px;font-size:11px;color:#1a0c00;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.6;font-weight:700;font-family:serif">i</button></div>
-        <div class="panel-body" id="lc-body"><div class="empty"><span class="eicon">🏔</span>Add spells to see recommendations</div></div>
-        <div id="lc-info" style="display:none;padding:12px 14px;background:var(--parchment2);border-top:1px solid var(--parchment-dark);font-family:'Crimson Pro',serif;font-size:13px;line-height:1.6;color:var(--ink-dim)">
-          <strong style="color:var(--ink);font-size:14px">How the Land Calculator Works</strong><br><br>
-          This calculator uses <strong>hypergeometric probability</strong> — the same math framework used by Pro Tour Hall of Famer <strong>Frank Karsten</strong> to determine how many colored sources you need to consistently cast your spells on curve.<br><br>
-          <strong>Key principles:</strong><br>
-          • <strong>Dampened ratio:</strong> Basic land distribution uses square root compression so your secondary color doesn't get starved. A raw 2:1 pip ratio becomes ~1.4:1 in lands.<br>
-          • <strong>Minimum source floor:</strong> Non-splash colors always get at least 5 sources. Based on Karsten's finding that fewer than ~5 sources makes a color nearly uncastable.<br>
-          • <strong>Hybrid awareness:</strong> Hybrid mana pips (like {U/R}) create zero additional land demand since they're payable with either color.<br>
-          • <strong>16 vs 17 lands:</strong> Defaults to 16 when the curve supports it (4+ early plays, avg CMC ≤ 3.2). Recommends 17 for heavier curves.<br><br>
-          <strong>Further reading:</strong><br>
-          <a href="https://strategy.channelfireball.com/all-strategy/home/how-many-sources-do-you-need-to-consistently-cast-your-spells-a-2022-update/" target="_blank" rel="noopener" style="color:var(--gold-trim3);text-decoration:underline">Frank Karsten — "How Many Sources Do You Need?" (2022 Update)</a><br>
-          <a href="https://strategy.channelfireball.com/mtg/channelmagic-articles/frank-analysis-how-many-colored-mana-sources-do-you-need-to-consistently-cast-your-spells/" target="_blank" rel="noopener" style="color:var(--gold-trim3);text-decoration:underline">Frank Karsten — Original Analysis (ChannelFireball)</a>
-        </div>
-      </div></div>
-    </div>
-    <div>
       <div class="sstrip" id="sstrip">
         <div class="sc" id="sc-tot"><div class="sc-v">0</div><div class="sc-l">Total</div></div>
         <div class="sc" id="sc-cr"><div class="sc-v">0</div><div class="sc-l">Creatures</div></div>
@@ -651,22 +619,14 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div class="sc" id="sc-cmc"><div class="sc-v">—</div><div class="sc-l">Avg CMC</div></div>
       </div>
       <div id="ext-stats-wrap"></div>
-      <div class="panel" id="panel-main"><div class="panel-inner">
-        <div class="type-line"><span class="type-line-text">Draft Pool</span></div>
+      <div class="panel" id="panel-curve-analysis"><div class="panel-inner">
+        <div class="type-line"><span class="type-line-text">Deck Analysis</span></div>
         <div class="panel-body">
           <div class="tabs">
-            <button class="tab active" data-tab="pool">Pool</button>
-            <button class="tab" data-tab="curve">Curve</button>
+            <button class="tab active" data-tab="curve">Curve</button>
             <button class="tab" data-tab="analysis">Analysis</button>
           </div>
-          <div class="tc active" id="tab-pool">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <div class="tchips" id="tchips" style="margin-bottom:0"></div>
-              <button class="dbtn" id="clr-btn">Clear All</button>
-            </div>
-            <div class="clist" id="clist"><div class="empty"><span class="eicon">🃏</span>Your pool is empty.</div></div>
-          </div>
-          <div class="tc" id="tab-curve"><div id="curve-body"><div class="empty"><span class="eicon">📊</span>Add cards to see mana curve.</div></div></div>
+          <div class="tc active" id="tab-curve"><div id="curve-body"><div class="empty"><span class="eicon">📊</span>Add cards to see mana curve.</div></div></div>
           <div class="tc" id="tab-analysis">
             <div class="sl" id="sl"><div class="empty"><span class="eicon">🔮</span>Add cards to receive analysis.</div></div>
             <div class="ai-section" id="ai-section" style="display:none">
@@ -681,6 +641,42 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
               <button class="ai-btn" id="ai-btn" style="width:100%"><div class="ai-spinner" id="ai-spin"></div><span id="ai-btn-txt">✦ Run AI Analysis</span></button>
             </div>
           </div>
+        </div>
+      </div></div>
+      <div class="panel" id="panel-land"><div class="panel-inner">
+        <div class="type-line"><span class="type-line-text">Land — Calculator</span><button onclick="toggleLandCalcInfo()" style="background:none;border:1px solid rgba(0,0,0,0.2);border-radius:50%;width:20px;height:20px;font-size:11px;color:#1a0c00;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.6;font-weight:700;font-family:serif">i</button></div>
+        <div class="panel-body" id="lc-body"><div class="empty"><span class="eicon">🏔</span>Add spells to see recommendations</div></div>
+        <div id="lc-quick-add" style="display:none;padding:8px 14px;border-top:1px solid var(--parchment-dark);background:var(--parchment2)">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:5px">Quick Add Basic</div>
+          <div style="display:flex;gap:6px;justify-content:center">
+            <button onclick="quickAddSingleBasic('W')" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--parchment-dark);background:var(--parchment);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0"><img src="https://svgs.scryfall.io/card-symbols/W.svg" width="22" height="22" alt="W"></button>
+            <button onclick="quickAddSingleBasic('U')" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--parchment-dark);background:var(--parchment);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0"><img src="https://svgs.scryfall.io/card-symbols/U.svg" width="22" height="22" alt="U"></button>
+            <button onclick="quickAddSingleBasic('B')" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--parchment-dark);background:var(--parchment);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0"><img src="https://svgs.scryfall.io/card-symbols/B.svg" width="22" height="22" alt="B"></button>
+            <button onclick="quickAddSingleBasic('R')" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--parchment-dark);background:var(--parchment);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0"><img src="https://svgs.scryfall.io/card-symbols/R.svg" width="22" height="22" alt="R"></button>
+            <button onclick="quickAddSingleBasic('G')" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--parchment-dark);background:var(--parchment);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0"><img src="https://svgs.scryfall.io/card-symbols/G.svg" width="22" height="22" alt="G"></button>
+          </div>
+        </div>
+        <div id="lc-info" style="display:none;padding:12px 14px;background:var(--parchment2);border-top:1px solid var(--parchment-dark);font-family:'Crimson Pro',serif;font-size:13px;line-height:1.6;color:var(--ink-dim)">
+          <strong style="color:var(--ink);font-size:14px">How the Land Calculator Works</strong><br><br>
+          This calculator uses <strong>hypergeometric probability</strong> — the same math framework used by Pro Tour Hall of Famer <strong>Frank Karsten</strong> to determine how many colored sources you need to consistently cast your spells on curve.<br><br>
+          <strong>Key principles:</strong><br>
+          • <strong>Dampened ratio:</strong> Basic land distribution uses square root compression so your secondary color doesn't get starved. A raw 2:1 pip ratio becomes ~1.4:1 in lands.<br>
+          • <strong>Minimum source floor:</strong> Non-splash colors always get at least 5 sources. Based on Karsten's finding that fewer than ~5 sources makes a color nearly uncastable.<br>
+          • <strong>Hybrid awareness:</strong> Hybrid mana pips (like {U/R}) create zero additional land demand since they're payable with either color.<br>
+          • <strong>16 vs 17 lands:</strong> Defaults to 16 when the curve supports it (4+ early plays, avg CMC ≤ 3.2). Recommends 17 for heavier curves.<br><br>
+          <strong>Further reading:</strong><br>
+          <a href="https://strategy.channelfireball.com/all-strategy/home/how-many-sources-do-you-need-to-consistently-cast-your-spells-a-2022-update/" target="_blank" rel="noopener" style="color:var(--gold-trim3);text-decoration:underline">Frank Karsten — "How Many Sources Do You Need?" (2022 Update)</a><br>
+          <a href="https://strategy.channelfireball.com/mtg/channelmagic-articles/frank-analysis-how-many-colored-mana-sources-do-you-need-to-consistently-cast-your-spells/" target="_blank" rel="noopener" style="color:var(--gold-trim3);text-decoration:underline">Frank Karsten — Original Analysis (ChannelFireball)</a>
+        </div>
+      </div></div>
+      <div class="panel" id="panel-main"><div class="panel-inner">
+        <div class="type-line"><span class="type-line-text">Draft Pool</span></div>
+        <div class="panel-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="tchips" id="tchips" style="margin-bottom:0"></div>
+            <button class="dbtn" id="clr-btn">Clear All</button>
+          </div>
+          <div class="clist" id="clist"><div class="empty"><span class="eicon">🃏</span>Your pool is empty.</div></div>
         </div>
       </div></div>
     </div>
@@ -1504,26 +1500,10 @@ async function runImport(){
 
 // ═══ BUILDER — TABS ═══
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tc').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('tab-'+t.dataset.tab).classList.add('active')}));
-document.getElementById('qm').onclick=()=>{if(qty>1){qty--;document.getElementById('qv').textContent=qty}};
-document.getElementById('qp').onclick=()=>{qty++;document.getElementById('qv').textContent=qty};
-document.querySelectorAll('.cp').forEach(p=>p.addEventListener('click',()=>p.classList.toggle('on')));
-function getColors(){const a=[...document.querySelectorAll('.cp.on')].map(p=>p.dataset.c);return a.length?a:['C']}
-function setColors(arr){document.querySelectorAll('.cp').forEach(p=>p.classList.remove('on'));arr.forEach(c=>{const p=document.querySelector(`.cp[data-c="${c}"]`);if(p)p.classList.add('on')})}
 
-// Builder autocomplete
-const si=document.getElementById('si'),acl=document.getElementById('acl'),addbtn=document.getElementById('addbtn');
-si.addEventListener('input',()=>{const q=si.value.trim();selCard=null;addbtn.disabled=true;document.getElementById('prev-cost').textContent='';if(q.length<2){closeAc();return}clearTimeout(acTmo);acTmo=setTimeout(()=>fetchAc(q),180)});
-si.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){acIdx=Math.min(acIdx+1,acRes.length-1);renderAc();e.preventDefault()}else if(e.key==='ArrowUp'){acIdx=Math.max(acIdx-1,0);renderAc();e.preventDefault()}else if(e.key==='Enter'){if(acIdx>=0&&acRes[acIdx])selectAc(acRes[acIdx]);else if(acRes.length)selectAc(acRes[0]);else if(si.value.trim())enableManual();e.preventDefault()}else if(e.key==='Escape')closeAc()});
-async function fetchAc(q){try{const r=await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`);const d=await r.json();acRes=d.data||[];acIdx=-1;renderAc()}catch{closeAc()}}
-function renderAc(){if(!acRes.length){closeAc();return}acl.innerHTML=acRes.slice(0,10).map((n,i)=>`<div class="aci${i===acIdx?' sel':''}">${n}</div>`).join('');acl.classList.add('open');acl.querySelectorAll('.aci').forEach((el,i)=>{el.addEventListener('mousedown',e=>{e.preventDefault();selectAc(acRes[i])});el.addEventListener('mouseenter',()=>{acIdx=i;acl.querySelectorAll('.aci').forEach((x,xi)=>x.classList.toggle('sel',xi===acIdx))})})}
-async function selectAc(name){si.value=name;closeAc();try{const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);const c=await r.json();if(c.object==='card')applyCard(c);else enableManual()}catch{enableManual()}}
-function applyCard(card){selCard=card;const p=parseCardData(card);document.getElementById('sel-type').value=p.type;document.getElementById('sel-cmc').value=p.cmcRaw;setColors(p.colors);selCard._pips=p.pips;selCard._produced=p.produced;selCard._oracle=p.oracle;selCard._imageUri=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';selCard._imageSmall=card.image_uris?.small||card.card_faces?.[0]?.image_uris?.small||'';selCard._manaCost=card.mana_cost||'';selCard._allTypes=p.allTypes;document.getElementById('prev-cost').textContent=card.mana_cost||'';addbtn.disabled=false}
-function enableManual(){selCard=null;addbtn.disabled=false}
-function closeAc(){acl.classList.remove('open');acl.innerHTML='';acRes=[];acIdx=-1}
-document.addEventListener('click',e=>{if(!e.target.closest('.sw'))closeAc()});
+// Quick add single basic from land calc mana buttons
+function quickAddSingleBasic(color){quickAddBasic(color,1)}
 
-addbtn.addEventListener('click',addCard);
-function addCard(){const name=si.value.trim();if(!name)return;const type=document.getElementById('sel-type').value;const cmcRaw=document.getElementById('sel-cmc').value;const cmc=cmcRaw==='7+'?7:parseInt(cmcRaw);const colors=getColors();addCardToPool(name,type,cmc,cmcRaw,colors,qty,selCard?._pips||{},selCard?._produced||[],selCard?._oracle||'',selCard?._imageUri||'',selCard?._manaCost||'',selCard?._imageSmall||'',selCard?._allTypes||[type]);toast(`Added: ${name}`);si.value='';document.getElementById('prev-cost').textContent='';selCard=null;addbtn.disabled=true;qty=1;document.getElementById('qv').textContent='1';document.querySelectorAll('.cp').forEach(p=>p.classList.remove('on'))}
 function removeOne(id){const c=pool.find(x=>x.id===id);if(!c)return;if(c.qty>1)c.qty--;else pool=pool.filter(x=>x.id!==id);resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}
 function removeAll(id){pool=pool.filter(x=>x.id!==id);resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}
 document.getElementById('clr-btn').addEventListener('click',()=>{if(!pool.length)return;if(confirm('Clear all cards?')){pool=[];resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}});
@@ -1788,6 +1768,7 @@ function renderLandCalc(){
 
   html+=`<div style="margin-top:5px;font-size:10px;color:var(--ink-muted);font-style:italic"><span style="color:#2a6830">■</span> ≥90% <span style="color:#8a5808">■</span> 75–89% <span style="color:#8a1808">■</span> &lt;75%</div></div>`;
   el.innerHTML=html;
+  const qa=document.getElementById('lc-quick-add');if(qa)qa.style.display='block';
 }
 
 // Quick-add basic lands
