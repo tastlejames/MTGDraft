@@ -669,13 +669,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         </div>
       </div></div>
       <div class="panel" id="panel-main"><div class="panel-inner">
-        <div class="type-line"><span class="type-line-text">Draft Pool</span></div>
+        <div class="type-line"><span class="type-line-text">Mana Base Breakdown</span></div>
         <div class="panel-body">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div class="tchips" id="tchips" style="margin-bottom:0"></div>
-            <button class="dbtn" id="clr-btn">Clear All</button>
-          </div>
-          <div class="clist" id="clist"><div class="empty"><span class="eicon">✦</span>Your pool is empty.</div></div>
+          <div id="math-explainer"><div class="empty"><span class="eicon">✦</span>Add cards to see your mana base breakdown.</div></div>
         </div>
       </div></div>
     </div>
@@ -790,6 +786,47 @@ let visQuickSide=true;
 let lastPicks=[]; // track last 3 cards added (card objects)
 let draftLockFilters=false;
 let cleanupChecked={}; // {cardId: true/false} for cleanup preview
+
+// ═══ LOCAL STORAGE PERSISTENCE ═══
+function saveDeck(){
+  try{
+    localStorage.setItem('dt_pool',JSON.stringify(pool));
+    localStorage.setItem('dt_sideboard',JSON.stringify(sideboard));
+    localStorage.setItem('dt_lastPicks',JSON.stringify(lastPicks));
+    localStorage.setItem('dt_setBasicImages',JSON.stringify(setBasicImages));
+    localStorage.setItem('dt_loadedSetName',loadedSetName);
+    localStorage.setItem('dt_loadedSetCode',loadedSetCode);
+  }catch(e){}
+}
+function restoreDeck(){
+  try{
+    const p=localStorage.getItem('dt_pool');
+    const s=localStorage.getItem('dt_sideboard');
+    if(p){pool=JSON.parse(p)}
+    if(s){sideboard=JSON.parse(s)}
+    const lp=localStorage.getItem('dt_lastPicks');
+    if(lp){lastPicks=JSON.parse(lp)}
+    const sbi=localStorage.getItem('dt_setBasicImages');
+    if(sbi){setBasicImages=JSON.parse(sbi)}
+    const sn=localStorage.getItem('dt_loadedSetName');
+    const sc=localStorage.getItem('dt_loadedSetCode');
+    if(sn)loadedSetName=sn;
+    if(sc)loadedSetCode=sc;
+    if(pool.length||sideboard.length){
+      updateNavBadge();updateDraftMiniStats();render();renderVisualCurve();
+    }
+  }catch(e){}
+}
+function clearSavedDeck(){
+  try{
+    localStorage.removeItem('dt_pool');
+    localStorage.removeItem('dt_sideboard');
+    localStorage.removeItem('dt_lastPicks');
+    localStorage.removeItem('dt_setBasicImages');
+    localStorage.removeItem('dt_loadedSetName');
+    localStorage.removeItem('dt_loadedSetCode');
+  }catch(e){}
+}
 
 function toggleQuickSide(){
   visQuickSide=!visQuickSide;
@@ -1332,8 +1369,8 @@ function renderSideboard(){
   });
   body.innerHTML=html;
 }
-function moveToSideboard(id){const idx=pool.findIndex(c=>c.id===id);if(idx===-1)return;const card=pool[idx];if(isBasicLand(card)){if(card.qty>1)card.qty--;else pool.splice(idx,1);resetAiOutput();updateNavBadge();updateDraftMiniStats();renderSideboard();return}if(card.qty>1){card.qty--;const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,id:Date.now()+Math.random(),qty:1})}else{pool.splice(idx,1);const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,qty:1})}resetAiOutput();updateNavBadge();updateDraftMiniStats();renderSideboard()}
-function moveToMain(id){const idx=sideboard.findIndex(c=>c.id===id);if(idx===-1)return;const card=sideboard[idx];if(card.qty>1){card.qty--;const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,id:Date.now()+Math.random(),qty:1})}else{sideboard.splice(idx,1);const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,qty:1})}resetAiOutput();updateNavBadge();updateDraftMiniStats();renderSideboard()}
+function moveToSideboard(id){const idx=pool.findIndex(c=>c.id===id);if(idx===-1)return;const card=pool[idx];if(isBasicLand(card)){if(card.qty>1)card.qty--;else pool.splice(idx,1);resetAiOutput();updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck();return}if(card.qty>1){card.qty--;const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,id:Date.now()+Math.random(),qty:1})}else{pool.splice(idx,1);const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,qty:1})}resetAiOutput();updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck()}
+function moveToMain(id){const idx=sideboard.findIndex(c=>c.id===id);if(idx===-1)return;const card=sideboard[idx];if(card.qty>1){card.qty--;const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,id:Date.now()+Math.random(),qty:1})}else{sideboard.splice(idx,1);const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,qty:1})}resetAiOutput();updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck()}
 
 // ═══ VISUAL CURVE ═══
 const BASIC_LAND_NAMES=['Plains','Island','Swamp','Mountain','Forest'];
@@ -1519,10 +1556,10 @@ function quickAddSingleBasic(color){quickAddBasic(color,1)}
 
 function removeOne(id){const c=pool.find(x=>x.id===id);if(!c)return;if(c.qty>1)c.qty--;else pool=pool.filter(x=>x.id!==id);resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}
 function removeAll(id){pool=pool.filter(x=>x.id!==id);resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}
-document.getElementById('clr-btn').addEventListener('click',()=>{if(!pool.length)return;if(confirm('Clear all cards?')){pool=[];resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}});
+document.getElementById('clr-btn')?.addEventListener('click',()=>{if(!pool.length)return;if(confirm('Clear all cards?')){pool=[];resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}});
 
 // ═══ BUILDER RENDER ═══
-function render(){updateFrameColor();renderHeader();renderStats();renderExtStats();renderPool();renderCurve();renderAnalysis();renderLandCalc();document.getElementById('ai-section').style.display=totCards()>=5?'block':'none';updateDraftMiniStats();updateNavBadge()}
+function render(){updateFrameColor();renderHeader();renderStats();renderExtStats();renderMathExplainer();renderCurve();renderAnalysis();renderLandCalc();document.getElementById('ai-section').style.display=totCards()>=5?'block':'none';updateDraftMiniStats();updateNavBadge();saveDeck()}
 
 function renderHeader(){
   const total=totCards(),cr=totType('Creature'),sp=pool.filter(c=>c.type!=='Land').reduce((s,c)=>s+c.qty,0);
@@ -1535,7 +1572,6 @@ function renderStats(){
   const nl=nlCards(),avg=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(1):'—';
   function sc(id,v,cls=''){const e=document.getElementById(id);e.querySelector('.sc-v').textContent=v;e.className='sc'+(cls?' '+cls:'')}
   sc('sc-tot',total);sc('sc-cr',cr,cr>=14?'good':cr>=10?'':sp>8?'warn':'');sc('sc-sp',sp);sc('sc-la',la);sc('sc-cmc',avg);
-  document.getElementById('tchips').innerHTML=['Creature','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Land','Other'].map(t=>{const n=totType(t);if(!n)return'';return`<div class="tchip"><span class="tcn">${n}</span><span class="tcl">${t}</span></div>`}).join('');
 }
 function renderExtStats(){
   const wrap=document.getElementById('ext-stats-wrap');
@@ -1552,21 +1588,107 @@ function renderExtStats(){
   </div>`;
 }
 
-function renderPool(){
-  const el=document.getElementById('clist');
-  if(!pool.length){el.innerHTML='<div class="empty"><span class="eicon">✦</span>Your pool is empty.</div>';return}
+function renderMathExplainer(){
+  const el=document.getElementById('math-explainer');
+  const nl=nlCards(),dl=lCards(),total=totCards();
+  if(nl.reduce((s,c)=>s+c.qty,0)<5){el.innerHTML='<div class="empty"><span class="eicon">✦</span>Add cards to see your mana base breakdown.</div>';return}
+
+  const projSrc=getProjectedSources();
+  if(!projSrc||!Object.keys(projSrc).length){el.innerHTML='<div class="empty"><span class="eicon">✦</span>Add cards to see your mana base breakdown.</div>';return}
+
+  const pt=getSmartPips();
+  const totalPips=Object.values(pt).reduce((s,v)=>s+v,0);
+  const TARGET_LANDS=getTargetLands();
+  const draftedLands=dl.reduce((s,c)=>s+c.qty,0);
+  const earlyPlays=nl.filter(c=>c.cmc<=2).reduce((s,c)=>s+c.qty,0);
+
   let html='';
-  ['Creature','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Land','Other'].forEach(type=>{
-    const cards=pool.filter(c=>c.type===type).sort((a,b)=>a.cmc-b.cmc||a.name.localeCompare(b.name));if(!cards.length)return;
-    html+=`<div class="cgh">${type} — ${cards.reduce((s,c)=>s+c.qty,0)}</div>`;
-    cards.forEach(card=>{const pc=(card.colors||[]).find(c=>c!=='C')||'C';const tk=card.type.replace(/\s/g,'');
-      html+=`<div class="crow c${pc==='C'?'CC':pc}"><span class="cq">${card.qty}×</span><span class="cn">${card.name}</span><span class="cc">${card.cmcRaw||card.cmc}</span><span class="ct ct${tk}">${card.type.slice(0,3).toUpperCase()}</span><button class="crm" onclick="removeOne(${card.id})">−</button><button class="crm" onclick="removeAll(${card.id})">✕</button></div>`;
-    });
+
+  // ── YOUR SOURCES ──
+  html+=`<div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px">Your Mana Sources</div>`;
+  const sourceLines=[];
+  Object.entries(projSrc).sort((a,b)=>b[1]-a[1]).forEach(([c,count])=>{
+    if(count<=0)return;
+    // Find what contributes to this color
+    const basics=pool.filter(p=>p.type==='Land'&&BASIC_LAND_NAMES.includes(p.name)&&(p.produced||[]).includes(c));
+    const basicCount=basics.reduce((s,p)=>s+p.qty,0);
+    const nonbasics=dl.filter(p=>!BASIC_LAND_NAMES.includes(p.name)&&(p.produced||[]).includes(c));
+    const nbNames=nonbasics.map(p=>p.name);
+    // Projected basics from land calc
+    const projBasics=Math.round(count)-nonbasics.reduce((s,p)=>s+p.qty,0);
+    let detail=`${Math.round(count)} sources`;
+    const parts=[];
+    if(projBasics>0) parts.push(`${projBasics} ${BASIC_NAMES[c]||'basic'}${projBasics!==1?'s':''}`);
+    if(nbNames.length) parts.push(nbNames.join(', '));
+    if(parts.length) detail+=` (${parts.join(' + ')})`;
+    sourceLines.push(`<div style="display:flex;align-items:center;gap:6px;padding:3px 0">${manaImg(c,16)}<span style="font-family:'Crimson Pro',serif;font-size:13px;color:var(--ink)">${detail}</span></div>`);
   });
-  if(sideboard.length){
-    html+=`<div class="cgh" style="margin-top:8px">Sideboard — ${sideboard.reduce((s,c)=>s+c.qty,0)}</div>`;
-    sideboard.sort((a,b)=>a.name.localeCompare(b.name)).forEach(card=>{html+=`<div class="crow cCC"><span class="cq">${card.qty}×</span><span class="cn">${card.name}</span><span class="cc">${card.cmcRaw||card.cmc}</span><span class="sb-tag">SIDE</span></div>`});
+  html+=sourceLines.join('');
+  html+=`<div style="font-family:'Crimson Pro',serif;font-size:12px;color:var(--ink-muted);font-style:italic;margin-top:4px">${TARGET_LANDS} lands total · ${earlyPlays} early plays (CMC ≤ 2)</div>`;
+
+  // ── WHY THIS SPLIT ──
+  const sortedColors=Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]);
+  if(sortedColors.length>=2){
+    html+=`<div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted);margin-top:14px;margin-bottom:6px">Why This Split</div>`;
+    const [pri,sec]=sortedColors;
+    const rawRatio=pri[1]/Math.max(sec[1],0.1);
+    const dampRatio=Math.sqrt(pri[1])/Math.max(Math.sqrt(sec[1]),0.1);
+    html+=`<div style="font-family:'Crimson Pro',serif;font-size:13px;line-height:1.6;color:var(--ink)">`;
+    html+=`You have ${Math.round(pri[1])} ${manaImg(pri[0],14)} pips vs ${Math.round(sec[1])} ${manaImg(sec[0],14)} pips`;
+    if(rawRatio>1.2) html+=` — a raw ${rawRatio.toFixed(1)}:1 ratio. After dampening that becomes ~${dampRatio.toFixed(1)}:1 in lands so your ${CFULL[sec[0]]||sec[0]} doesn't get starved`;
+    html+=`.</div>`;
   }
+
+  // ── TIGHTEST CARDS ──
+  const castCards=[];
+  nl.forEach(card=>{
+    if(card.type==='Land')return;
+    const prob=computeCastability(card,projSrc);
+    if(prob!==null&&prob<0.85){
+      for(let i=0;i<card.qty;i++) castCards.push({name:card.name,prob,cmc:card.cmc,pips:card.pips,manaCost:card.manaCost||''});
+    }
+  });
+  castCards.sort((a,b)=>a.prob-b.prob);
+  const tightest=castCards.slice(0,3);
+
+  if(tightest.length){
+    html+=`<div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted);margin-top:14px;margin-bottom:6px">Tightest Castability</div>`;
+    tightest.forEach(card=>{
+      const pct=Math.round(card.prob*100);
+      const cls=pct<65?'color:#c03020':'color:#c89020';
+      // Figure out the key constraint
+      const pips=card.pips||{};
+      const pipEntries=Object.entries(pips).filter(([c,n])=>n>0);
+      let explain='';
+      if(pipEntries.length){
+        const hardest=pipEntries.sort((a,b)=>b[1]-a[1])[0];
+        const [col,need]=hardest;
+        const src=Math.round(projSrc[col]||0);
+        const seen=6+card.cmc;
+        explain=`needs ≥${need} ${manaImg(col,12)} by turn ${card.cmc} · ${src} sources in 40, ${seen} cards seen`;
+      }
+      html+=`<div style="padding:5px 0;border-bottom:1px solid var(--parchment-dark)">`;
+      html+=`<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'Crimson Pro',serif;font-size:13px;font-weight:700;color:var(--ink)">${card.name}</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;${cls}">${pct}%</span></div>`;
+      if(explain) html+=`<div style="font-family:'Crimson Pro',serif;font-size:11px;color:var(--ink-muted);margin-top:2px">${explain}</div>`;
+      html+=`</div>`;
+    });
+  } else if(nl.reduce((s,c)=>s+c.qty,0)>=10){
+    html+=`<div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted);margin-top:14px;margin-bottom:6px">Castability</div>`;
+    html+=`<div style="font-family:'Crimson Pro',serif;font-size:13px;color:#185810">All cards 85%+ castability on curve — your mana base is solid.</div>`;
+  }
+
+  // ── TAP LANDS ──
+  const tapLandCount=dl.filter(land=>{const o=(land.oracle||'').toLowerCase();return o.includes('enters the battlefield tapped')||o.includes('enters tapped')}).reduce((s,c)=>s+c.qty,0);
+  if(tapLandCount>=2&&nl.reduce((s,c)=>s+c.qty,0)>=10){
+    const pTwoPlus=tapLandCount>=2?Math.round(hyperAtLeast(40,tapLandCount,7,2)*100):0;
+    const tapNames=dl.filter(land=>{const o=(land.oracle||'').toLowerCase();return o.includes('enters the battlefield tapped')||o.includes('enters tapped')}).map(l=>l.name);
+    html+=`<div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted);margin-top:14px;margin-bottom:6px">Tap Lands</div>`;
+    html+=`<div style="font-family:'Crimson Pro',serif;font-size:13px;color:var(--ink)">${tapLandCount} tap land${tapLandCount!==1?'s':''} (${tapNames.join(', ')})`;
+    if(tapLandCount>=2) html+=` — ${pTwoPlus}% chance of 2+ in opening hand`;
+    html+=`</div>`;
+    if(tapLandCount>=3&&earlyPlays>=4) html+=`<div style="font-family:'Crimson Pro',serif;font-size:12px;color:#c89020;font-style:italic;margin-top:3px">With ${earlyPlays} early plays, consider if you need all ${tapLandCount}.</div>`;
+  }
+
   el.innerHTML=html;
 }
 
@@ -2061,6 +2183,7 @@ function confirmReset(){
     document.getElementById('set-selector').style.display='block';
     if(document.getElementById('draft-main'))document.getElementById('draft-main').style.display='none';
     updateNavBadge();updateDraftMiniStats();render();renderVisualCurve();
+    clearSavedDeck();
     toast('Reset complete');
   }
 }
@@ -2312,6 +2435,7 @@ async function runAiAnalysis(){
   }
 }
 
+restoreDeck();
 render();
 </script>
 </body>
