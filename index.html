@@ -277,32 +277,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .cleanup-footer{background:var(--parchment2);border-top:2px solid var(--parchment-dark);padding:10px 16px;display:flex;gap:8px;flex-shrink:0;padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
 
 /* Share View */
-.share-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.95);display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(50px + env(safe-area-inset-top,0px)) 6px 6px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* Share Image Overlay */
+.share-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.95);display:none;align-items:center;justify-content:center;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px))}
 .share-overlay.open{display:flex}
-.share-close{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:16px;background:none;border:none;color:rgba(255,255,255,0.6);font-size:28px;cursor:pointer;z-index:410;padding:4px 8px}
-.share-close:hover{color:#fff}
-.share-card{background:#1a1408;border:3px solid #3a2810;border-radius:10px;overflow:hidden;width:100%;max-width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.8)}
-.share-header{background:linear-gradient(180deg,#2a2010,#1a1408);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #3a2810;flex-wrap:wrap;gap:4px}
-.share-title{font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--gold-trim2);letter-spacing:0.06em}
-.share-stats{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--gold-trim);letter-spacing:0.04em;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.share-key{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:rgba(200,160,48,0.6);letter-spacing:0.04em}
-.share-body{padding:8px 10px;overflow:hidden}
-.share-columns{display:flex;gap:3px}
-.share-col{min-width:0;flex:1}
-.share-col-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;color:var(--gold-trim);text-align:center;letter-spacing:0.06em;margin-bottom:2px;white-space:nowrap}
-.share-col-stack{display:flex;flex-direction:column}
-.share-card-item{position:relative;width:100%;border-radius:3px;overflow:hidden;border:2px solid transparent;flex-shrink:0}
-.share-card-item img{width:100%;display:block;border-radius:2px}
-.share-card-item.cast-amber{border-color:#c89020}
-.share-card-item.cast-red{border-color:#c03020}
-.share-sb-section{padding:6px 10px;border-top:1px solid #3a2810}
-.share-sb-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:800;color:var(--gold-trim);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px}
-.share-sb-row{display:flex;gap:3px;flex-wrap:wrap}
-.share-sb-card{width:45px;border-radius:2px;overflow:hidden}
-.share-sb-card img{width:100%;display:block;border-radius:2px}
-.share-land-summary{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--gold-trim);letter-spacing:0.04em;display:flex;flex-direction:column;gap:1px;align-items:center;padding:4px 2px}
-.share-land-row{display:flex;align-items:center;gap:3px}
-.share-land-count{font-size:13px;font-weight:800;color:#e8d898}
+.share-overlay img{max-width:100%;max-height:calc(100vh - 100px);border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.8)}
+.share-hint{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:rgba(200,160,48,0.5);letter-spacing:0.06em;text-align:center;pointer-events:none}
 
 /* ═══ BUILDER VIEW ═══ */
 #view-builder{max-width:1460px;margin:0 auto;padding:16px 16px 20px}
@@ -684,7 +663,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="vis-bar-left">
       <div class="vis-bar-title">⬡ Deck</div>
       <div class="vis-bar-stats" id="vis-stats"></div>
-      <button onclick="openShareView()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-size:12px;cursor:pointer;line-height:1;flex-shrink:0" title="Share View">📤</button>
+      <button onclick="exportDeck()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;cursor:pointer;line-height:1;flex-shrink:0;letter-spacing:0.04em" title="Export to clipboard">Export</button>
+      <button onclick="generateShareImage()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-size:12px;cursor:pointer;line-height:1;flex-shrink:0" title="Share Image">📤</button>
     </div>
     <div class="vis-toggle-row">
       <button onclick="openCleanup()" style="padding:4px 10px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:5px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap" id="cleanup-btn">✦ Clean Up</button>
@@ -759,11 +739,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <img id="magnify-img" src="" alt="">
 </div>
 
-<!-- ═══ SHARE VIEW OVERLAY ═══ -->
-<div class="share-overlay" id="share-overlay">
-  <button class="share-close" onclick="closeShareView()">✕</button>
-  <div class="share-card" id="share-card"></div>
+<!-- ═══ SHARE IMAGE OVERLAY ═══ -->
+<div class="share-overlay" id="share-overlay" onclick="closeShareView()">
+  <img id="share-img" src="" alt="Deck share image">
+  <div class="share-hint">Long-press image to save · Tap anywhere to close</div>
 </div>
+<canvas id="share-canvas" style="display:none"></canvas>
 
 <!-- ═══ BOTTOM NAV ═══ -->
 <div class="global-nav">
@@ -1950,10 +1931,47 @@ function quickAddAllBasics(){
   sorted.forEach(([c])=>{const count=alloc[c]||0;if(count>0)quickAddBasic(c,count)});
 }
 
-// ═══ SHARE VIEW ═══
-function openShareView(){
+// ═══ SHARE IMAGE — CANVAS RENDERER ═══
+const SHARE={W:1920,H:1080,BG:'#1a1408',GOLD:'#c8a030',GOLD_LIGHT:'#e8cc60',GOLD_DIM:'#7a6020',BORDER:'#2a1a08',AMBER:'#d4a020',RED:'#c43030',TEXT:'#f0e8d0',TEXT_DIM:'#8a7a50',CARD_BG:'#252015'};
+
+function shareRoundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}
+
+function shareTruncText(ctx,text,x,y,maxW){let t=text;while(ctx.measureText(t).width>maxW&&t.length>3)t=t.slice(0,-2)+'…';ctx.fillText(t,x,y)}
+
+async function shareLoadImg(url){
+  if(!url)return null;
+  try{
+    const resp=await fetch(url,{mode:'cors'});
+    if(!resp.ok)return null;
+    const blob=await resp.blob();
+    const blobUrl=URL.createObjectURL(blob);
+    return new Promise((res)=>{
+      const img=new Image();
+      img.onload=()=>{URL.revokeObjectURL(blobUrl);res(img)};
+      img.onerror=()=>{URL.revokeObjectURL(blobUrl);res(null)};
+      img.src=blobUrl;
+    });
+  }catch(e){console.warn('shareLoadImg failed:',url,e);return null}
+}
+
+async function generateShareImage(){
   const nl=nlCards(),dl=lCards();
   if(!nl.length&&!dl.length){toast('Add cards first');return}
+
+  // Show generating message
+  const genMsg=document.createElement('div');
+  genMsg.id='share-generating';
+  genMsg.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2a2010;border:1px solid #c8a030;border-radius:6px;padding:10px 20px;color:#e8cc60;font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;z-index:500;letter-spacing:0.06em';
+  genMsg.textContent='Generating image…';
+  document.body.appendChild(genMsg);
+
+  // Small delay to let the UI update
+  await new Promise(r=>setTimeout(r,50));
+
+  const canvas=document.getElementById('share-canvas');
+  const ctx=canvas.getContext('2d');
+  const S=SHARE;
+  canvas.width=S.W;canvas.height=S.H;
 
   const projSrc=nl.reduce((s,c)=>s+c.qty,0)>=8?getProjectedSources():null;
   const totalCards=pool.reduce((s,c)=>s+c.qty,0);
@@ -1962,112 +1980,211 @@ function openShareView(){
   const pt=getSmartPips();
   const colorPips=Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]).map(([c])=>c);
 
-  // Build header
-  let html=`<div class="share-header">`;
-  html+=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">`;
-  html+=`<div class="share-title">⬡ Draft Table</div>`;
-  html+=`<div class="share-stats">`;
-  html+=`<span>${totalCards} cards</span>`;
-  html+=`<span>·</span><span>${creatures} creatures</span>`;
-  html+=`<span>·</span><span>${avgCmc} avg</span>`;
-  colorPips.forEach(c=>{html+=manaImg(c,14)});
-  html+=`</div></div>`;
-  if(projSrc){
-    html+=`<div class="share-key">🟡 65-84% · 🔴 &lt;65% castability on curve</div>`;
-  }
-  html+=`</div>`;
-
-  // Build columns
-  const slots=['0','1','2','3','4','5','6','7+'];
-  const bySlot={};slots.forEach(s=>bySlot[s]=[]);
-  nl.forEach(c=>{
-    const k=c.cmc>=7?'7+':String(c.cmc);
-    for(let i=0;i<c.qty;i++)bySlot[k].push({...c,_copyIdx:i});
-  });
-
-  // Tight overlap: just name bar visible (~9% of card showing)
-  const overlapPct=-91;
-
-  html+=`<div class="share-body"><div class="share-columns">`;
-  slots.forEach(s=>{
-    const cards=bySlot[s];
-    if(!cards.length)return; // skip empty columns entirely
-    html+=`<div class="share-col"><div class="share-col-label">${s} (${cards.length})</div><div class="share-col-stack">`;
-    cards.forEach((card,i)=>{
-      const img=card.imageSmall||card.imageUri||'';
-      let castCls='';
-      if(projSrc&&card.type!=='Land'){
-        const prob=computeCastability(card,projSrc);
-        if(prob<0.65)castCls='cast-red';
-        else if(prob<0.85)castCls='cast-amber';
-      }
-      const mt=i>0?`margin-top:${overlapPct}%;`:'';
-      html+=`<div class="share-card-item ${castCls}" style="${mt}">${img?`<img src="${img}" alt="${card.name}">`:`<div style="aspect-ratio:488/680;background:#333;display:flex;align-items:center;justify-content:center;font-size:7px;color:#aaa;padding:2px;text-align:center">${card.name}</div>`}</div>`;
-    });
-    html+=`</div></div>`;
-  });
-
-  // Lands column — summarize by name with counts
-  const lands=dl;
-  const BASICS_SET=new Set(['Plains','Island','Swamp','Mountain','Forest']);
-  const basicCounts={};
-  const nonBasicLands=[];
-  lands.forEach(land=>{
-    if(BASICS_SET.has(land.name)){basicCounts[land.name]=(basicCounts[land.name]||0)+land.qty}
-    else{for(let i=0;i<land.qty;i++)nonBasicLands.push(land)}
-  });
-
-  // Also count recommended basics from land calc (not yet added to pool)
-  if(!Object.keys(basicCounts).length&&nl.reduce((s,c)=>s+c.qty,0)>=5){
-    const pt2=getLandPips(),tp2=Object.values(pt2).reduce((s,v)=>s+v,0);
-    if(tp2){
-      const TARGET=getTargetLands();
-      let dSlots=0;const fSrc={};
-      dl.forEach(land=>{dSlots+=land.qty;(land.produced||[]).filter(c=>'WUBRG'.includes(c)).forEach(c=>{fSrc[c]=(fSrc[c]||0)+land.qty})});
-      const bTotal=Math.max(0,TARGET-dSlots);
-      const{alloc}=computeBasicAllocation(pt2,fSrc,bTotal);
-      const BASIC_MAP={W:'Plains',U:'Island',B:'Swamp',R:'Mountain',G:'Forest'};
-      Object.entries(alloc).forEach(([c,count])=>{if(count>0){const bn=BASIC_MAP[c];basicCounts[bn]=(basicCounts[bn]||0)+count}});
+  // Load all card images via blob fetch
+  const imgCache={};
+  const allPoolCards=[...pool,...sideboard];
+  let loaded=0;
+  for(const card of allPoolCards){
+    const url=card.imageSmall||card.imageUri;
+    if(url&&!imgCache[card.name]){
+      genMsg.textContent=`Loading images… (${++loaded})`;
+      const img=await shareLoadImg(url);
+      if(img)imgCache[card.name]=img;
+      await new Promise(r=>setTimeout(r,30));
     }
   }
-
-  if(Object.keys(basicCounts).length||nonBasicLands.length){
-    html+=`<div class="share-col"><div class="share-col-label">LANDS</div>`;
-    html+=`<div class="share-land-summary">`;
-    const BASIC_MANA={Plains:'W',Island:'U',Swamp:'B',Mountain:'R',Forest:'G'};
-    Object.entries(basicCounts).forEach(([name,count])=>{
-      const sym=BASIC_MANA[name]||'C';
-      html+=`<div class="share-land-row">${manaImg(sym,14)}<span class="share-land-count">${count}</span><span style="color:${CHEX[sym]||'#aaa'}">${name}</span></div>`;
-    });
-    nonBasicLands.forEach(land=>{
-      const img=land.imageSmall||land.imageUri||'';
-      html+=`<div style="width:100%;border-radius:3px;overflow:hidden;margin-top:2px">${img?`<img src="${img}" style="width:100%;display:block;border-radius:2px">`:`<div style="font-size:7px;color:#aaa;padding:2px">${land.name}</div>`}</div>`;
-    });
-    html+=`</div></div>`;
+  // Load mana symbols
+  const manaCache={};
+  for(const c of['W','U','B','R','G']){
+    const img=await shareLoadImg(`https://svgs.scryfall.io/card-symbols/${c}.svg`);
+    if(img)manaCache[c]=img;
   }
 
-  html+=`</div></div>`;
+  genMsg.textContent='Rendering…';
 
-  // Sideboard section
-  if(sideboard.length){
-    html+=`<div class="share-sb-section"><div class="share-sb-label">Sideboard (${sideboard.reduce((s,c)=>s+c.qty,0)})</div><div class="share-sb-row">`;
-    sideboard.forEach(card=>{
-      const img=card.imageSmall||card.imageUri||'';
-      for(let i=0;i<card.qty;i++){
-        html+=`<div class="share-sb-card">${img?`<img src="${img}" alt="${card.name}">`:`<div style="aspect-ratio:488/680;background:#333;font-size:6px;color:#aaa;display:flex;align-items:center;justify-content:center;padding:2px;text-align:center">${card.name}</div>`}</div>`;
+  // ── BACKGROUND ──
+  ctx.fillStyle=S.BG;ctx.fillRect(0,0,S.W,S.H);
+  const grad=ctx.createRadialGradient(S.W/2,S.H/2,100,S.W/2,S.H/2,S.W*0.7);
+  grad.addColorStop(0,'rgba(200,160,48,0.03)');grad.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,S.W,S.H);
+  ctx.strokeStyle=S.GOLD_DIM;ctx.lineWidth=2;ctx.strokeRect(1,1,S.W-2,S.H-2);
+
+  // ── COLUMNS SETUP ──
+  const slots=['0','1','2','3','4','5','6','7+'];
+  const bySlot={};slots.forEach(s=>bySlot[s]=[]);
+  nl.forEach(c=>{const k=c.cmc>=7?'7+':String(c.cmc);for(let i=0;i<c.qty;i++)bySlot[k].push({...c,_i:i})});
+  const activeSlots=slots.filter(s=>bySlot[s].length);
+  // Nonbasic lands as a column
+  const nonbasics=dl.filter(l=>!BASIC_LAND_NAMES.includes(l.name));
+  const nbExpanded=[];nonbasics.forEach(l=>{for(let i=0;i<l.qty;i++)nbExpanded.push({...l,_i:i})});
+  const hasLandCol=nbExpanded.length>0;
+  const totalCols=activeSlots.length+(hasLandCol?1:0);
+
+  const headerH=80,footerH=60,pad=16,colGap=6;
+  const contentTop=headerH,contentBot=S.H-footerH;
+  const availW=S.W-pad*2;
+  const colW=Math.floor((availW-(totalCols-1)*colGap)/totalCols);
+  const cardH=Math.round(colW*1.4);
+  const cmcHeaderH=24;
+
+  // ── HEADER ──
+  ctx.font='700 28px Cinzel,serif';ctx.fillStyle=S.GOLD_LIGHT;ctx.textBaseline='top';
+  ctx.fillText('Draft Table',pad,12);
+  const titleW=ctx.measureText('Draft Table').width;
+
+  // Mana symbols + basic counts
+  let mx=pad+titleW+24;
+  const BASIC_NAMES_REV={W:'Plains',U:'Island',B:'Swamp',R:'Mountain',G:'Forest'};
+  const basicCounts={};
+  dl.filter(l=>BASIC_LAND_NAMES.includes(l.name)).forEach(l=>{basicCounts[l.name]=(basicCounts[l.name]||0)+l.qty});
+  // Also add projected basics
+  if(!Object.keys(basicCounts).length&&nl.reduce((s,c)=>s+c.qty,0)>=5){
+    const pt2=getLandPips(),tp2=Object.values(pt2).reduce((s,v)=>s+v,0);
+    if(tp2){const T=getTargetLands();let ds=0;const fs={};dl.forEach(l=>{ds+=l.qty;(l.produced||[]).filter(c=>'WUBRG'.includes(c)).forEach(c=>{fs[c]=(fs[c]||0)+l.qty})});const bt=Math.max(0,T-ds);const{alloc}=computeBasicAllocation(pt2,fs,bt);Object.entries(alloc).forEach(([c,n])=>{if(n>0){const bn=BASIC_NAMES_REV[c];basicCounts[bn]=(basicCounts[bn]||0)+n}})}
+  }
+  for(const c of colorPips){
+    if(manaCache[c])ctx.drawImage(manaCache[c],mx,10,26,26);
+    mx+=30;
+    const bn=BASIC_NAMES_REV[c];const cnt=basicCounts[bn]||0;
+    if(cnt){ctx.font='700 18px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_LIGHT;ctx.fillText(`${cnt}`,mx,14);mx+=ctx.measureText(`${cnt}`).width+8}
+  }
+
+  // Stats right side
+  ctx.textAlign='right';
+  ctx.font='700 20px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_LIGHT;
+  ctx.fillText(`${totalCards}`,S.W-pad,12);ctx.font='500 11px Barlow Condensed,sans-serif';ctx.fillStyle=S.TEXT_DIM;ctx.fillText('cards',S.W-pad,34);
+  ctx.font='700 20px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_LIGHT;
+  ctx.fillText(`${creatures}`,S.W-pad-80,12);ctx.font='500 11px Barlow Condensed,sans-serif';ctx.fillStyle=S.TEXT_DIM;ctx.fillText('creatures',S.W-pad-80,34);
+  ctx.font='700 20px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_LIGHT;
+  ctx.fillText(`${avgCmc}`,S.W-pad-170,12);ctx.font='500 11px Barlow Condensed,sans-serif';ctx.fillStyle=S.TEXT_DIM;ctx.fillText('avg CMC',S.W-pad-170,34);
+  ctx.textAlign='left';
+
+  // Divider
+  ctx.strokeStyle=S.BORDER;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,headerH-6);ctx.lineTo(S.W-pad,headerH-6);ctx.stroke();
+
+  // ── DRAW CARD COLUMNS ──
+  function drawColumn(colX,cards,label){
+    // Header
+    ctx.fillStyle='rgba(42,32,16,0.8)';shareRoundRect(ctx,colX,contentTop,colW,cmcHeaderH,4);ctx.fill();
+    ctx.font='700 15px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_LIGHT;ctx.textBaseline='middle';ctx.textAlign='center';
+    ctx.fillText(`${label} (${cards.length})`,colX+colW/2,contentTop+cmcHeaderH/2);ctx.textAlign='left';
+
+    const cardsTop=contentTop+cmcHeaderH+4;
+    const cardsAvailH=contentBot-cardsTop-4;
+    const maxCH=Math.min(cardH,cardsAvailH);
+    let overlap=28;
+    if(cards.length>1){const need=overlap*(cards.length-1)+maxCH;if(need>cardsAvailH)overlap=Math.max(16,Math.floor((cardsAvailH-maxCH)/(cards.length-1)))}
+
+    cards.forEach((card,i)=>{
+      const isLast=i===cards.length-1;
+      const cy=cardsTop+i*overlap;
+      const img=imgCache[card.name]||null;
+      const visH=isLast?maxCH:overlap;
+      const r=6;
+
+      // Castability
+      let castProb=null;
+      if(projSrc&&card.type!=='Land'){castProb=computeCastability(card,projSrc)}
+      const hasWarn=castProb!==null&&castProb<0.85;
+      const isRed=castProb!==null&&castProb<0.65;
+      const borderCol=hasWarn?(isRed?S.RED:S.AMBER):S.GOLD_DIM;
+
+      ctx.save();
+      shareRoundRect(ctx,colX,cy,colW,isLast?maxCH:maxCH,r);ctx.clip();
+      if(img&&isLast){
+        ctx.drawImage(img,colX,cy,colW,maxCH);
+      }else if(img&&!isLast){
+        // Draw top slice of card image (name bar)
+        const srcH=Math.round(img.height*(overlap/maxCH));
+        ctx.drawImage(img,0,0,img.width,srcH,colX,cy,colW,overlap);
+      }else{
+        ctx.fillStyle=S.CARD_BG;ctx.fillRect(colX,cy,colW,isLast?maxCH:overlap);
+        ctx.font='600 11px Barlow Condensed,sans-serif';ctx.fillStyle=S.TEXT_DIM;ctx.textBaseline='middle';
+        shareTruncText(ctx,card.name,colX+4,cy+overlap/2,colW-8);
+      }
+      ctx.restore();
+
+      // Border
+      ctx.save();shareRoundRect(ctx,colX,cy,colW,isLast?maxCH:overlap,r);ctx.strokeStyle=borderCol;ctx.lineWidth=hasWarn?2.5:1.2;ctx.stroke();ctx.restore();
+
+      // Castability badge
+      if(hasWarn){
+        const bw=30,bh=16;
+        const bx=colX+colW-bw-4;
+        const by=cy+(isLast?4:(overlap-bh)/2);
+        shareRoundRect(ctx,bx,by,bw,bh,3);ctx.fillStyle=isRed?S.RED:S.AMBER;ctx.fill();
+        ctx.font='700 10px Barlow Condensed,sans-serif';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(`${Math.round(castProb*100)}%`,bx+bw/2,by+bh/2);ctx.textAlign='left';
       }
     });
-    html+=`</div></div>`;
   }
 
-  // Export button
-  html+=`<div style="padding:8px 10px;border-top:1px solid #3a2810;display:flex;justify-content:center">
-    <button onclick="exportDeck()" style="padding:8px 20px;background:linear-gradient(180deg,#e8cc70,#c09020,#a07010,#c8a030);border:2px solid #7a5010;border-radius:5px;color:#1a0c00;font-family:'Cinzel',serif;font-size:12px;font-weight:700;letter-spacing:0.08em;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3),inset 0 1px rgba(255,255,255,0.25)">✦ Export Deck</button>
-  </div>`;
+  activeSlots.forEach((s,i)=>{
+    drawColumn(pad+i*(colW+colGap),bySlot[s],s);
+  });
 
-  document.getElementById('share-card').innerHTML=html;
-  document.getElementById('share-overlay').classList.add('open');
+  // Lands column (nonbasics only)
+  if(hasLandCol){
+    drawColumn(pad+activeSlots.length*(colW+colGap),nbExpanded,'Lands');
+  }
+
+  // ── FOOTER ──
+  ctx.strokeStyle=S.BORDER;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,S.H-footerH+4);ctx.lineTo(S.W-pad,S.H-footerH+4);ctx.stroke();
+
+  // Sideboard
+  if(sideboard.length){
+    const sbY=S.H-footerH+14;
+    ctx.font='600 13px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD;ctx.textBaseline='top';
+    ctx.fillText(`Sideboard (${sideboard.reduce((s,c)=>s+c.qty,0)})`,pad,sbY);
+
+    // Draw sideboard as small card thumbnails
+    let sbX=pad+120;
+    const sbCardH=40;const sbCardW=Math.round(sbCardH/1.4);
+    sideboard.forEach(card=>{
+      const img=imgCache[card.name]||null;
+      ctx.save();shareRoundRect(ctx,sbX,sbY-2,sbCardW,sbCardH,3);ctx.clip();
+      if(img){ctx.drawImage(img,sbX,sbY-2,sbCardW,sbCardH)}
+      else{ctx.fillStyle=S.CARD_BG;ctx.fillRect(sbX,sbY-2,sbCardW,sbCardH)}
+      ctx.restore();
+      shareRoundRect(ctx,sbX,sbY-2,sbCardW,sbCardH,3);ctx.strokeStyle=S.GOLD_DIM;ctx.lineWidth=1;ctx.stroke();
+      // Qty badge if >1
+      if(card.qty>1){
+        const bx=sbX+sbCardW-14,by=sbY-2;
+        shareRoundRect(ctx,bx,by,14,12,2);ctx.fillStyle='rgba(26,20,8,0.85)';ctx.fill();
+        ctx.font='700 9px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_LIGHT;ctx.textAlign='center';ctx.textBaseline='top';
+        ctx.fillText(`×${card.qty}`,bx+7,by+1);ctx.textAlign='left';
+      }
+      sbX+=sbCardW+6;
+    });
+  }
+
+  // Branding
+  ctx.font='400 12px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_DIM;ctx.textAlign='right';ctx.textBaseline='bottom';
+  ctx.fillText('tastlejames.github.io/MTGDraft/',S.W-pad,S.H-10);ctx.textAlign='left';
+
+  // ── SHOW IMAGE ──
+  await new Promise(r=>setTimeout(r,50)); // let canvas finish
+  const dataUrl=canvas.toDataURL('image/png');
+  const shareImg=document.getElementById('share-img');
+  shareImg.onload=()=>{
+    document.getElementById('share-overlay').classList.add('open');
+    const gm=document.getElementById('share-generating');if(gm)gm.remove();
+  };
+  shareImg.onerror=()=>{
+    toast('Failed to generate image');
+    const gm=document.getElementById('share-generating');if(gm)gm.remove();
+  };
+  shareImg.src=dataUrl;
+  // Fallback if onload doesn't fire (already cached)
+  setTimeout(()=>{
+    if(!document.getElementById('share-overlay').classList.contains('open')){
+      document.getElementById('share-overlay').classList.add('open');
+      const gm=document.getElementById('share-generating');if(gm)gm.remove();
+    }
+  },500);
 }
+
+function openShareView(){generateShareImage()}
 
 function closeShareView(){
   document.getElementById('share-overlay').classList.remove('open');
