@@ -536,7 +536,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         </div>
         <div class="filter-actions">
           <button onclick="clearDraftFilters()">Clear</button>
-          <button id="d-type-toggle" onclick="toggleCreaturesOnly()">All Types</button>
+          <button id="d-type-creatures" onclick="setTypeFilter('Creature')">Creatures</button>
+          <button id="d-type-noncreatures" onclick="setTypeFilter('NonCreature')">Non-Creatures</button>
           <div class="lock-toggle-wrap">
             <span class="lock-toggle-label">Lock</span>
             <div class="lock-toggle" id="lock-toggle" onclick="toggleLockFilters()"></div>
@@ -1150,19 +1151,23 @@ function toggleLandMode(){
   renderDraftGrid();
 }
 
-function toggleCreaturesOnly(){
-  const btn=document.getElementById('d-type-toggle');
-  if(draftTypeFilter===''){draftTypeFilter='Creature';btn.textContent='Creatures Only'}
-  else if(draftTypeFilter==='Creature'){draftTypeFilter='NonCreature';btn.textContent='Non-Creatures'}
-  else{draftTypeFilter='';btn.textContent='All Types'}
+function setTypeFilter(type){
+  if(draftTypeFilter===type){draftTypeFilter=''}
+  else{draftTypeFilter=type}
+  updateTypeFilterBtns();
   renderDraftGrid();
+}
+function updateTypeFilterBtns(){
+  const crBtn=document.getElementById('d-type-creatures'),ncBtn=document.getElementById('d-type-noncreatures');
+  if(crBtn){crBtn.style.background=draftTypeFilter==='Creature'?'linear-gradient(180deg,#e8d898,#c8a830)':'';crBtn.style.color=draftTypeFilter==='Creature'?'var(--ink)':'';crBtn.style.borderColor=draftTypeFilter==='Creature'?'#906010':''}
+  if(ncBtn){ncBtn.style.background=draftTypeFilter==='NonCreature'?'linear-gradient(180deg,#e8d898,#c8a830)':'';ncBtn.style.color=draftTypeFilter==='NonCreature'?'var(--ink)':'';ncBtn.style.borderColor=draftTypeFilter==='NonCreature'?'#906010':''}
 }
 
 function clearDraftFilters(){
   draftColorFilter=[];draftMvFilter='';draftTypeFilter='';draftLandMode=false;
   document.querySelectorAll('#d-colors .cf-btn').forEach(b=>b.classList.remove('on'));
   document.querySelectorAll('#d-mvs .mv-btn').forEach(b=>b.classList.remove('on'));
-  document.getElementById('d-type-toggle').textContent='All Types';
+  draftTypeFilter='';updateTypeFilterBtns();
   const lb=document.getElementById('d-land-btn');lb.style.opacity='0.45';lb.style.transform='';lb.style.borderColor='rgba(0,0,0,0.3)';
   document.getElementById('d-mv-section').style.display='block';
   renderDraftGrid();
@@ -1170,13 +1175,17 @@ function clearDraftFilters(){
 
 function renderDraftGrid(){
   const grid=document.getElementById('d-card-grid'),countEl=document.getElementById('d-filter-count');
+  const header=document.querySelector('.draft-header');
+  const setWrap=document.getElementById('set-loaded-wrap');
+  const manualSection=document.querySelector('.manual-add-section');
+  const sbBtn=document.querySelector('.pack-divider-btn');
+
   if(!setCards.length){grid.innerHTML='<div class="card-grid-empty">Load a set to begin</div>';countEl.textContent='';return}
   const BASICS_SET=new Set(['Plains','Island','Swamp','Mountain','Forest']);
 
   let filtered;
 
   if(draftLandMode){
-    // Land mode: show all non-basic lands, optionally filtered by produced colors (OR logic)
     filtered=setCards.filter(c=>c.type==='Land'&&!BASICS_SET.has(c.name));
     if(draftColorFilter.length>0){
       const realColors=draftColorFilter.filter(c=>c!=='C');
@@ -1188,10 +1197,7 @@ function renderDraftGrid(){
       }
     }
   } else {
-    // Spell mode: filter non-land, non-basic cards
     filtered=setCards.filter(c=>!BASICS_SET.has(c.name)&&c.type!=='Land');
-
-    // Exact color identity matching
     if(draftColorFilter.length>0){
       const hasC=draftColorFilter.includes('C');
       const realColors=draftColorFilter.filter(c=>c!=='C').sort().join('');
@@ -1202,30 +1208,37 @@ function renderDraftGrid(){
         return cardColors===realColors;
       });
     }
-    // MV filter (single)
     if(draftMvFilter){
       filtered=filtered.filter(card=>{
         if(draftMvFilter==='6+')return card.cmc>=6;
         return card.cmc===parseInt(draftMvFilter);
       });
     }
-    // Creatures only toggle
     if(draftTypeFilter==='Creature')filtered=filtered.filter(card=>card.type==='Creature');
     else if(draftTypeFilter==='NonCreature')filtered=filtered.filter(card=>card.type!=='Creature');
   }
 
+  // Determine if we should collapse UI for more grid space
+  const hasActiveFilters=draftColorFilter.length||draftMvFilter||draftTypeFilter||draftLandMode;
+  const showingCards=hasActiveFilters&&filtered.length>0;
+
+  // Collapse/expand non-essential UI
+  if(header)header.style.display=showingCards?'none':'block';
+  if(setWrap)setWrap.style.display=showingCards?'none':(setWrap.innerHTML?'block':'none');
+  if(manualSection)manualSection.style.display=showingCards?'none':'block';
+  if(sbBtn)sbBtn.style.display=showingCards?'none':'block';
+
   // Nothing selected yet
-  if(!draftColorFilter.length&&!draftMvFilter&&!draftTypeFilter&&!draftLandMode){
+  if(!hasActiveFilters){
     grid.innerHTML='<div class="card-grid-empty">Select color and mana value to see cards</div>';
-    countEl.textContent=`${setCards.length} cards loaded`;return;
+    countEl.textContent=`${setCards.length} cards loaded`;grid.style.gridTemplateColumns='';return;
   }
 
   countEl.textContent=`${filtered.length} match${filtered.length!==1?'es':''}`;
   if(!filtered.length){grid.innerHTML='<div class="card-grid-empty">No cards match these filters</div>';grid.style.gridTemplateColumns='';return}
   filtered.sort((a,b)=>a.cmc-b.cmc||a.name.localeCompare(b.name));
-  // Use 2 columns when narrowed down (color+MV or few results) for bigger cards
-  const narrow=(draftColorFilter.length&&draftMvFilter)||filtered.length<=6;
-  grid.style.gridTemplateColumns=narrow?'repeat(2,1fr)':'';
+  // Use 2 columns when very few results for better readability
+  grid.style.gridTemplateColumns=filtered.length<=4?'repeat(2,1fr)':'';
   grid.innerHTML=filtered.map(card=>{
     const inPool=pool.some(c=>c.name.toLowerCase()===card.name.toLowerCase());
     const poolCard=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());
@@ -1249,7 +1262,7 @@ function quickAdd(name){
     draftColorFilter=[];draftMvFilter='';draftTypeFilter='';draftLandMode=false;
     document.querySelectorAll('#d-colors .cf-btn').forEach(b=>b.classList.remove('on'));
     document.querySelectorAll('#d-mvs .mv-btn').forEach(b=>b.classList.remove('on'));
-    document.getElementById('d-type-toggle').textContent='All Types';
+    draftTypeFilter='';updateTypeFilterBtns();
     const lb=document.getElementById('d-land-btn');lb.style.opacity='0.45';lb.style.transform='';lb.style.borderColor='rgba(0,0,0,0.3)';
     document.getElementById('d-mv-section').style.display='block';
   }
