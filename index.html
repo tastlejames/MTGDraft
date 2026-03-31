@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Draft Table — MTG Draft Assistant</title>
 <meta name="description" content="Mobile-first MTG draft assistant with smart land calculator, castability indicators, and visual deckbuilding.">
+<meta name="theme-color" con<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Draft Table — MTG Draft Assistant</title>
+<meta name="description" content="Mobile-first MTG draft assistant with smart land calculator, castability indicators, and visual deckbuilding.">
 <meta name="theme-color" content="#1a1408">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1940,20 +1947,12 @@ function shareTruncText(ctx,text,x,y,maxW){let t=text;while(ctx.measureText(t).w
 
 async function shareLoadImg(url){
   if(!url)return null;
-  // Try to find an already-loaded img in the DOM with this src
-  const existing=document.querySelector(`img[src="${url}"]`);
-  if(existing&&existing.complete&&existing.naturalWidth>0){
-    return existing;
-  }
-  // Fallback: load fresh with crossOrigin
   return new Promise((res)=>{
     const img=new Image();
     img.crossOrigin='anonymous';
     img.onload=()=>res(img);
     img.onerror=()=>res(null);
     img.src=url;
-    // Timeout fallback
-    setTimeout(()=>res(img.complete&&img.naturalWidth>0?img:null),3000);
   });
 }
 
@@ -1982,25 +1981,23 @@ async function generateShareImage(){
   const pt=getSmartPips();
   const colorPips=Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]).map(([c])=>c);
 
-  // Build image cache from pool data — reuse DOM images where possible
+  // Load card images via Scryfall API image endpoint (has CORS headers)
   const imgCache={};
   const allPoolCards=[...pool,...sideboard];
-  let loaded=0;
-  for(const card of allPoolCards){
-    if(imgCache[card.name])continue;
-    const urls=[card.imageSmall,card.imageUri].filter(Boolean);
-    for(const url of urls){
-      const img=await shareLoadImg(url);
-      if(img&&img.naturalWidth>0){imgCache[card.name]=img;break}
-    }
-    genMsg.textContent=`Loading… (${++loaded}/${allPoolCards.length})`;
+  const uniqueNames=[...new Set(allPoolCards.map(c=>c.name))];
+  for(let i=0;i<uniqueNames.length;i++){
+    const name=uniqueNames[i];
+    genMsg.textContent=`Loading images… (${i+1}/${uniqueNames.length})`;
+    const url=`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=small`;
+    const img=await shareLoadImg(url);
+    if(img)imgCache[name]=img;
+    if(i<uniqueNames.length-1)await new Promise(r=>setTimeout(r,80));
   }
 
-  // Mana symbols — try DOM first
+  // Load mana symbols
   const manaCache={};
   for(const c of['W','U','B','R','G']){
-    const url=`https://svgs.scryfall.io/card-symbols/${c}.svg`;
-    const img=await shareLoadImg(url);
+    const img=await shareLoadImg(`https://svgs.scryfall.io/card-symbols/${c}.svg`);
     if(img)manaCache[c]=img;
   }
 
