@@ -1940,18 +1940,21 @@ function shareTruncText(ctx,text,x,y,maxW){let t=text;while(ctx.measureText(t).w
 
 async function shareLoadImg(url){
   if(!url)return null;
-  try{
-    const resp=await fetch(url,{mode:'cors'});
-    if(!resp.ok)return null;
-    const blob=await resp.blob();
-    const blobUrl=URL.createObjectURL(blob);
-    return new Promise((res)=>{
-      const img=new Image();
-      img.onload=()=>{URL.revokeObjectURL(blobUrl);res(img)};
-      img.onerror=()=>{URL.revokeObjectURL(blobUrl);res(null)};
-      img.src=blobUrl;
-    });
-  }catch(e){console.warn('shareLoadImg failed:',url,e);return null}
+  // Try to find an already-loaded img in the DOM with this src
+  const existing=document.querySelector(`img[src="${url}"]`);
+  if(existing&&existing.complete&&existing.naturalWidth>0){
+    return existing;
+  }
+  // Fallback: load fresh with crossOrigin
+  return new Promise((res)=>{
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>res(img);
+    img.onerror=()=>res(null);
+    img.src=url;
+    // Timeout fallback
+    setTimeout(()=>res(img.complete&&img.naturalWidth>0?img:null),3000);
+  });
 }
 
 async function generateShareImage(){
@@ -1965,8 +1968,7 @@ async function generateShareImage(){
   genMsg.textContent='Generating image…';
   document.body.appendChild(genMsg);
 
-  // Small delay to let the UI update
-  await new Promise(r=>setTimeout(r,50));
+  await new Promise(r=>setTimeout(r,100));
 
   const canvas=document.getElementById('share-canvas');
   const ctx=canvas.getContext('2d');
@@ -1980,27 +1982,30 @@ async function generateShareImage(){
   const pt=getSmartPips();
   const colorPips=Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]).map(([c])=>c);
 
-  // Load all card images via blob fetch
+  // Build image cache from pool data — reuse DOM images where possible
   const imgCache={};
   const allPoolCards=[...pool,...sideboard];
   let loaded=0;
   for(const card of allPoolCards){
-    const url=card.imageSmall||card.imageUri;
-    if(url&&!imgCache[card.name]){
-      genMsg.textContent=`Loading images… (${++loaded})`;
+    if(imgCache[card.name])continue;
+    const urls=[card.imageSmall,card.imageUri].filter(Boolean);
+    for(const url of urls){
       const img=await shareLoadImg(url);
-      if(img)imgCache[card.name]=img;
-      await new Promise(r=>setTimeout(r,30));
+      if(img&&img.naturalWidth>0){imgCache[card.name]=img;break}
     }
+    genMsg.textContent=`Loading… (${++loaded}/${allPoolCards.length})`;
   }
-  // Load mana symbols
+
+  // Mana symbols — try DOM first
   const manaCache={};
   for(const c of['W','U','B','R','G']){
-    const img=await shareLoadImg(`https://svgs.scryfall.io/card-symbols/${c}.svg`);
+    const url=`https://svgs.scryfall.io/card-symbols/${c}.svg`;
+    const img=await shareLoadImg(url);
     if(img)manaCache[c]=img;
   }
 
   genMsg.textContent='Rendering…';
+  await new Promise(r=>setTimeout(r,50));
 
   // ── BACKGROUND ──
   ctx.fillStyle=S.BG;ctx.fillRect(0,0,S.W,S.H);
