@@ -1942,10 +1942,16 @@ async function shareLoadImg(url){
   if(!url)return null;
   return new Promise((res)=>{
     const img=new Image();
+    let done=false;
+    const finish=(result)=>{if(!done){done=true;res(result)}};
     img.crossOrigin='anonymous';
-    img.onload=()=>res(img);
-    img.onerror=()=>res(null);
-    img.src=url;
+    img.onload=()=>finish(img);
+    img.onerror=()=>{console.warn('Share img failed:',url);finish(null)};
+    // Timeout: if image hasn't loaded in 8 seconds, skip it
+    setTimeout(()=>finish(null),8000);
+    // Add cache-buster to force fresh CORS request every time
+    const sep=url.includes('?')?'&':'?';
+    img.src=url+sep+'_cb='+Date.now();
   });
 }
 
@@ -1978,21 +1984,19 @@ async function generateShareImage(){
   const imgCache={};
   const allPoolCards=[...pool,...sideboard];
   const uniqueNames=[...new Set(allPoolCards.map(c=>c.name))];
+  let imgSuccess=0,imgFail=0;
   for(let i=0;i<uniqueNames.length;i++){
     const name=uniqueNames[i];
-    genMsg.textContent=`Loading images… (${i+1}/${uniqueNames.length})`;
+    genMsg.textContent=`Loading ${name}… (${i+1}/${uniqueNames.length})`;
     const url=`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=small`;
     const img=await shareLoadImg(url);
-    if(img)imgCache[name]=img;
-    if(i<uniqueNames.length-1)await new Promise(r=>setTimeout(r,80));
+    if(img&&img.naturalWidth>0){imgCache[name]=img;imgSuccess++}else{imgFail++;console.warn('Failed to load:',name)}
+    if(i<uniqueNames.length-1)await new Promise(r=>setTimeout(r,100));
   }
+  console.log(`Share image load: ${imgSuccess} success, ${imgFail} failed out of ${uniqueNames.length}`);
 
-  // Load mana symbols
+  // Skip mana symbol loading since we draw circles instead
   const manaCache={};
-  for(const c of['W','U','B','R','G']){
-    const img=await shareLoadImg(`https://svgs.scryfall.io/card-symbols/${c}.svg`);
-    if(img)manaCache[c]=img;
-  }
 
   genMsg.textContent='Rendering…';
   await new Promise(r=>setTimeout(r,50));
