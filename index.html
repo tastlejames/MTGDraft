@@ -390,32 +390,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .sg.sp-ok{border-left-color:#602880;background:rgba(96,40,128,.06)}
 .sg.sp-bad{border-left-color:#8a0808;background:rgba(138,8,8,.06)}
 .sg strong{color:#3a2000;font-weight:700}
-.ai-section{margin-top:14px;border-top:2px solid var(--parchment-dark);padding-top:12px}
-.ai-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.ai-title{font-family:'Cinzel',serif;font-size:12px;font-weight:700;letter-spacing:0.1em;color:var(--ink-dim);display:flex;align-items:center;gap:6px}
-.ai-btn{background:linear-gradient(180deg,#e8cc70,#c09020,#a07010,#c8a030);border:2px solid #7a5010;border-radius:5px;color:#1a0c00;font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:0.08em;padding:6px 14px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3),inset 0 1px rgba(255,255,255,0.25);display:flex;align-items:center;gap:6px}
-.ai-btn:hover{opacity:0.88}.ai-btn:disabled{opacity:0.4;cursor:not-allowed}
-.ai-spinner{width:14px;height:14px;border:2px solid rgba(26,12,0,0.3);border-top-color:#1a0c00;border-radius:50%;animation:spin .7s linear infinite;display:none}
-.ai-spinner.show{display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
-.key-row{display:flex;gap:6px;margin-bottom:10px}
-.key-input{flex:1;background:var(--parchment2);border:1px solid var(--parchment-dark);border-radius:4px;color:var(--ink);font-family:'Crimson Pro',serif;font-size:13px;padding:7px 10px;outline:none}
-.key-input:focus{border-color:var(--gold-trim3)}
-.key-input::placeholder{color:var(--ink-muted);font-style:italic}
-.key-hint{font-size:11px;color:var(--ink-muted);font-style:italic;margin-bottom:8px}
-/* AI Overlay */
-.ai-overlay{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,0.8);display:none;flex-direction:column}
-.ai-overlay.open{display:flex}
-.ai-overlay-header{background:linear-gradient(180deg,#2a2010,#1a1408);border-bottom:3px solid var(--gold-trim3);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.ai-overlay-title{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--gold-trim2);letter-spacing:0.08em;display:flex;align-items:center;gap:8px}
-.ai-overlay-close{background:none;border:none;color:var(--gold-trim);font-size:22px;cursor:pointer;padding:4px 8px}
-.ai-overlay-body{flex:1;overflow-y:auto;padding:16px;background:var(--parchment);-webkit-overflow-scrolling:touch}
-.ai-overlay-content{font-size:14px;line-height:1.8;color:var(--ink);font-family:'Crimson Pro',serif;word-wrap:break-word;white-space:normal}
-.ai-overlay-content strong,.ai-overlay-content b{color:#3a2000;font-weight:700}
-.ai-overlay-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:12px}
-.ai-overlay-loading .ai-load-spin{width:24px;height:24px;border:3px solid var(--parchment-dark);border-top-color:var(--gold-trim);border-radius:50%;animation:spin .7s linear infinite}
-.ai-overlay-loading-text{font-family:'Crimson Pro',serif;font-size:14px;color:var(--ink-dim);font-style:italic}
-.ai-overlay-footer{background:var(--parchment2);border-top:2px solid var(--parchment-dark);padding:10px 16px;display:flex;gap:8px;flex-shrink:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
 .ldl{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
 .ldi{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--parchment3);border-radius:4px;border:1px solid var(--parchment-dark);font-size:13px;font-family:'Crimson Pro',serif}
 .ldin{color:var(--ink);flex:1}
@@ -562,7 +536,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         </div>
         <div class="filter-actions">
           <button onclick="clearDraftFilters()">Clear</button>
-          <button id="d-type-toggle" onclick="toggleCreaturesOnly()">Creatures Only</button>
+          <button id="d-type-toggle" onclick="toggleCreaturesOnly()">All Types</button>
           <div class="lock-toggle-wrap">
             <span class="lock-toggle-label">Lock</span>
             <div class="lock-toggle" id="lock-toggle" onclick="toggleLockFilters()"></div>
@@ -608,17 +582,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <div class="tc active" id="tab-curve"><div id="curve-body"><div class="empty"><span class="eicon">✦</span>Add cards to see mana curve.</div></div></div>
           <div class="tc" id="tab-analysis">
             <div class="sl" id="sl"><div class="empty"><span class="eicon">✦</span>Add cards to receive analysis.</div></div>
-            <div class="ai-section" id="ai-section" style="display:none">
-              <div class="ai-header">
-                <div class="ai-title">✦ AI Analysis <span style="font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:500;letter-spacing:0.06em;color:var(--ink-muted)">(Gemini)</span></div>
-              </div>
-              <div class="key-row" id="key-row" style="display:none">
-                <input class="key-input" id="key-input" type="password" placeholder="Paste your Gemini API key…">
-                <button class="ai-btn" id="ai-key-submit">Go</button>
-              </div>
-              <div class="key-hint" id="key-hint" style="display:none">Key stored in memory only — never saved or transmitted except to Google's API.</div>
-              <button class="ai-btn" id="ai-btn" style="width:100%"><div class="ai-spinner" id="ai-spin"></div><span id="ai-btn-txt">✦ Run AI Analysis</span></button>
-            </div>
           </div>
         </div>
       </div></div>
@@ -689,25 +652,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="sb-footer"><button class="gold-btn" style="flex:1" onclick="closeSideboard()">Done</button></div>
 </div>
 
-<!-- ═══ AI ANALYSIS OVERLAY ═══ -->
-<div class="ai-overlay" id="ai-overlay">
-  <div class="ai-overlay-header">
-    <div class="ai-overlay-title">✦ AI Analysis</div>
-    <button class="ai-overlay-close" onclick="closeAiOverlay()">✕</button>
-  </div>
-  <div class="ai-overlay-body" id="ai-overlay-body">
-    <div class="ai-overlay-loading" id="ai-loading">
-      <div class="ai-load-spin"></div>
-      <div class="ai-overlay-loading-text">Analyzing your pool…</div>
-    </div>
-    <div class="ai-overlay-content" id="ai-overlay-content" style="display:none"></div>
-  </div>
-  <div class="ai-overlay-footer">
-    <button class="gold-btn" style="flex:1" id="ai-rerun-btn" onclick="rerunAiAnalysis()" style="display:none">✦ Re-analyze</button>
-    <button onclick="closeAiOverlay()" style="flex-shrink:0;background:none;border:1px solid var(--parchment-dark);border-radius:5px;color:var(--ink-dim);font-family:'Cinzel',serif;font-size:12px;font-weight:700;padding:9px 16px;cursor:pointer">Close</button>
-  </div>
-</div>
-
 <!-- ═══ LAST 3 PICKS MODAL ═══ -->
 <div class="lp-overlay" id="lp-overlay">
   <div class="lp-modal">
@@ -756,7 +700,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <script>
 // ═══ STATE ═══
-let pool=[],sideboard=[],qty=1,selCard=null,acTmo=null,acRes=[],acIdx=-1,geminiKey='';
+let pool=[],sideboard=[],qty=1,selCard=null,acTmo=null,acRes=[],acIdx=-1;
 let setCards=[],loadedSetName='',loadedSetCode='';
 let setBasicImages={}; // {Plains:{imageUri,imageSmall}, Island:…}
 let draftColorFilter=[],draftMvFilter='',draftTypeFilter='',draftLandMode=false;
@@ -1017,7 +961,7 @@ function addCardToPool(name,type,cmc,cmcRaw,colors,qtyToAdd,pips,produced,oracle
   const ex=pool.find(c=>c.name.toLowerCase()===name.toLowerCase()&&c.type===type);
   if(ex){ex.qty+=qtyToAdd}
   else{pool.push({id:Date.now()+Math.random(),name,type,allTypes:allTypes||[type],cmc,cmcRaw,colors,qty:qtyToAdd,pips,produced,oracle,imageUri,manaCost:manaCost||'',imageSmall:imageSmall||''})}
-  resetAiOutput();updateNavBadge();updateDraftMiniStats();render();
+  updateNavBadge();updateDraftMiniStats();render();
 }
 function updateNavBadge(){const b=document.getElementById('nav-badge'),t=totCards();if(t>0){b.style.display='flex';b.textContent=t}else b.style.display='none'}
 function updateDraftMiniStats(){
@@ -1208,8 +1152,9 @@ function toggleLandMode(){
 
 function toggleCreaturesOnly(){
   const btn=document.getElementById('d-type-toggle');
-  if(draftTypeFilter==='Creature'){draftTypeFilter='';btn.textContent='Creatures Only'}
-  else{draftTypeFilter='Creature';btn.textContent='All Types'}
+  if(draftTypeFilter===''){draftTypeFilter='Creature';btn.textContent='Creatures Only'}
+  else if(draftTypeFilter==='Creature'){draftTypeFilter='NonCreature';btn.textContent='Non-Creatures'}
+  else{draftTypeFilter='';btn.textContent='All Types'}
   renderDraftGrid();
 }
 
@@ -1217,7 +1162,7 @@ function clearDraftFilters(){
   draftColorFilter=[];draftMvFilter='';draftTypeFilter='';draftLandMode=false;
   document.querySelectorAll('#d-colors .cf-btn').forEach(b=>b.classList.remove('on'));
   document.querySelectorAll('#d-mvs .mv-btn').forEach(b=>b.classList.remove('on'));
-  document.getElementById('d-type-toggle').textContent='Creatures Only';
+  document.getElementById('d-type-toggle').textContent='All Types';
   const lb=document.getElementById('d-land-btn');lb.style.opacity='0.45';lb.style.transform='';lb.style.borderColor='rgba(0,0,0,0.3)';
   document.getElementById('d-mv-section').style.display='block';
   renderDraftGrid();
@@ -1265,7 +1210,8 @@ function renderDraftGrid(){
       });
     }
     // Creatures only toggle
-    if(draftTypeFilter)filtered=filtered.filter(card=>card.type===draftTypeFilter);
+    if(draftTypeFilter==='Creature')filtered=filtered.filter(card=>card.type==='Creature');
+    else if(draftTypeFilter==='NonCreature')filtered=filtered.filter(card=>card.type!=='Creature');
   }
 
   // Nothing selected yet
@@ -1275,8 +1221,11 @@ function renderDraftGrid(){
   }
 
   countEl.textContent=`${filtered.length} match${filtered.length!==1?'es':''}`;
-  if(!filtered.length){grid.innerHTML='<div class="card-grid-empty">No cards match these filters</div>';return}
+  if(!filtered.length){grid.innerHTML='<div class="card-grid-empty">No cards match these filters</div>';grid.style.gridTemplateColumns='';return}
   filtered.sort((a,b)=>a.cmc-b.cmc||a.name.localeCompare(b.name));
+  // Use 2 columns when narrowed down (color+MV or few results) for bigger cards
+  const narrow=(draftColorFilter.length&&draftMvFilter)||filtered.length<=6;
+  grid.style.gridTemplateColumns=narrow?'repeat(2,1fr)':'';
   grid.innerHTML=filtered.map(card=>{
     const inPool=pool.some(c=>c.name.toLowerCase()===card.name.toLowerCase());
     const poolCard=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());
@@ -1300,7 +1249,7 @@ function quickAdd(name){
     draftColorFilter=[];draftMvFilter='';draftTypeFilter='';draftLandMode=false;
     document.querySelectorAll('#d-colors .cf-btn').forEach(b=>b.classList.remove('on'));
     document.querySelectorAll('#d-mvs .mv-btn').forEach(b=>b.classList.remove('on'));
-    document.getElementById('d-type-toggle').textContent='Creatures Only';
+    document.getElementById('d-type-toggle').textContent='All Types';
     const lb=document.getElementById('d-land-btn');lb.style.opacity='0.45';lb.style.transform='';lb.style.borderColor='rgba(0,0,0,0.3)';
     document.getElementById('d-mv-section').style.display='block';
   }
@@ -1350,8 +1299,8 @@ function renderSideboard(){
   });
   body.innerHTML=html;
 }
-function moveToSideboard(id){const idx=pool.findIndex(c=>c.id===id);if(idx===-1)return;const card=pool[idx];if(isBasicLand(card)){if(card.qty>1)card.qty--;else pool.splice(idx,1);resetAiOutput();updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck();return}if(card.qty>1){card.qty--;const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,id:Date.now()+Math.random(),qty:1})}else{pool.splice(idx,1);const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,qty:1})}resetAiOutput();updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck()}
-function moveToMain(id){const idx=sideboard.findIndex(c=>c.id===id);if(idx===-1)return;const card=sideboard[idx];if(card.qty>1){card.qty--;const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,id:Date.now()+Math.random(),qty:1})}else{sideboard.splice(idx,1);const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,qty:1})}resetAiOutput();updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck()}
+function moveToSideboard(id){const idx=pool.findIndex(c=>c.id===id);if(idx===-1)return;const card=pool[idx];if(isBasicLand(card)){if(card.qty>1)card.qty--;else pool.splice(idx,1);updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck();return}if(card.qty>1){card.qty--;const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,id:Date.now()+Math.random(),qty:1})}else{pool.splice(idx,1);const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,qty:1})}updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck()}
+function moveToMain(id){const idx=sideboard.findIndex(c=>c.id===id);if(idx===-1)return;const card=sideboard[idx];if(card.qty>1){card.qty--;const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,id:Date.now()+Math.random(),qty:1})}else{sideboard.splice(idx,1);const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,qty:1})}updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck()}
 
 // ═══ VISUAL CURVE ═══
 const BASIC_LAND_NAMES=['Plains','Island','Swamp','Mountain','Forest'];
@@ -1535,12 +1484,12 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{doc
 // Quick add single basic from land calc mana buttons
 function quickAddSingleBasic(color){quickAddBasic(color,1)}
 
-function removeOne(id){const c=pool.find(x=>x.id===id);if(!c)return;if(c.qty>1)c.qty--;else pool=pool.filter(x=>x.id!==id);resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}
-function removeAll(id){pool=pool.filter(x=>x.id!==id);resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}
-document.getElementById('clr-btn')?.addEventListener('click',()=>{if(!pool.length)return;if(confirm('Clear all cards?')){pool=[];resetAiOutput();updateNavBadge();updateDraftMiniStats();render()}});
+function removeOne(id){const c=pool.find(x=>x.id===id);if(!c)return;if(c.qty>1)c.qty--;else pool=pool.filter(x=>x.id!==id);updateNavBadge();updateDraftMiniStats();render()}
+function removeAll(id){pool=pool.filter(x=>x.id!==id);updateNavBadge();updateDraftMiniStats();render()}
+document.getElementById('clr-btn')?.addEventListener('click',()=>{if(!pool.length)return;if(confirm('Clear all cards?')){pool=[];updateNavBadge();updateDraftMiniStats();render()}});
 
 // ═══ BUILDER RENDER ═══
-function render(){updateFrameColor();renderHeader();renderStats();renderExtStats();renderMathExplainer();renderCurve();renderAnalysis();renderLandCalc();document.getElementById('ai-section').style.display=totCards()>=5?'block':'none';updateDraftMiniStats();updateNavBadge();saveDeck()}
+function render(){updateFrameColor();renderHeader();renderStats();renderExtStats();renderMathExplainer();renderCurve();renderAnalysis();renderLandCalc();updateDraftMiniStats();updateNavBadge();saveDeck()}
 
 function renderHeader(){
   const total=totCards(),cr=totType('Creature'),sp=pool.filter(c=>c.type!=='Land').reduce((s,c)=>s+c.qty,0);
@@ -1918,7 +1867,7 @@ function quickAddBasic(color,count){
   const ex=pool.find(c=>c.name===name&&c.type==='Land');
   if(ex){ex.qty+=count}
   else{pool.push({id:Date.now()+Math.random(),name,type:'Land',cmc:0,cmcRaw:'0',colors:['C'],qty:count,pips:{},produced:[color],oracle:'',imageUri:imgs.imageUri,manaCost:'',imageSmall:imgs.imageSmall})}
-  toast(`+${count} ${name}`);resetAiOutput();updateNavBadge();updateDraftMiniStats();render();
+  toast(`+${count} ${name}`);updateNavBadge();updateDraftMiniStats();render();
 }
 function quickAddAllBasics(){
   const nl=nlCards(),dl=lCards();
@@ -2450,115 +2399,26 @@ function toggleCleanupCard(id){
 
 function confirmCleanup(){
   const toMove=Object.entries(cleanupChecked).filter(([id,checked])=>checked).map(([id])=>parseFloat(id));
-  toMove.forEach(id=>moveToSideboard(id));
+  let totalMoved=0;
+  toMove.forEach(id=>{
+    const card=pool.find(c=>c.id===id);
+    if(!card)return;
+    totalMoved+=card.qty;
+    // Move all copies at once
+    const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());
+    if(ex)ex.qty+=card.qty;
+    else sideboard.push({...card,id:Date.now()+Math.random()});
+    pool=pool.filter(c=>c.id!==id);
+  });
+  updateNavBadge();updateDraftMiniStats();saveDeck();
   closeCleanup();
-  toast(`Moved ${toMove.length} card${toMove.length!==1?'s':''} to sideboard`);
+  toast(`Moved ${totalMoved} card${totalMoved!==1?'s':''} to sideboard`);
   renderVisualCurve();
   render();
 }
 
 function closeCleanup(){
   document.getElementById('cleanup-overlay').classList.remove('open');
-}
-
-// ═══ GEMINI AI ═══
-function resetAiOutput(){document.getElementById('ai-btn-txt').textContent='✦ Run AI Analysis'}
-
-// Main button: if key exists, go straight to overlay. If not, show key input.
-document.getElementById('ai-btn').addEventListener('click',()=>{
-  if(geminiKey){
-    openAiOverlayAndRun();
-  } else {
-    const kr=document.getElementById('key-row'),kh=document.getElementById('key-hint');
-    if(kr.style.display==='none'){kr.style.display='flex';kh.style.display='block';document.getElementById('key-input').focus()}
-    else{kr.style.display='none';kh.style.display='none'}
-  }
-});
-
-// Key submit: save key, hide input, open overlay
-document.getElementById('ai-key-submit').addEventListener('click',()=>{
-  const iv=document.getElementById('key-input').value.trim();
-  if(!iv){document.getElementById('key-input').style.borderColor='#8a0808';return}
-  geminiKey=iv;
-  document.getElementById('key-row').style.display='none';
-  document.getElementById('key-hint').style.display='none';
-  openAiOverlayAndRun();
-});
-
-// Also allow Enter key in the input
-document.getElementById('key-input').addEventListener('keydown',e=>{
-  if(e.key==='Enter'){e.preventDefault();document.getElementById('ai-key-submit').click()}
-});
-
-function openAiOverlayAndRun(){
-  const overlay=document.getElementById('ai-overlay');
-  const loading=document.getElementById('ai-loading');
-  const content=document.getElementById('ai-overlay-content');
-  const rerunBtn=document.getElementById('ai-rerun-btn');
-  overlay.classList.add('open');
-  loading.style.display='flex';
-  content.style.display='none';
-  content.innerHTML='';
-  rerunBtn.style.display='none';
-  runAiAnalysis();
-}
-
-function closeAiOverlay(){
-  document.getElementById('ai-overlay').classList.remove('open');
-}
-
-function rerunAiAnalysis(){
-  const loading=document.getElementById('ai-loading');
-  const content=document.getElementById('ai-overlay-content');
-  const rerunBtn=document.getElementById('ai-rerun-btn');
-  loading.style.display='flex';
-  content.style.display='none';
-  content.innerHTML='';
-  rerunBtn.style.display='none';
-  runAiAnalysis();
-}
-
-async function runAiAnalysis(){
-  const loading=document.getElementById('ai-loading');
-  const content=document.getElementById('ai-overlay-content');
-  const rerunBtn=document.getElementById('ai-rerun-btn');
-
-  const nl=nlCards();
-  const cardLines=pool.map(c=>{const o=c.oracle||'';return`${c.qty}x ${c.name} [${c.type}, CMC ${c.cmcRaw||c.cmc}, ${(c.colors||[]).join('')||'C'}]${o?` — "${o.slice(0,120)}"`:''}`;}).join('\n');
-  const pt=getSmartPips();
-  const pipSum=Object.entries(pt).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`${CFULL[c]||c}: ${n.toFixed(1)}`).join(', ');
-  const avgCmc=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(2):'?';
-  const prompt=`You are an expert MTG draft analyst. Analyze this pool honestly.\n\nPOOL (${totCards()}):\n${cardLines}\n\nSTATS: Creatures: ${totType('Creature')}, Instants: ${totType('Instant')}, Sorceries: ${totType('Sorcery')}, Lands: ${totType('Land')}\nAvg CMC: ${avgCmc}\nPips: ${pipSum}\n\nAnalyze: 1) Interaction & Removal 2) Threats 3) Curve 4) Color Consistency 5) Top Cuts if >23 spells 6) Grade A/B/C/D\n\nBe direct, use card names, under 350 words.`;
-
-  try{
-    const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1500,temperature:0.7}})
-    });
-    const data=await resp.json();
-    if(data.error)throw new Error(data.error.message);
-    const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'No response.';
-    const formatted=text
-      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g,'<em>$1</em>')
-      .replace(/^#{1,3}\s+(.+)$/gm,'<strong style="display:block;margin-top:10px;margin-bottom:4px;font-size:15px">$1</strong>')
-      .replace(/\n\n/g,'<br><br>')
-      .replace(/\n/g,'<br>');
-    loading.style.display='none';
-    content.innerHTML=formatted;
-    content.style.display='block';
-    rerunBtn.style.display='block';
-    document.getElementById('ai-btn-txt').textContent='✦ Re-analyze';
-  }catch(err){
-    loading.style.display='none';
-    content.innerHTML=`<div style="text-align:center;padding:20px"><span style="color:#8a0808;font-size:14px;font-weight:600">Analysis failed: ${err.message}</span><br><br><span style="color:var(--ink-muted);font-size:13px;font-style:italic">Check your API key and try again.</span></div>`;
-    content.style.display='block';
-    rerunBtn.style.display='block';
-    geminiKey='';
-    document.getElementById('key-row').style.display='flex';
-    document.getElementById('key-hint').style.display='block';
-    document.getElementById('ai-btn-txt').textContent='✦ Run AI Analysis';
-  }
 }
 
 restoreDeck();
