@@ -5,13 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Draft Table — MTG Draft Assistant</title>
 <meta name="description" content="Mobile-first MTG draft assistant with smart land calculator, castability indicators, and visual deckbuilding.">
-<meta name="theme-color" con<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Draft Table — MTG Draft Assistant</title>
-<meta name="description" content="Mobile-first MTG draft assistant with smart land calculator, castability indicators, and visual deckbuilding.">
 <meta name="theme-color" content="#1a1408">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2044,11 +2037,20 @@ async function generateShareImage(){
     const pt2=getLandPips(),tp2=Object.values(pt2).reduce((s,v)=>s+v,0);
     if(tp2){const T=getTargetLands();let ds=0;const fs={};dl.forEach(l=>{ds+=l.qty;(l.produced||[]).filter(c=>'WUBRG'.includes(c)).forEach(c=>{fs[c]=(fs[c]||0)+l.qty})});const bt=Math.max(0,T-ds);const{alloc}=computeBasicAllocation(pt2,fs,bt);Object.entries(alloc).forEach(([c,n])=>{if(n>0){const bn=BASIC_NAMES_REV[c];basicCounts[bn]=(basicCounts[bn]||0)+n}})}
   }
+  const MANA_CIRCLE={W:'#f0e8b0',U:'#2060b0',B:'#383038',R:'#b02808',G:'#0e5818'};
+  ctx.font='700 14px Barlow Condensed,sans-serif';ctx.textBaseline='top';
+  ctx.fillStyle=S.TEXT_DIM;ctx.fillText('Basic Lands',mx,8);mx+=ctx.measureText('Basic Lands').width+10;
   for(const c of colorPips){
-    if(manaCache[c])ctx.drawImage(manaCache[c],mx,10,26,26);
-    mx+=30;
+    // Draw colored circle
+    const circR=10;
+    ctx.beginPath();ctx.arc(mx+circR,18,circR,0,Math.PI*2);ctx.fillStyle=MANA_CIRCLE[c]||'#888';ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=1.5;ctx.stroke();
+    // Letter on circle
+    ctx.font='700 12px Barlow Condensed,sans-serif';ctx.fillStyle=c==='W'?'#3a2800':'#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(c,mx+circR,18);ctx.textAlign='left';ctx.textBaseline='top';
+    mx+=circR*2+4;
     const bn=BASIC_NAMES_REV[c];const cnt=basicCounts[bn]||0;
-    if(cnt){ctx.font='700 18px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_LIGHT;ctx.fillText(`${cnt}`,mx,14);mx+=ctx.measureText(`${cnt}`).width+8}
+    if(cnt){ctx.font='700 20px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_LIGHT;ctx.fillText(`${cnt}`,mx,10);mx+=ctx.measureText(`${cnt}`).width+10}
   }
 
   // Stats right side
@@ -2074,8 +2076,8 @@ async function generateShareImage(){
     const cardsTop=contentTop+cmcHeaderH+4;
     const cardsAvailH=contentBot-cardsTop-4;
     const maxCH=Math.min(cardH,cardsAvailH);
-    let overlap=28;
-    if(cards.length>1){const need=overlap*(cards.length-1)+maxCH;if(need>cardsAvailH)overlap=Math.max(16,Math.floor((cardsAvailH-maxCH)/(cards.length-1)))}
+    let overlap=48;
+    if(cards.length>1){const need=overlap*(cards.length-1)+maxCH;if(need>cardsAvailH)overlap=Math.max(24,Math.floor((cardsAvailH-maxCH)/(cards.length-1)))}
 
     cards.forEach((card,i)=>{
       const isLast=i===cards.length-1;
@@ -2096,8 +2098,9 @@ async function generateShareImage(){
       if(img&&isLast){
         ctx.drawImage(img,colX,cy,colW,maxCH);
       }else if(img&&!isLast){
-        // Draw top slice of card image (name bar)
-        const srcH=Math.round(img.height*(overlap/maxCH));
+        // Draw top slice of card image (name bar + mana cost area)
+        const sliceRatio=overlap/maxCH;
+        const srcH=Math.round(img.height*sliceRatio);
         ctx.drawImage(img,0,0,img.width,srcH,colX,cy,colW,overlap);
       }else{
         ctx.fillStyle=S.CARD_BG;ctx.fillRect(colX,cy,colW,isLast?maxCH:overlap);
