@@ -194,6 +194,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 /* Castability indicators */
 .vis-card.cast-amber{border-color:#c89020;box-shadow:0 0 6px rgba(200,144,32,0.4)}
 .vis-card.cast-red{border-color:#c03020;box-shadow:0 0 6px rgba(192,48,32,0.4)}
+.vis-delete-active .vis-card{border-color:rgba(192,48,32,0.5)}
+.vis-delete-active .vis-card:active{border-color:#c03020;box-shadow:0 0 8px rgba(192,48,32,0.6)}
 .vis-cast-badge{position:absolute;top:15px;left:2px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;padding:1px 4px;border-radius:3px;z-index:5;text-shadow:0 1px 2px rgba(0,0,0,0.7);letter-spacing:0.03em;line-height:1}
 .vis-cast-badge.amber{background:rgba(200,144,32,0.92);color:#fff}
 .vis-cast-badge.red{background:rgba(192,48,32,0.92);color:#fff}
@@ -623,17 +625,23 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- ═══ VISUAL CURVE VIEW ═══ -->
 <div class="mode-view" id="view-visual">
-  <div class="vis-bar">
-    <div class="vis-bar-left">
-      <div class="vis-bar-title">⬡ Deck</div>
-      <div class="vis-bar-stats" id="vis-stats"></div>
-      <button onclick="exportDeck()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;cursor:pointer;line-height:1;flex-shrink:0;letter-spacing:0.04em" title="Export to clipboard">Export</button>
-      <button onclick="generateShareImage()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-size:12px;cursor:pointer;line-height:1;flex-shrink:0" title="Share Image">📤</button>
+  <div class="vis-bar" style="display:flex;align-items:stretch;justify-content:space-between;padding:4px 8px 2px">
+    <div style="display:flex;flex-direction:column;justify-content:center;gap:1px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--gold-trim);letter-spacing:0.04em" id="vis-stats"></div>
+      <div id="vis-basics" style="display:flex;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--gold-trim)"></div>
     </div>
-    <div class="vis-toggle-row">
-      <button onclick="openCleanup()" style="padding:4px 10px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:5px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap" id="cleanup-btn">✦ Clean Up</button>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--gold-trim);letter-spacing:0.06em">QUICK SIDE</span>
-      <div class="vis-toggle on" id="vis-quick-toggle" onclick="toggleQuickSide()"></div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--gold-trim);letter-spacing:0.06em">SIDE</span>
+        <div class="vis-toggle on" id="vis-quick-toggle" onclick="toggleQuickSide()"></div>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:#c03020;letter-spacing:0.06em">DEL</span>
+        <div class="vis-toggle" id="vis-delete-toggle" onclick="toggleDeleteMode()" style="border-color:rgba(192,48,32,0.3)"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="openCleanup()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:5px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap" id="cleanup-btn">✦ Clean Up</button>
+        <button onclick="exportDeck()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;cursor:pointer;line-height:1;letter-spacing:0.04em">Export</button>
+        <button onclick="generateShareImage()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-size:11px;cursor:pointer;line-height:1">📤</button>
+      </div>
     </div>
   </div>
   <div id="vis-body"><div class="empty" style="color:var(--gold-trim);opacity:0.6"><span class="eicon">✦</span>Add cards to see your deck.</div></div>
@@ -709,6 +717,7 @@ let dManualAcRes=[],dManualAcTmo=null,dManualSelCard=null;
 let chaosSets=[]; // [{code,name}]
 let visSelectedId=null;
 let visQuickSide=true;
+let visDeleteMode=false;
 let lastPicks=[]; // track last 3 cards added (card objects)
 let draftLockFilters=false;
 let cleanupChecked={}; // {cardId: true/false} for cleanup preview
@@ -756,8 +765,17 @@ function clearSavedDeck(){
 
 function toggleQuickSide(){
   visQuickSide=!visQuickSide;
+  if(visQuickSide)visDeleteMode=false; // delete mode requires quick side off... actually they're independent
   document.getElementById('vis-quick-toggle').classList.toggle('on',visQuickSide);
   visDeselect();
+  renderVisualCurve();
+}
+
+function toggleDeleteMode(){
+  visDeleteMode=!visDeleteMode;
+  const toggle=document.getElementById('vis-delete-toggle');
+  toggle.classList.toggle('on',visDeleteMode);
+  if(visDeleteMode){toggle.style.background='rgba(192,48,32,0.3)'}else{toggle.style.background=''}
   renderVisualCurve();
 }
 
@@ -973,7 +991,10 @@ function updateDraftMiniStats(){
   document.getElementById('dm-cmc').textContent=avg;
   document.getElementById('d-pick-count').textContent=totCards();
 }
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600)}
+let toastTimer=null,pendingUndo=null;
+function toast(msg,duration=1600){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),duration);pendingUndo=null}
+function toastWithUndo(msg,undoFn){const t=document.getElementById('toast');pendingUndo=undoFn;t.innerHTML=`${msg} <span onclick="doUndo()" style="text-decoration:underline;cursor:pointer;margin-left:8px;color:#e8cc60;font-weight:800">Undo</span>`;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.classList.remove('show');pendingUndo=null},4000)}
+function doUndo(){if(pendingUndo){pendingUndo();pendingUndo=null}document.getElementById('toast').classList.remove('show')}
 
 // ═══ SOURCE TABS ═══
 function switchSource(src){
@@ -1256,7 +1277,15 @@ function quickAdd(name){
   lastPicks.unshift({...card,_addedAt:Date.now()});
   if(lastPicks.length>3)lastPicks.length=3;
   updateLastPicksBtn();
-  toast(`✓ ${card.name}`);
+  // Undo toast
+  const addedName=card.name;
+  toastWithUndo(`✓ ${addedName}`,()=>{
+    const ex=pool.find(c=>c.name.toLowerCase()===addedName.toLowerCase());
+    if(ex){if(ex.qty>1)ex.qty--;else pool=pool.filter(c=>c.id!==ex.id)}
+    lastPicks.shift();updateLastPicksBtn();
+    updateNavBadge();updateDraftMiniStats();render();renderVisualCurve();
+    toast('Removed: '+addedName);
+  });
   // Reset filters unless locked
   if(!draftLockFilters){
     draftColorFilter=[];draftMvFilter='';draftTypeFilter='';draftLandMode=false;
@@ -1326,9 +1355,31 @@ function getBasicFallbackColor(name){
 function renderVisualCurve(){
   const body=document.getElementById('vis-body');
   const statsEl=document.getElementById('vis-stats');
+  const basicsEl=document.getElementById('vis-basics');
   const nl=nlCards(),total=totCards(),cr=totType('Creature');
   const avg=nl.length?(nl.reduce((s,c)=>s+c.cmc*c.qty,0)/nl.reduce((s,c)=>s+c.qty,0)).toFixed(1):'—';
   statsEl.textContent=`${total} cards · ${cr} creatures · ${avg} avg`;
+
+  // Populate suggested basic lands
+  if(basicsEl){
+    const dl=lCards();
+    const BASIC_NAMES_MAP={W:'Plains',U:'Island',B:'Swamp',R:'Mountain',G:'Forest'};
+    const basicCounts={};
+    dl.filter(l=>BASIC_LAND_NAMES.includes(l.name)).forEach(l=>{basicCounts[l.name]=(basicCounts[l.name]||0)+l.qty});
+    // Add projected basics if none placed yet
+    if(!Object.keys(basicCounts).length&&nl.reduce((s,c)=>s+c.qty,0)>=5){
+      const pt2=getLandPips(),tp2=Object.values(pt2).reduce((s,v)=>s+v,0);
+      if(tp2){const T=getTargetLands();let ds=0;const fs={};dl.forEach(l=>{ds+=l.qty;(l.produced||[]).filter(c=>'WUBRG'.includes(c)).forEach(c=>{fs[c]=(fs[c]||0)+l.qty})});const bt=Math.max(0,T-ds);const{alloc}=computeBasicAllocation(pt2,fs,bt);Object.entries(alloc).forEach(([c,n])=>{if(n>0){const bn=BASIC_NAMES_MAP[c];basicCounts[bn]=(basicCounts[bn]||0)+n}})}
+    }
+    const entries=Object.entries(basicCounts).filter(([_,n])=>n>0);
+    if(entries.length){
+      const MANA_FOR_BASIC={Plains:'W',Island:'U',Swamp:'B',Mountain:'R',Forest:'G'};
+      basicsEl.innerHTML=entries.map(([name,count])=>{
+        const c=MANA_FOR_BASIC[name]||'C';
+        return `${manaImg(c,14)}<span style="margin-right:4px">${count}</span>`;
+      }).join('');
+    }else{basicsEl.innerHTML=''}
+  }
 
   // Tap land warning on visual curve
   const visTapLands=lCards().filter(land=>{const o=(land.oracle||'').toLowerCase();return o.includes('enters the battlefield tapped')||o.includes('enters tapped')}).reduce((s,c)=>s+c.qty,0);
@@ -1374,13 +1425,13 @@ function renderVisualCurve(){
   const lands=[];
   lCards().forEach(c=>{for(let i=0;i<c.qty;i++) lands.push({...c,_copyIdx:i})});
 
-  const clickFn=visQuickSide?'visQuickSideTap':'visSelect';
-  const qsClass=visQuickSide?'quick-side-mode':'';
-
+  const clickFn=(visQuickSide||visDeleteMode)?'visQuickSideTap':'visSelect';
+  const qsClass=visQuickSide||visDeleteMode?'quick-side-mode':'';
+  const deleteClass=visDeleteMode?'vis-delete-active':'';
   // Compute castability indicators (only with 8+ non-land cards)
   const projSrc=nl.reduce((s,c)=>s+c.qty,0)>=8?getProjectedSources():null;
 
-  let html='<div class="vis-columns">';
+  let html=`<div class="vis-columns ${deleteClass}">`;
   slots.forEach(s=>{
     const cards=bySlot[s];
     if(!cards.length)return; // skip empty columns — gives more width to populated ones
@@ -1430,9 +1481,24 @@ function renderVisualCurve(){
 }
 
 function visQuickSideTap(id,name){
-  moveToSideboard(id);
-  toast(`→ Side: ${name}`);
-  renderVisualCurve();
+  if(visDeleteMode){
+    // Delete mode: permanently remove the card with undo
+    const card=pool.find(c=>c.id===id);
+    if(!card)return;
+    const deletedCard={...card};
+    if(card.qty>1)card.qty--;else pool=pool.filter(c=>c.id!==id);
+    updateNavBadge();updateDraftMiniStats();saveDeck();renderVisualCurve();render();
+    toastWithUndo(`✕ Deleted: ${name}`,()=>{
+      const ex=pool.find(c=>c.name.toLowerCase()===deletedCard.name.toLowerCase());
+      if(ex)ex.qty++;else pool.push({...deletedCard,id:Date.now()+Math.random(),qty:1});
+      updateNavBadge();updateDraftMiniStats();saveDeck();renderVisualCurve();render();
+      toast('Restored: '+name);
+    });
+  } else {
+    moveToSideboard(id);
+    toast(`→ Side: ${name}`);
+    renderVisualCurve();
+  }
 }
 
 function visSelect(id,name){
@@ -1979,9 +2045,12 @@ async function generateShareImage(){
   const nonbasics=dl.filter(l=>!BASIC_LAND_NAMES.includes(l.name));
   const nbExpanded=[];nonbasics.forEach(l=>{for(let i=0;i<l.qty;i++)nbExpanded.push({...l,_i:i})});
   const hasLandCol=nbExpanded.length>0;
-  const totalCols=activeSlots.length+(hasLandCol?1:0);
+  // Sideboard as unique cards (not expanded) with qty badge
+  const hasSbCol=sideboard.length>0;
+  const sbTotal=sideboard.reduce((s,c)=>s+c.qty,0);
+  const totalCols=activeSlots.length+(hasLandCol?1:0)+(hasSbCol?1:0);
 
-  const headerH=80,footerH=60,pad=16,colGap=6;
+  const headerH=80,footerH=30,pad=16,colGap=6;
   const contentTop=headerH,contentBot=S.H-footerH;
   const availW=S.W-pad*2;
   const colW=Math.floor((availW-(totalCols-1)*colGap)/totalCols);
@@ -2080,11 +2149,12 @@ async function generateShareImage(){
 
       // Castability badge
       if(hasWarn){
-        const bw=30,bh=16;
-        const bx=colX+colW-bw-4;
-        const by=cy+(isLast?4:(overlap-bh)/2);
-        shareRoundRect(ctx,bx,by,bw,bh,3);ctx.fillStyle=isRed?S.RED:S.AMBER;ctx.fill();
-        ctx.font='700 10px Barlow Condensed,sans-serif';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+        const bw=38,bh=20;
+        const bx=colX+colW-bw-3;
+        const by=cy+(isLast?6:(overlap-bh)/2);
+        shareRoundRect(ctx,bx,by,bw,bh,4);ctx.fillStyle=isRed?S.RED:S.AMBER;ctx.fill();
+        ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=1;ctx.stroke();
+        ctx.font='700 13px Barlow Condensed,sans-serif';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
         ctx.fillText(`${Math.round(castProb*100)}%`,bx+bw/2,by+bh/2);ctx.textAlign='left';
       }
     });
@@ -2095,43 +2165,66 @@ async function generateShareImage(){
   });
 
   // Lands column (nonbasics only)
+  let nextCol=activeSlots.length;
   if(hasLandCol){
-    drawColumn(pad+activeSlots.length*(colW+colGap),nbExpanded,'Lands');
+    drawColumn(pad+nextCol*(colW+colGap),nbExpanded,'Lands');
+    nextCol++;
   }
 
-  // ── FOOTER ──
-  ctx.strokeStyle=S.BORDER;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,S.H-footerH+4);ctx.lineTo(S.W-pad,S.H-footerH+4);ctx.stroke();
+  // Sideboard column (unique cards with qty badge)
+  if(hasSbCol){
+    const sbColX=pad+nextCol*(colW+colGap);
+    ctx.fillStyle='rgba(60,32,16,0.8)';shareRoundRect(ctx,sbColX,contentTop,colW,cmcHeaderH,4);ctx.fill();
+    ctx.font='700 15px Barlow Condensed,sans-serif';ctx.fillStyle='#d0a060';ctx.textBaseline='middle';ctx.textAlign='center';
+    ctx.fillText(`Side (${sbTotal})`,sbColX+colW/2,contentTop+cmcHeaderH/2);ctx.textAlign='left';
 
-  // Sideboard
-  if(sideboard.length){
-    const sbY=S.H-footerH+14;
-    ctx.font='600 13px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD;ctx.textBaseline='top';
-    ctx.fillText(`Sideboard (${sideboard.reduce((s,c)=>s+c.qty,0)})`,pad,sbY);
+    const sbCards=sideboard; // unique cards, not expanded
+    const sbTop=contentTop+cmcHeaderH+4;
+    const sbAvailH=contentBot-sbTop-4;
+    const sbMaxCH=Math.min(cardH,sbAvailH);
+    let sbOverlap=48;
+    if(sbCards.length>1){const need=sbOverlap*(sbCards.length-1)+sbMaxCH;if(need>sbAvailH)sbOverlap=Math.max(24,Math.floor((sbAvailH-sbMaxCH)/(sbCards.length-1)))}
 
-    // Draw sideboard as small card thumbnails
-    let sbX=pad+120;
-    const sbCardH=40;const sbCardW=Math.round(sbCardH/1.4);
-    sideboard.forEach(card=>{
+    sbCards.forEach((card,i)=>{
+      const isLast=i===sbCards.length-1;
+      const cy=sbTop+i*sbOverlap;
       const img=imgCache[card.name]||null;
-      ctx.save();shareRoundRect(ctx,sbX,sbY-2,sbCardW,sbCardH,3);ctx.clip();
-      if(img){ctx.drawImage(img,sbX,sbY-2,sbCardW,sbCardH)}
-      else{ctx.fillStyle=S.CARD_BG;ctx.fillRect(sbX,sbY-2,sbCardW,sbCardH)}
-      ctx.restore();
-      shareRoundRect(ctx,sbX,sbY-2,sbCardW,sbCardH,3);ctx.strokeStyle=S.GOLD_DIM;ctx.lineWidth=1;ctx.stroke();
-      // Qty badge if >1
-      if(card.qty>1){
-        const bx=sbX+sbCardW-14,by=sbY-2;
-        shareRoundRect(ctx,bx,by,14,12,2);ctx.fillStyle='rgba(26,20,8,0.85)';ctx.fill();
-        ctx.font='700 9px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_LIGHT;ctx.textAlign='center';ctx.textBaseline='top';
-        ctx.fillText(`×${card.qty}`,bx+7,by+1);ctx.textAlign='left';
+      const r=6;
+
+      ctx.save();
+      shareRoundRect(ctx,sbColX,cy,colW,isLast?sbMaxCH:sbMaxCH,r);ctx.clip();
+      if(img&&isLast){
+        ctx.drawImage(img,sbColX,cy,colW,sbMaxCH);
+        ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fillRect(sbColX,cy,colW,sbMaxCH);
+      }else if(img&&!isLast){
+        const sliceRatio=sbOverlap/sbMaxCH;
+        const srcH=Math.round(img.height*sliceRatio);
+        ctx.drawImage(img,0,0,img.width,srcH,sbColX,cy,colW,sbOverlap);
+      }else{
+        ctx.fillStyle=S.CARD_BG;ctx.fillRect(sbColX,cy,colW,isLast?sbMaxCH:sbOverlap);
+        ctx.font='600 11px Barlow Condensed,sans-serif';ctx.fillStyle=S.TEXT_DIM;ctx.textBaseline='middle';
+        shareTruncText(ctx,card.name,sbColX+4,cy+sbOverlap/2,colW-8);
       }
-      sbX+=sbCardW+6;
+      ctx.restore();
+
+      ctx.save();shareRoundRect(ctx,sbColX,cy,colW,isLast?sbMaxCH:sbOverlap,r);ctx.strokeStyle='rgba(160,120,40,0.4)';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+
+      // Qty badge for multiples
+      if(card.qty>1){
+        const bw=32,bh=20;
+        const bx=sbColX+colW-bw-4;
+        const by=cy+(isLast?sbMaxCH/2-bh/2:(sbOverlap-bh)/2);
+        shareRoundRect(ctx,bx,by,bw,bh,4);ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fill();
+        ctx.strokeStyle='rgba(200,160,48,0.5)';ctx.lineWidth=1;ctx.stroke();
+        ctx.font='700 14px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_LIGHT;ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(`x${card.qty}`,bx+bw/2,by+bh/2);ctx.textAlign='left';
+      }
     });
   }
 
-  // Branding
-  ctx.font='400 12px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_DIM;ctx.textAlign='right';ctx.textBaseline='bottom';
-  ctx.fillText('tastlejames.github.io/MTGDraft/',S.W-pad,S.H-10);ctx.textAlign='left';
+  // ── FOOTER (branding only) ──
+  ctx.font='400 13px Barlow Condensed,sans-serif';ctx.fillStyle=S.GOLD_DIM;ctx.textAlign='right';ctx.textBaseline='bottom';
+  ctx.fillText('tastlejames.github.io/MTGDraft/',S.W-pad,S.H-8);ctx.textAlign='left';
 
   // ── SHOW IMAGE ──
   await new Promise(r=>setTimeout(r,50)); // let canvas finish
