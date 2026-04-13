@@ -1966,6 +1966,10 @@ function shareRoundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lin
 
 function shareTruncText(ctx,text,x,y,maxW){let t=text;while(ctx.measureText(t).width>maxW&&t.length>3)t=t.slice(0,-2)+'…';ctx.fillText(t,x,y)}
 
+// Persistent share image cache — survives across share attempts in same session
+let shareImgCache={};
+let shareFailedCards=[];
+
 async function shareLoadImg(url){
   if(!url)return null;
   return new Promise((res)=>{
@@ -1974,26 +1978,38 @@ async function shareLoadImg(url){
     const finish=(result)=>{if(!done){done=true;res(result)}};
     img.crossOrigin='anonymous';
     img.onload=()=>finish(img);
-    img.onerror=()=>{console.warn('Share img failed:',url);finish(null)};
-    // Timeout: if image hasn't loaded in 8 seconds, skip it
-    setTimeout(()=>finish(null),8000);
-    // Add cache-buster to force fresh CORS request every time
+    img.onerror=()=>finish(null);
+    setTimeout(()=>finish(null),10000);
     const sep=url.includes('?')?'&':'?';
-    img.src=url+sep+'_cb='+Date.now();
+    img.src=url+sep+'_cb='+Date.now()+Math.random();
   });
 }
 
-async function generateShareImage(){
+async function loadShareImages(names,genMsg,retryMode=false){
+  const delay=retryMode?250:100;
+  let success=0,failed=[];
+  for(let i=0;i<names.length;i++){
+    const name=names[i];
+    if(!retryMode&&shareImgCache[name])continue; // already cached from previous attempt
+    if(genMsg)genMsg.textContent=`${retryMode?'Retrying':'Loading'} ${name}… (${i+1}/${names.length})`;
+    const url=`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=small`;
+    const img=await shareLoadImg(url);
+    if(img&&img.naturalWidth>0){shareImgCache[name]=img;success++}
+    else{failed.push(name);console.warn(`Share img ${retryMode?'retry ':''}failed:`,name)}
+    if(i<names.length-1)await new Promise(r=>setTimeout(r,delay));
+  }
+  return{success,failed};
+}
+
+async function generateShareImage(retryOnly=false){
   const nl=nlCards(),dl=lCards();
   if(!nl.length&&!dl.length){toast('Add cards first');return}
 
-  // Show generating message
   const genMsg=document.createElement('div');
   genMsg.id='share-generating';
   genMsg.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2a2010;border:1px solid #c8a030;border-radius:6px;padding:10px 20px;color:#e8cc60;font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;z-index:500;letter-spacing:0.06em';
   genMsg.textContent='Generating image…';
   document.body.appendChild(genMsg);
-
   await new Promise(r=>setTimeout(r,100));
 
   const canvas=document.getElementById('share-canvas');
@@ -2008,22 +2024,25 @@ async function generateShareImage(){
   const pt=getSmartPips();
   const colorPips=Object.entries(pt).filter(([c])=>c!=='C').sort((a,b)=>b[1]-a[1]).map(([c])=>c);
 
-  // Load card images via Scryfall API image endpoint (has CORS headers)
-  const imgCache={};
+  // Load images — first pass
   const allPoolCards=[...pool,...sideboard];
   const uniqueNames=[...new Set(allPoolCards.map(c=>c.name))];
-  let imgSuccess=0,imgFail=0;
-  for(let i=0;i<uniqueNames.length;i++){
-    const name=uniqueNames[i];
-    genMsg.textContent=`Loading ${name}… (${i+1}/${uniqueNames.length})`;
-    const url=`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=small`;
-    const img=await shareLoadImg(url);
-    if(img&&img.naturalWidth>0){imgCache[name]=img;imgSuccess++}else{imgFail++;console.warn('Failed to load:',name)}
-    if(i<uniqueNames.length-1)await new Promise(r=>setTimeout(r,100));
-  }
-  console.log(`Share image load: ${imgSuccess} success, ${imgFail} failed out of ${uniqueNames.length}`);
+  const namesToLoad=retryOnly?shareFailedCards:[...uniqueNames];
 
-  // Skip mana symbol loading since we draw circles instead
+  const pass1=await loadShareImages(namesToLoad,genMsg,retryOnly);
+
+  // If first pass had failures and this isn't already a retry, do a second pass
+  if(pass1.failed.length>0&&!retryOnly){
+    genMsg.textContent=`Retrying ${pass1.failed.length} failed cards…`;
+    await new Promise(r=>setTimeout(r,500));
+    const pass2=await loadShareImages(pass1.failed,genMsg,true);
+    shareFailedCards=pass2.failed;
+    console.log(`Share load: ${Object.keys(shareImgCache).length} cached, ${shareFailedCards.length} still failed`);
+  } else {
+    shareFailedCards=pass1.failed;
+  }
+
+  const imgCache=shareImgCache; // use the persistent cache
   const manaCache={};
 
   genMsg.textContent='Rendering…';
@@ -2227,9 +2246,18 @@ async function generateShareImage(){
   ctx.fillText('tastlejames.github.io/MTGDraft/',S.W-pad,S.H-8);ctx.textAlign='left';
 
   // ── SHOW IMAGE ──
-  await new Promise(r=>setTimeout(r,50)); // let canvas finish
+  await new Promise(r=>setTimeout(r,50));
   const dataUrl=canvas.toDataURL('image/png');
   const shareImg=document.getElementById('share-img');
+  const failCount=shareFailedCards.length;
+
+  // Update hint text based on results
+  const hint=document.querySelector('.share-hint');
+  if(hint){
+    if(failCount>0)hint.innerHTML=`${failCount} card${failCount!==1?'s':''} failed to load · <span onclick="event.stopPropagation();closeShareView();generateShareImage(true)" style="text-decoration:underline;cursor:pointer;color:#e8cc60">Retry</span> · Long-press to save`;
+    else hint.textContent='Long-press image to save · Tap anywhere to close';
+  }
+
   shareImg.onload=()=>{
     document.getElementById('share-overlay').classList.add('open');
     const gm=document.getElementById('share-generating');if(gm)gm.remove();
@@ -2239,7 +2267,6 @@ async function generateShareImage(){
     const gm=document.getElementById('share-generating');if(gm)gm.remove();
   };
   shareImg.src=dataUrl;
-  // Fallback if onload doesn't fire (already cached)
   setTimeout(()=>{
     if(!document.getElementById('share-overlay').classList.contains('open')){
       document.getElementById('share-overlay').classList.add('open');
