@@ -1056,10 +1056,62 @@ function renderChaosPills(){
   document.getElementById('chaos-load-btn').disabled=chaosSets.length<2;
 }
 
+// Batch fetch cards via /cards/collection (75 at a time)
+async function fetchCardCollection(names,progressFn){
+  const results=[],failed=[];
+  const batches=[];
+  for(let i=0;i<names.length;i+=75){batches.push(names.slice(i,i+75))}
+  let processed=0;
+  for(const batch of batches){
+    try{
+      const body={identifiers:batch.map(n=>({name:n}))};
+      const r=await fetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data=await r.json();
+      (data.data||[]).forEach(card=>{
+        if(card.object==='card'){
+          const p=parseCardData(card);
+          const img=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';
+          const imgSmall=card.image_uris?.small||card.card_faces?.[0]?.image_uris?.small||'';
+          results.push({card,parsed:p,img,imgSmall});
+        }
+      });
+      (data.not_found||[]).forEach(nf=>{failed.push(nf.name||'unknown')});
+    }catch(e){batch.forEach(n=>failed.push(n))}
+    processed+=batch.length;
+    if(progressFn)progressFn(processed,names.length);
+    if(batches.indexOf(batch)<batches.length-1)await new Promise(r=>setTimeout(r,100));
+  }
+  return{results,failed};
+}
+
 async function loadSingleSet(code,name){
   const area=document.getElementById('set-load-area');
   area.innerHTML=`<div class="load-bar" style="margin-top:10px"><div class="lb-text">Loading ${name}…</div><div class="load-progress"><div class="load-progress-fill" id="load-fill"></div></div></div>`;
-  try{await fetchSetCards(code,name);finishLoad(name,setCards.length)}catch(e){area.innerHTML=`<div style="color:#8a0808;font-size:13px;padding:8px;font-style:italic;margin-top:8px">Failed: ${e.message}</div>`}
+  try{
+    await fetchSetCards(code,name);
+    // Auto-fetch bonus sheet / Special Guest cards
+    const lbText=area.querySelector('.lb-text');
+    if(lbText)lbText.textContent='Checking for bonus cards…';
+    let bonusCount=0;
+    try{
+      const bUrl=`https://api.scryfall.com/cards/search?q=set:${code}+rarity:bonus+game:paper&unique=cards`;
+      const br=await fetch(bUrl);const bd=await br.json();
+      if(bd.object==='list'&&bd.data?.length){
+        const existingNames=new Set(setCards.map(c=>c.name.toLowerCase()));
+        bd.data.forEach(card=>{
+          if(card.layout==='token'||card.layout==='art_series')return;
+          if(existingNames.has(card.name.toLowerCase()))return;
+          const parsed=parseCardData(card);
+          const img=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';
+          const imgSmall=card.image_uris?.small||card.card_faces?.[0]?.image_uris?.small||'';
+          setCards.push({name:card.name,...parsed,imageUri:img,imageSmall:imgSmall,manaCost:parsed._manaCost||'',isBonus:true});
+          bonusCount++;
+        });
+      }
+    }catch{}
+    const label=bonusCount?`${name} (+${bonusCount} bonus)`:name;
+    finishLoad(label,setCards.length);
+  }catch(e){area.innerHTML=`<div style="color:#8a0808;font-size:13px;padding:8px;font-style:italic;margin-top:8px">Failed: ${e.message}</div>`}
 }
 
 async function loadChaosSets(){
@@ -1127,22 +1179,14 @@ async function loadCube(){
   const unique=[...new Set(parsed.map(n=>n.toLowerCase()))].map(n=>parsed.find(p=>p.toLowerCase()===n));
   if(!unique.length){area.innerHTML='<div style="color:#8a0808;font-size:13px;padding:8px;font-style:italic;margin-top:6px">No cards found.</div>';return}
   area.innerHTML=`<div class="load-bar" style="margin-top:10px"><div class="lb-text">Loading ${unique.length} cards…</div><div class="load-progress"><div class="load-progress-fill" id="load-fill"></div></div></div>`;
-  setCards=[];let failed=[];
-  for(let i=0;i<unique.length;i++){
-    const name=unique[i];
-    try{
-      const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);
-      const card=await r.json();
-      if(card.object==='card'){
-        const p=parseCardData(card);
-        const img=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';
-        const imgSmall=card.image_uris?.small||card.card_faces?.[0]?.image_uris?.small||'';
-        setCards.push({name:card.name,...p,imageUri:img,imageSmall:imgSmall,manaCost:p._manaCost||''});
-      }else failed.push(name);
-    }catch{failed.push(name)}
-    const fill=document.getElementById('load-fill');if(fill)fill.style.width=Math.round(((i+1)/unique.length)*95)+'%';
-    await new Promise(r=>setTimeout(r,80));
-  }
+  setCards=[];
+  const{results,failed}=await fetchCardCollection(unique,(done,total)=>{
+    const fill=document.getElementById('load-fill');if(fill)fill.style.width=Math.round((done/total)*95)+'%';
+    const lt=area.querySelector('.lb-text');if(lt)lt.textContent=`Loading cards… (${done}/${total})`;
+  });
+  results.forEach(({card,parsed:p,img,imgSmall})=>{
+    setCards.push({name:card.name,...p,imageUri:img,imageSmall:imgSmall,manaCost:p._manaCost||''});
+  });
   if(failed.length)area.innerHTML=`<div style="font-size:12px;color:#8a0808;padding:6px;font-style:italic;margin-top:6px">Not found: ${failed.slice(0,10).join(', ')}${failed.length>10?'…':''}</div>`;
   finishLoad(`Cube (${setCards.length} cards)`,setCards.length);
 }
@@ -1561,11 +1605,19 @@ async function runImport(){
   const parsed=[];for(const line of lines){const m=line.match(/^(\d+)\s+(.+?)(?:\s+\([^)]+\)\s+\d+)?$/);if(m)parsed.push({qty:parseInt(m[1]),name:m[2].trim()});else{const m2=line.match(/^(.+?)(?:\s+\([^)]+\)\s+\d+)?$/);if(m2)parsed.push({qty:1,name:m2[1].trim()})}}
   if(!parsed.length){status.textContent='No cards found.';btn.disabled=false;return}
   const deduped={};parsed.forEach(({qty,name})=>{const key=name.toLowerCase();if(!deduped[key])deduped[key]={qty:0,name};deduped[key].qty+=qty});
-  const cards=Object.values(deduped);status.textContent=`Looking up ${cards.length} cards…`;let added=0,failed=[];
-  for(let i=0;i<cards.length;i++){const{qty,name}=cards[i];status.textContent=`${i+1}/${cards.length}: ${name}…`;
-    try{const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);const card=await r.json();if(card.object==='card'){const p=parseCardData(card);const img=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal||'';addCardToPool(card.name,p.type,p.cmc,p.cmcRaw,p.colors,qty,p.pips,p.produced,p.oracle,img,card.mana_cost||'','',p.allTypes,p.subtypes);added+=qty}else failed.push(name)}catch{failed.push(name)}
-    await new Promise(r=>setTimeout(r,80));
-  }
+  const cards=Object.values(deduped);
+  status.textContent=`Loading ${cards.length} cards…`;
+  const names=cards.map(c=>c.name);
+  const{results,failed}=await fetchCardCollection(names,(done,total)=>{
+    status.textContent=`Loading… (${done}/${total})`;
+  });
+  let added=0;
+  results.forEach(({card,parsed:p,img,imgSmall})=>{
+    const entry=cards.find(c=>c.name.toLowerCase()===card.name.toLowerCase());
+    const qty=entry?entry.qty:1;
+    addCardToPool(card.name,p.type,p.cmc,p.cmcRaw,p.colors,qty,p.pips,p.produced,p.oracle,img,card.mana_cost||'',imgSmall,p.allTypes,p.subtypes);
+    added+=qty;
+  });
   render();
   if(failed.length)status.innerHTML=`<span style="color:#185810">Added ${added}.</span> <span style="color:#8a0808">Not found: ${failed.join(', ')}</span>`;
   else{status.innerHTML=`<span style="color:#185810">✓ Added ${added} cards!</span>`;setTimeout(()=>document.getElementById('importer-modal')?.remove(),1200)}
