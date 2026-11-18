@@ -444,6 +444,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 /* Visual: keep cards a sane size on very wide screens */
 .vis-columns{max-width:1200px;margin:0 auto}
 /* Split mode (unfolded / landscape ≥820px): Draft left, Curve right, each scrolls on its own */
+#vis-full-btn{display:none!important}body.wide #vis-full-btn{display:inline-block!important}
+#vis-body.vis-fit .vis-col-stack .vis-card:not(:first-child){margin-top:var(--vis-ov)}
+#vis-body.vis-fit .vis-col-stack .vis-card.vis-basic:not(:first-child){margin-top:var(--vis-ov-basic)}
 body.split{overflow:hidden}
 body.split #view-draft,body.split #view-visual{display:block;position:fixed;top:env(safe-area-inset-top,0px);bottom:calc(68px + env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 body.split #view-draft{left:0;width:50%;max-width:none;margin:0;padding:10px 12px 20px}
@@ -685,6 +688,7 @@ body.vis-drag-active,body.vis-drag-active *{cursor:grabbing!important}
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <button onclick="openCleanup()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:5px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap" id="cleanup-btn">✦ Clean Up</button>
+        <button id="vis-full-btn" onclick="toggleCurveFull()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;cursor:pointer;line-height:1.4">⤢ Full</button>
         <button id="vis-reset-cols" onclick="visResetColumns()" style="display:none;padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;cursor:pointer;line-height:1.4">↺ Columns</button>
         <button onclick="exportDeck()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;cursor:pointer;line-height:1;letter-spacing:0.04em">Export</button>
         <button onclick="generateShareImage()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-size:11px;cursor:pointer;line-height:1">📤</button>
@@ -2754,8 +2758,13 @@ let dragState=null,dragSuppressClickUntil=0;
 let currentView='draft';
 const splitMQ=window.matchMedia('(min-width:820px)');
 function isSplit(){return document.body.classList.contains('split')}
+// Full-screen curve preference (wide screens only). Saved per device, separate from the deck.
+let curveFull=false;try{curveFull=localStorage.getItem('dt_curveFull')==='1'}catch(e){}
 function applySplit(){
-  const on=splitMQ.matches&&currentView!=='builder';
+  const wide=splitMQ.matches;
+  document.body.classList.toggle('wide',wide);
+  // Draft always splits on wide screens; Curve splits unless Full is on; Builder is always full
+  const on=wide&&(currentView==='draft'||(currentView==='visual'&&!curveFull));
   document.body.classList.toggle('split',on);
   if(on){
     document.querySelectorAll('.mode-view').forEach(x=>x.classList.toggle('active',x.id==='view-draft'||x.id==='view-visual'));
@@ -2766,9 +2775,20 @@ function applySplit(){
     document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===currentView));
     if(currentView==='visual')renderVisualCurve();
   }
+  const fb=document.getElementById('vis-full-btn');
+  if(fb){fb.textContent=on?'⤢ Full':'◧ Split';fb.title=on?'Show the curve full screen':'Show Draft and Curve side by side'}
+}
+function toggleCurveFull(){
+  curveFull=isSplit(); // in split → go full; in full → go back to split
+  try{localStorage.setItem('dt_curveFull',curveFull?'1':'0')}catch(e){}
+  currentView='visual';
+  visDeselect();
+  applySplit();
+  window.scrollTo(0,0);
 }
 const _origSwitchView=switchView;
 switchView=function(view){currentView=view;_origSwitchView(view);applySplit()};
+window.addEventListener('resize',()=>{if(!(dragState&&dragState.active))fitCurveColumns()});
 if(splitMQ.addEventListener)splitMQ.addEventListener('change',applySplit);else splitMQ.addListener(applySplit);
 
 // Keep the Curve pane live while drafting in split mode
@@ -2785,7 +2805,26 @@ const _origRenderVisualCurve=renderVisualCurve;
 renderVisualCurve=function(){
   _origRenderVisualCurve();
   const b=document.getElementById('vis-reset-cols');if(b)b.style.display=visHasOverrides()?'':'none';
+  fitCurveColumns();
 };
+// Full-screen curve on wide screens: tighten the overlap so the tallest column fits above the nav bar
+// (never tighter than showing each card's name bar, never looser than the normal phone overlap)
+function fitCurveColumns(){
+  const vb=document.getElementById('vis-body');if(!vb)return;
+  vb.classList.remove('vis-fit');vb.style.removeProperty('--vis-ov');vb.style.removeProperty('--vis-ov-basic');
+  if(!document.body.classList.contains('wide')||isSplit()||currentView!=='visual')return;
+  const stacks=[...vb.querySelectorAll('.vis-col:not(.vis-col-empty) .vis-col-stack')];
+  const card=vb.querySelector('.vis-card');if(!stacks.length||!card)return;
+  const w=card.getBoundingClientRect().width,h=w*680/488;
+  const n=Math.max(...stacks.map(st=>st.children.length));if(n<2)return;
+  const navH=document.querySelector('.global-nav').getBoundingClientRect().height;
+  const stackTop=stacks[0].getBoundingClientRect().top+window.scrollY;
+  const avail=window.innerHeight-navH-stackTop-10;
+  const step=Math.max(0.24*w,Math.min(0.654*w,(avail-h)/(n-1)));
+  vb.style.setProperty('--vis-ov',(step-h)+'px');
+  vb.style.setProperty('--vis-ov-basic',(Math.min(step,0.554*w)-h)+'px');
+  vb.classList.add('vis-fit');
+}
 
 // ═══ LONG-PRESS DRAG (visual view) ═══
 // Touch: hold ~0.35s without moving → card lifts, then drag. Moving first = normal scroll.
