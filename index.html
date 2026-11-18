@@ -433,6 +433,45 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--parchment2)}::-webkit-scrollbar-thumb{background:var(--parchment-dark);border-radius:3px}
 @media(max-width:600px){.card-grid{grid-template-columns:repeat(3,1fr);gap:5px}.hstat{min-width:40px;padding:3px 6px}.hstat-v{font-size:15px}.logo{font-size:18px}.sc-v{font-size:18px}}
+
+/* ═══ iPHONE DUO / WIDE SCREENS ═══ */
+/* Draft card grid adds a 4th column when its pane is wide enough (unfolded portrait, iPad) */
+#view-draft{container-type:inline-size}
+@container (min-width:540px){.card-grid{grid-template-columns:repeat(4,1fr)}}
+/* Builder: one column on phones, two balanced columns when wide */
+.layout{grid-template-columns:1fr}
+@media(min-width:760px){.bcols{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}}
+/* Visual: keep cards a sane size on very wide screens */
+.vis-columns{max-width:1200px;margin:0 auto}
+/* Split mode (unfolded / landscape ≥820px): Draft left, Curve right, each scrolls on its own */
+body.split{overflow:hidden}
+body.split #view-draft,body.split #view-visual{display:block;position:fixed;top:env(safe-area-inset-top,0px);bottom:calc(68px + env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+body.split #view-draft{left:0;width:50%;max-width:none;margin:0;padding:10px 12px 20px}
+body.split #view-visual{left:50%;right:0;border-left:2px solid rgba(200,160,48,0.35);padding-top:8px}
+body.split .vis-action-float{left:50%}
+body.split .toast{left:25%}
+/* Short screens (outer display): tighten the draft header */
+@media(max-height:720px){.draft-header{padding:6px 12px;margin-bottom:8px}.draft-title{font-size:16px}.draft-pick-counter .pc-num{font-size:18px}}
+
+/* ═══ DRAG & DROP (visual view) ═══ */
+.vis-card,.vis-sb-stack{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.vis-card img,.vis-sb-card img{pointer-events:none;-webkit-user-drag:none}
+.vis-col-empty{display:none}
+.vis-columns.vis-dragging .vis-col-empty{display:flex;flex:0 0 30px}
+.vis-col-empty .vis-col-label{opacity:0.6}
+.vis-col-drop{flex:1;width:100%;min-height:80px;border:2px dashed rgba(200,160,48,0.3);border-radius:6px}
+.vis-col.drop-hover{background:rgba(200,160,48,0.14);border-radius:6px;box-shadow:inset 0 0 0 2px rgba(232,204,96,0.7)}
+.vis-col.drop-hover .vis-col-label{background:var(--gold-trim);color:#1a1208}
+.vis-sb-strip.drop-hover{background:rgba(138,88,8,0.35);border-radius:8px;box-shadow:inset 0 0 0 2px #e8c060}
+.vis-drag-origin{opacity:0.3}
+.vis-drag-ghost{position:fixed;left:0;top:0;z-index:600;pointer-events:none;border-radius:6px;overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,0.85),0 0 0 2px var(--gold-trim2);will-change:transform}
+.vis-drag-ghost img{width:100%;display:block}
+.vis-sb-drop{position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:550;display:none;align-items:center;justify-content:center;height:56px;border:2px dashed var(--gold-trim);border-radius:10px;background:rgba(26,20,8,0.94);color:var(--gold-trim2);font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;font-size:14px;box-shadow:0 -4px 20px rgba(0,0,0,0.7)}
+.vis-sb-drop.show{display:flex}
+.vis-sb-drop.drop-hover{background:rgba(138,88,8,0.95);border-style:solid;color:#fff}
+body.split .vis-sb-drop{left:calc(50% + 12px)}
+.vis-card.vis-moved::after{content:'⇄';position:absolute;top:2px;right:3px;z-index:6;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;line-height:1;padding:2px 3px;border-radius:3px;background:rgba(26,20,8,0.85);color:var(--gold-trim2);pointer-events:none}
+body.vis-drag-active,body.vis-drag-active *{cursor:grabbing!important}
 </style>
 </head>
 <body>
@@ -575,6 +614,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div class="sc" id="sc-cmc"><div class="sc-v">—</div><div class="sc-l">Avg CMC</div></div>
       </div>
       <div id="ext-stats-wrap"></div>
+      <div class="bcols"><div class="bcol">
       <div class="panel" id="panel-curve-analysis"><div class="panel-inner">
         <div class="type-line"><span class="type-line-text">Deck Analysis</span></div>
         <div class="panel-body">
@@ -592,6 +632,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           </div>
         </div>
       </div></div>
+      </div><div class="bcol">
       <div class="panel" id="panel-land"><div class="panel-inner">
         <div class="type-line"><span class="type-line-text">Land — Calculator</span><button onclick="toggleLandCalcInfo()" style="background:none;border:1px solid rgba(0,0,0,0.2);border-radius:50%;width:20px;height:20px;font-size:11px;color:#1a0c00;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.6;font-weight:700;font-family:serif">i</button></div>
         <div class="panel-body" id="lc-body"><div class="empty"><span class="eicon">✦</span>Add spells to see recommendations</div></div>
@@ -623,6 +664,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <div id="math-explainer"><div class="empty"><span class="eicon">✦</span>Add cards to see your mana base breakdown.</div></div>
         </div>
       </div></div>
+      </div></div>
     </div>
   </div>
 </div>
@@ -643,12 +685,14 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <button onclick="openCleanup()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:5px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap" id="cleanup-btn">✦ Clean Up</button>
+        <button id="vis-reset-cols" onclick="visResetColumns()" style="display:none;padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;cursor:pointer;line-height:1.4">↺ Columns</button>
         <button onclick="exportDeck()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;cursor:pointer;line-height:1;letter-spacing:0.04em">Export</button>
         <button onclick="generateShareImage()" style="padding:3px 8px;background:rgba(0,0,0,0.3);border:1px solid rgba(200,160,48,0.3);border-radius:4px;color:var(--gold-trim);font-size:11px;cursor:pointer;line-height:1">📤</button>
       </div>
     </div>
   </div>
   <div id="vis-body"><div class="empty" style="color:var(--gold-trim);opacity:0.6"><span class="eicon">✦</span>Add cards to see your deck.</div></div>
+  <div class="vis-sb-drop" id="vis-sb-drop">⬇ Drop to Sideboard</div>
   <div class="vis-action-float" id="vis-action-float">
     <div class="vis-action-inner">
       <span class="vis-action-name" id="vis-action-name"></span>
@@ -725,6 +769,41 @@ let visDeleteMode=false;
 let lastPicks=[]; // track last 3 cards added (card objects)
 let draftLockFilters=false;
 let cleanupChecked={}; // {cardId: true/false} for cleanup preview
+
+// ═══ CUSTOM COLUMNS (visual only — never affects mana value, stats or castability) ═══
+// card.visCols[i] = slot override for copy i ('0'…'6','7+','L'); missing/null = natural column.
+const VIS_SLOTS=['0','1','2','3','4','5','6','7+'];
+function visNaturalSlot(c){return c.type==='Land'?'L':(c.cmc>=7?'7+':String(c.cmc))}
+function visSlotFor(c,i){const o=c.visCols&&c.visCols[i];return o||visNaturalSlot(c)}
+function visNormalize(c){
+  if(!c||!c.visCols)return;
+  if(c.visCols.length>c.qty)c.visCols.length=c.qty;
+  if(!c.visCols.some(Boolean))delete c.visCols;
+}
+function visSetSlot(c,i,slot){
+  if(!c)return;
+  const val=slot===visNaturalSlot(c)?null:slot;
+  if(!c.visCols){if(!val)return;c.visCols=[]}
+  while(c.visCols.length<=i)c.visCols.push(null);
+  c.visCols[i]=val;
+  visNormalize(c);
+}
+// Remove one specific copy's override before that copy leaves the deck
+function visDropCopy(c,i){
+  if(!c||!c.visCols||i==null||isNaN(i))return;
+  c.visCols.splice(i,1);
+  visNormalize(c);
+}
+function visHasOverrides(){return pool.some(c=>c.visCols&&c.visCols.some(Boolean))}
+function visResetColumns(){
+  const snap=pool.map(c=>[c.id,c.visCols?[...c.visCols]:null]);
+  pool.forEach(c=>delete c.visCols);
+  saveDeck();renderVisualCurve();
+  toastWithUndo('↺ Columns reset to mana value',()=>{
+    snap.forEach(([id,v])=>{const c=pool.find(x=>x.id===id);if(c&&v){c.visCols=v;visNormalize(c)}});
+    saveDeck();renderVisualCurve();toast('Columns restored');
+  });
+}
 
 // ═══ LOCAL STORAGE PERSISTENCE ═══
 function saveDeck(){
@@ -1400,8 +1479,8 @@ function renderSideboard(){
   });
   body.innerHTML=html;
 }
-function moveToSideboard(id){const idx=pool.findIndex(c=>c.id===id);if(idx===-1)return;const card=pool[idx];if(isBasicLand(card)){if(card.qty>1)card.qty--;else pool.splice(idx,1);updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck();return}if(card.qty>1){card.qty--;const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,id:Date.now()+Math.random(),qty:1})}else{pool.splice(idx,1);const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,qty:1})}updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck()}
-function moveToMain(id){const idx=sideboard.findIndex(c=>c.id===id);if(idx===-1)return;const card=sideboard[idx];if(card.qty>1){card.qty--;const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,id:Date.now()+Math.random(),qty:1})}else{sideboard.splice(idx,1);const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,qty:1})}updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck()}
+function moveToSideboard(id){const idx=pool.findIndex(c=>c.id===id);if(idx===-1)return;const card=pool[idx];if(isBasicLand(card)){if(card.qty>1)card.qty--;else pool.splice(idx,1);updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck();return}if(card.qty>1){card.qty--;const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,visCols:undefined,id:Date.now()+Math.random(),qty:1})}else{pool.splice(idx,1);const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else sideboard.push({...card,visCols:undefined,qty:1})}updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck()}
+function moveToMain(id){const idx=sideboard.findIndex(c=>c.id===id);if(idx===-1)return;const card=sideboard[idx];if(card.qty>1){card.qty--;const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,visCols:undefined,id:Date.now()+Math.random(),qty:1})}else{sideboard.splice(idx,1);const ex=pool.find(c=>c.name.toLowerCase()===card.name.toLowerCase());if(ex)ex.qty++;else pool.push({...card,visCols:undefined,qty:1})}updateNavBadge();updateDraftMiniStats();renderSideboard();saveDeck()}
 
 // ═══ VISUAL CURVE ═══
 const BASIC_LAND_NAMES=['Plains','Island','Swamp','Mountain','Forest'];
@@ -1457,13 +1536,13 @@ function renderVisualCurve(){
     let emptyHtml='<div class="empty" style="color:var(--gold-trim);opacity:0.6"><span class="eicon">✦</span>'+(sideboard.length?'Main deck is empty. Cards are in your sideboard.':'Add cards to see your deck.')+'</div>';
     // Still show sideboard if it has cards
     if(sideboard.length){
-      emptyHtml+=`<div class="vis-sb-strip"><div class="vis-sb-label">Sideboard (${sideboard.reduce((s,c)=>s+c.qty,0)})</div><div class="vis-sb-row">`;
+      emptyHtml+=`<div class="vis-sb-strip" data-drop="sb"><div class="vis-sb-label">Sideboard (${sideboard.reduce((s,c)=>s+c.qty,0)})</div><div class="vis-sb-row">`;
       sideboard.forEach(card=>{
         const img=card.imageSmall||card.imageUri||'';
-        emptyHtml+=`<div class="vis-sb-stack" onclick="visSbTap(${card.id})">`;
+        emptyHtml+=`<div class="vis-sb-stack" onclick="visSbTap(${card.id})" data-sbid="${card.id}">`;
         for(let i=0;i<card.qty;i++){
           const mt=i>0?'margin-top:-78%;':'';
-          emptyHtml+=`<div class="vis-sb-card" style="${mt}">${img?`<img src="${img}" alt="${card.name}" loading="lazy">`:`<div style="aspect-ratio:488/680;background:${getBasicFallbackColor(card.name)};display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;padding:3px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.6)">${card.name}</div>`}</div>`;
+          emptyHtml+=`<div class="vis-sb-card" style="${mt}">${img?`<img src="${img}" alt="${card.name}" loading="lazy" draggable="false">`:`<div style="aspect-ratio:488/680;background:${getBasicFallbackColor(card.name)};display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;padding:3px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.6)">${card.name}</div>`}</div>`;
         }
         emptyHtml+=`</div>`;
       });
@@ -1472,17 +1551,15 @@ function renderVisualCurve(){
     body.innerHTML=emptyHtml;return;
   }
 
-  const slots=['0','1','2','3','4','5','6','7+'];
+  const slots=[...VIS_SLOTS,'L'];
   const bySlot={};slots.forEach(s=>bySlot[s]=[]);
 
-  // In quick-side mode: give each copy a unique _uid so they can be individually tapped
-  nl.forEach(c=>{
-    const k=c.cmc>=7?'7+':String(c.cmc);
-    for(let i=0;i<c.qty;i++) bySlot[k].push({...c,_copyIdx:i});
+  // Each copy gets its own entry (_copyIdx) so copies can be tapped/dragged individually.
+  // Column = custom override (visCols) if set, otherwise mana value / L for lands.
+  pool.forEach(c=>{
+    visNormalize(c);
+    for(let i=0;i<c.qty;i++) bySlot[visSlotFor(c,i)].push({...c,_copyIdx:i});
   });
-
-  const lands=[];
-  lCards().forEach(c=>{for(let i=0;i<c.qty;i++) lands.push({...c,_copyIdx:i})});
 
   const clickFn=(visQuickSide||visDeleteMode)?'visQuickSideTap':'visSelect';
   const qsClass=visQuickSide||visDeleteMode?'quick-side-mode':'';
@@ -1493,12 +1570,17 @@ function renderVisualCurve(){
   let html=`<div class="vis-columns ${deleteClass}">`;
   slots.forEach(s=>{
     const cards=bySlot[s];
-    if(!cards.length)return; // skip empty columns — gives more width to populated ones
-    html+=`<div class="vis-col"><div class="vis-col-label">${s} <span class="vis-col-count">(${cards.length})</span></div><div class="vis-col-stack">`;
+    if(!cards.length){
+      // Hidden normally; appears as a narrow drop target while dragging
+      html+=`<div class="vis-col vis-col-empty" data-slot="${s}"><div class="vis-col-label">${s}</div><div class="vis-col-drop"></div></div>`;
+      return;
+    }
+    html+=`<div class="vis-col" data-slot="${s}"><div class="vis-col-label">${s} <span class="vis-col-count">(${cards.length})</span></div><div class="vis-col-stack">`;
     cards.forEach(card=>{
       const sel=(!visQuickSide&&visSelectedId===card.id)?'selected':'';
       const img=card.imageSmall||card.imageUri||'';
       const basicCls=isBasicLand(card)?'vis-basic':'';
+      const movedCls=(card.visCols&&card.visCols[card._copyIdx])?'vis-moved':'';
       // Castability indicator
       let castCls='',castBadge='';
       if(projSrc&&card.type!=='Land'){
@@ -1506,31 +1588,20 @@ function renderVisualCurve(){
         if(prob<0.65){castCls='cast-red';castBadge=`<div class="vis-cast-badge red">${Math.round(prob*100)}%</div>`}
         else if(prob<0.85){castCls='cast-amber';castBadge=`<div class="vis-cast-badge amber">${Math.round(prob*100)}%</div>`}
       }
-      html+=`<div class="vis-card ${sel} ${qsClass} ${basicCls} ${castCls}" onclick="${clickFn}(${card.id},'${card.name.replace(/'/g,"\\'")}')" data-id="${card.id}">${castBadge}${img?`<img src="${img}" alt="${card.name}" loading="lazy">`:`<div style="aspect-ratio:488/680;background:${getBasicFallbackColor(card.name)};display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;padding:4px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.6)">${card.name}</div>`}</div>`;
+      html+=`<div class="vis-card ${sel} ${qsClass} ${basicCls} ${castCls} ${movedCls}" onclick="${clickFn}(${card.id},'${card.name.replace(/'/g,"\\'")}',${card._copyIdx})" data-id="${card.id}" data-copy="${card._copyIdx}">${castBadge}${img?`<img src="${img}" alt="${card.name}" loading="lazy" draggable="false">`:`<div style="aspect-ratio:488/680;background:${getBasicFallbackColor(card.name)};display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;padding:4px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.6)">${card.name}</div>`}</div>`;
     });
     html+=`</div></div>`;
   });
-
-  if(lands.length){
-    html+=`<div class="vis-col"><div class="vis-col-label">L <span class="vis-col-count">(${lands.length})</span></div><div class="vis-col-stack">`;
-    lands.forEach(card=>{
-      const sel=(!visQuickSide&&visSelectedId===card.id)?'selected':'';
-      const img=card.imageSmall||card.imageUri||'';
-      const basicCls=isBasicLand(card)?'vis-basic':'';
-      html+=`<div class="vis-card ${sel} ${qsClass} ${basicCls}" onclick="${clickFn}(${card.id},'${card.name.replace(/'/g,"\\'")}')" data-id="${card.id}">${img?`<img src="${img}" alt="${card.name}" loading="lazy">`:`<div style="aspect-ratio:488/680;background:${getBasicFallbackColor(card.name)};display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;padding:4px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.6)">${card.name}</div>`}</div>`;
-    });
-    html+=`</div></div>`;
-  }
   html+=`</div>`;
 
   if(sideboard.length){
-    html+=`<div class="vis-sb-strip"><div class="vis-sb-label">Sideboard (${sideboard.reduce((s,c)=>s+c.qty,0)})</div><div class="vis-sb-row">`;
+    html+=`<div class="vis-sb-strip" data-drop="sb"><div class="vis-sb-label">Sideboard (${sideboard.reduce((s,c)=>s+c.qty,0)})</div><div class="vis-sb-row">`;
     sideboard.forEach(card=>{
       const img=card.imageSmall||card.imageUri||'';
-      html+=`<div class="vis-sb-stack" onclick="visSbTap(${card.id})">`;
+      html+=`<div class="vis-sb-stack" onclick="visSbTap(${card.id})" data-sbid="${card.id}">`;
       for(let i=0;i<card.qty;i++){
         const mt=i>0?'margin-top:-78%;':'';
-        html+=`<div class="vis-sb-card" style="${mt}">${img?`<img src="${img}" alt="${card.name}" loading="lazy">`:`<div style="aspect-ratio:488/680;background:${getBasicFallbackColor(card.name)};display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;padding:3px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.6)">${card.name}</div>`}</div>`;
+        html+=`<div class="vis-sb-card" style="${mt}">${img?`<img src="${img}" alt="${card.name}" loading="lazy" draggable="false">`:`<div style="aspect-ratio:488/680;background:${getBasicFallbackColor(card.name)};display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;padding:3px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.6)">${card.name}</div>`}</div>`;
       }
       html+=`</div>`;
     });
@@ -1539,12 +1610,13 @@ function renderVisualCurve(){
   body.innerHTML=html;
 }
 
-function visQuickSideTap(id,name){
+function visQuickSideTap(id,name,copy){
   if(visDeleteMode){
     // Delete mode: permanently remove the card with undo
     const card=pool.find(c=>c.id===id);
     if(!card)return;
-    const deletedCard={...card};
+    const deletedCard={...card,visCols:undefined};
+    visDropCopy(card,copy);
     if(card.qty>1)card.qty--;else pool=pool.filter(c=>c.id!==id);
     updateNavBadge();updateDraftMiniStats();saveDeck();renderVisualCurve();render();
     toastWithUndo(`✕ Deleted: ${name}`,()=>{
@@ -1554,6 +1626,7 @@ function visQuickSideTap(id,name){
       toast('Restored: '+name);
     });
   } else {
+    visDropCopy(pool.find(c=>c.id===id),copy);
     moveToSideboard(id);
     toast(`→ Side: ${name}`);
     renderVisualCurve();
@@ -2172,11 +2245,15 @@ async function generateShareImage(retryOnly=false){
   // ── COLUMNS SETUP ──
   const slots=['0','1','2','3','4','5','6','7+'];
   const bySlot={};slots.forEach(s=>bySlot[s]=[]);
-  nl.forEach(c=>{const k=c.cmc>=7?'7+':String(c.cmc);for(let i=0;i<c.qty;i++)bySlot[k].push({...c,_i:i})});
+  const landColExtra=[];
+  pool.forEach(c=>{visNormalize(c);for(let i=0;i<c.qty;i++){const k=visSlotFor(c,i);
+    if(k==='L'){if(c.type!=='Land')landColExtra.push({...c,_i:i})} // spells dragged into L
+    else if(c.type==='Land'){if(c.visCols&&c.visCols[i])bySlot[k].push({...c,_i:i})} // lands dragged into a curve column
+    else bySlot[k].push({...c,_i:i})}});
   const activeSlots=slots.filter(s=>bySlot[s].length);
   // Nonbasic lands as a column
   const nonbasics=dl.filter(l=>!BASIC_LAND_NAMES.includes(l.name));
-  const nbExpanded=[];nonbasics.forEach(l=>{for(let i=0;i<l.qty;i++)nbExpanded.push({...l,_i:i})});
+  const nbExpanded=[...landColExtra];nonbasics.forEach(l=>{for(let i=0;i<l.qty;i++){if(!(l.visCols&&l.visCols[i]&&l.visCols[i]!=='L'))nbExpanded.push({...l,_i:i})}});
   const hasLandCol=nbExpanded.length>0;
   // Sideboard as unique cards (not expanded) with qty badge
   const hasSbCol=sideboard.length>0;
@@ -2654,7 +2731,7 @@ function confirmCleanup(){
     // Move all copies at once
     const ex=sideboard.find(c=>c.name.toLowerCase()===card.name.toLowerCase());
     if(ex)ex.qty+=card.qty;
-    else sideboard.push({...card,id:Date.now()+Math.random()});
+    else sideboard.push({...card,visCols:undefined,id:Date.now()+Math.random()});
     pool=pool.filter(c=>c.id!==id);
   });
   updateNavBadge();updateDraftMiniStats();saveDeck();
@@ -2670,6 +2747,203 @@ function closeCleanup(){
 
 restoreDeck();
 render();
+
+const DRAG_HOLD_MS=350,DRAG_SLOP=10;
+let dragState=null,dragSuppressClickUntil=0;
+// ═══ SPLIT VIEW (iPhone Duo unfolded, iPad, desktop ≥820px wide) ═══
+let currentView='draft';
+const splitMQ=window.matchMedia('(min-width:820px)');
+function isSplit(){return document.body.classList.contains('split')}
+function applySplit(){
+  const on=splitMQ.matches&&currentView!=='builder';
+  document.body.classList.toggle('split',on);
+  if(on){
+    document.querySelectorAll('.mode-view').forEach(x=>x.classList.toggle('active',x.id==='view-draft'||x.id==='view-visual'));
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view!=='builder'));
+    renderVisualCurve();
+  }else{
+    document.querySelectorAll('.mode-view').forEach(x=>x.classList.toggle('active',x.id==='view-'+currentView));
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===currentView));
+    if(currentView==='visual')renderVisualCurve();
+  }
+}
+const _origSwitchView=switchView;
+switchView=function(view){currentView=view;_origSwitchView(view);applySplit()};
+if(splitMQ.addEventListener)splitMQ.addEventListener('change',applySplit);else splitMQ.addListener(applySplit);
+
+// Keep the Curve pane live while drafting in split mode
+let _visRaf=0;
+const _origUpdateNavBadge=updateNavBadge;
+updateNavBadge=function(){
+  _origUpdateNavBadge();
+  if(isSplit()&&!_visRaf&&!(dragState&&dragState.active)){
+    _visRaf=requestAnimationFrame(()=>{_visRaf=0;if(!(dragState&&dragState.active))renderVisualCurve()});
+  }
+};
+// Show/hide the "↺ Columns" button whenever the curve redraws
+const _origRenderVisualCurve=renderVisualCurve;
+renderVisualCurve=function(){
+  _origRenderVisualCurve();
+  const b=document.getElementById('vis-reset-cols');if(b)b.style.display=visHasOverrides()?'':'none';
+};
+
+// ═══ LONG-PRESS DRAG (visual view) ═══
+// Touch: hold ~0.35s without moving → card lifts, then drag. Moving first = normal scroll.
+// Mouse: press and move a few px. Taps still do exactly what they did before.
+
+function dragSourceFrom(el){
+  const card=el.closest('.vis-card[data-id]');
+  if(card)return{kind:'main',el:card,id:parseFloat(card.dataset.id),copy:parseInt(card.dataset.copy,10)};
+  const sb=el.closest('.vis-sb-stack[data-sbid]');
+  if(sb)return{kind:'sb',el:sb,id:parseFloat(sb.dataset.sbid)};
+  return null;
+}
+function dragBegin(src,x,y){
+  const r=src.el.getBoundingClientRect();
+  const imgEl=src.el.querySelector('img');
+  const ghost=document.createElement('div');
+  ghost.className='vis-drag-ghost';
+  const w=Math.max(70,Math.min(140,r.width*1.15));
+  ghost.style.width=w+'px';
+  if(imgEl){const im=document.createElement('img');im.src=imgEl.currentSrc||imgEl.src;ghost.appendChild(im)}
+  else{ghost.style.aspectRatio='488/680';ghost.style.background='var(--parchment3)'}
+  document.body.appendChild(ghost);
+  dragState.active=true;dragState.ghost=ghost;dragState.gw=w;dragState.gh=w*680/488;
+  src.el.classList.add('vis-drag-origin');
+  document.body.classList.add('vis-drag-active');
+  document.querySelector('#vis-body .vis-columns')?.classList.add('vis-dragging');
+  if(src.kind==='main')document.getElementById('vis-sb-drop').classList.add('show');
+  if(navigator.vibrate)try{navigator.vibrate(12)}catch(e){}
+  visDeselect();
+  dragMove(x,y);
+  dragAutoScrollLoop();
+}
+function dragTargetAt(x,y){
+  const g=dragState.ghost;if(g)g.style.display='none';
+  const el=document.elementFromPoint(x,y);
+  if(g)g.style.display='';
+  if(!el)return null;
+  if(dragState.src.kind==='main'){
+    const sbBar=el.closest('#vis-sb-drop,.vis-sb-strip[data-drop="sb"]');
+    if(sbBar)return{type:'sb',el:sbBar};
+  }
+  const col=el.closest('#vis-body .vis-col[data-slot]');
+  if(col)return{type:'col',el:col,slot:col.dataset.slot};
+  return null;
+}
+function dragMove(x,y){
+  const d=dragState;d.x=x;d.y=y;
+  d.ghost.style.transform=`translate(${x-d.gw/2}px,${y-d.gh*0.3}px) rotate(-2deg) scale(1.04)`;
+  const t=dragTargetAt(x,y);
+  if(d.hoverEl&&(!t||t.el!==d.hoverEl))d.hoverEl.classList.remove('drop-hover');
+  if(t){t.el.classList.add('drop-hover');d.hoverEl=t.el}else d.hoverEl=null;
+  d.target=t;
+}
+function dragAutoScrollLoop(){
+  if(!dragState||!dragState.active)return;
+  const d=dragState,y=d.y,vh=window.innerHeight;
+  const sc=isSplit()?document.getElementById('view-visual'):null;
+  const sbBar=document.getElementById('vis-sb-drop');
+  const bottomEdge=(sbBar.classList.contains('show')?sbBar.getBoundingClientRect().top:vh-80)-10;
+  let dy=0;
+  if(y!=null){if(y<70)dy=-Math.ceil((70-y)/6);else if(y>bottomEdge-50&&y<bottomEdge)dy=Math.ceil((y-(bottomEdge-50))/6)}
+  if(dy){if(sc)sc.scrollTop+=dy;else window.scrollBy(0,dy);dragMove(d.x,d.y)}
+  requestAnimationFrame(dragAutoScrollLoop);
+}
+function dragFinish(commit){
+  const d=dragState;dragState=null;
+  if(!d)return;
+  clearTimeout(d.timer);
+  if(!d.active)return;
+  dragSuppressClickUntil=Date.now()+400;
+  d.ghost?.remove();
+  d.hoverEl?.classList.remove('drop-hover');
+  d.src.el.classList.remove('vis-drag-origin');
+  document.body.classList.remove('vis-drag-active');
+  document.getElementById('vis-sb-drop').classList.remove('show');
+  document.querySelector('#vis-body .vis-columns')?.classList.remove('vis-dragging');
+  if(commit&&d.target)dragDrop(d.src,d.target);
+}
+function dragDrop(src,t){
+  if(src.kind==='main'){
+    const card=pool.find(c=>c.id===src.id);if(!card)return;
+    if(t.type==='sb'){
+      const name=card.name;
+      visDropCopy(card,src.copy);
+      moveToSideboard(src.id);
+      toast(isBasicLand(card)?`Removed: ${name}`:`→ Side: ${name}`);
+      renderVisualCurve();
+      return;
+    }
+    if(t.type==='col'){
+      if(visSlotFor(card,src.copy)===t.slot)return;
+      visSetSlot(card,src.copy,t.slot);
+      saveDeck();renderVisualCurve();
+      toast(t.slot===visNaturalSlot(card)?`${card.name} → back to ${t.slot}`:`${card.name} → ${t.slot} <span style="opacity:.7">(display only)</span>`);
+    }
+    return;
+  }
+  if(src.kind==='sb'&&t.type==='col'){
+    const sbCard=sideboard.find(c=>c.id===src.id);if(!sbCard)return;
+    const name=sbCard.name;
+    moveToMain(src.id);
+    const entry=pool.find(c=>c.name.toLowerCase()===name.toLowerCase());
+    if(entry)visSetSlot(entry,entry.qty-1,t.slot);
+    saveDeck();renderVisualCurve();
+    toast(`→ Main: ${name}`);
+  }
+}
+
+(function initVisDrag(){
+  const body=document.getElementById('vis-body');
+  // Touch
+  body.addEventListener('touchstart',e=>{
+    if(e.touches.length>1){dragFinish(false);return}
+    const src=dragSourceFrom(e.target);if(!src)return;
+    const t=e.touches[0];
+    dragFinish(false);
+    dragState={src,active:false,sx:t.clientX,sy:t.clientY,x:t.clientX,y:t.clientY,touch:true};
+    dragState.timer=setTimeout(()=>{if(dragState&&!dragState.active)dragBegin(src,dragState.x,dragState.y)},DRAG_HOLD_MS);
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!dragState||!dragState.touch)return;
+    const t=e.touches[0];
+    if(!dragState.active){
+      dragState.x=t.clientX;dragState.y=t.clientY;
+      if(Math.hypot(t.clientX-dragState.sx,t.clientY-dragState.sy)>DRAG_SLOP){clearTimeout(dragState.timer);dragState=null}
+      return;
+    }
+    e.preventDefault(); // stop the page scrolling while a card is lifted
+    dragMove(t.clientX,t.clientY);
+  },{passive:false});
+  document.addEventListener('touchend',e=>{
+    if(!dragState||!dragState.touch)return;
+    if(dragState.active){e.preventDefault();dragFinish(true)}else{clearTimeout(dragState.timer);dragState=null}
+  },{passive:false});
+  document.addEventListener('touchcancel',()=>{if(dragState&&dragState.touch)dragFinish(false)});
+  // Mouse (desktop / testing)
+  body.addEventListener('mousedown',e=>{
+    if(e.button!==0)return;
+    const src=dragSourceFrom(e.target);if(!src)return;
+    e.preventDefault();
+    dragState={src,active:false,sx:e.clientX,sy:e.clientY,x:e.clientX,y:e.clientY,touch:false};
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!dragState||dragState.touch)return;
+    if(!dragState.active){
+      if(Math.hypot(e.clientX-dragState.sx,e.clientY-dragState.sy)>6)dragBegin(dragState.src,e.clientX,e.clientY);
+      return;
+    }
+    dragMove(e.clientX,e.clientY);
+  });
+  document.addEventListener('mouseup',()=>{if(dragState&&!dragState.touch)dragFinish(true)});
+  // Swallow the click that follows a drag; block the iOS/Android long-press menu on cards
+  document.addEventListener('click',e=>{if(Date.now()<dragSuppressClickUntil){e.stopPropagation();e.preventDefault()}},true);
+  body.addEventListener('contextmenu',e=>{if(e.target.closest('.vis-card,.vis-sb-stack'))e.preventDefault()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')dragFinish(false)});
+  window.addEventListener('blur',()=>dragFinish(false));
+})();
+applySplit();
 </script>
 </body>
 </html>
