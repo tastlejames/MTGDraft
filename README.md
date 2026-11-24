@@ -1,8 +1,8 @@
 # ⬡ Draft Table — MTG Draft Assistant
 
-A mobile-first web tool for Magic: The Gathering drafting. Built as a single HTML file with no dependencies beyond Google Fonts and the Scryfall API.
+A mobile-first web tool for Magic: The Gathering drafting. Built as one HTML file plus one small script (`tokens.js`), with no dependencies beyond Google Fonts and the Scryfall API.
 
-Draft Table helps you track picks during a live draft, build your deck afterward, and make smarter decisions about your mana base — all from your phone. On foldables, tablets and desktop it opens up into a side-by-side Draft + Curve layout.
+Draft Table helps you track picks during a live draft, build your deck afterward, and make smarter decisions about your mana base — all from your phone. When the deck is done, the **Tokens** tab turns it into a token board for the game itself. On foldables, tablets and desktop it opens up into a side-by-side Draft + Curve layout.
 
 **Live:** [tastlejames.github.io/MTGDraft](https://tastlejames.github.io/MTGDraft/)
 
@@ -15,6 +15,7 @@ Draft Table helps you track picks during a live draft, build your deck afterward
 3. Use the color and mana value filters to find cards as you draft
 4. Tap cards to add them to your pool
 5. Switch to **Builder** for detailed analysis or **Curve** for a visual deck layout
+6. When you sit down to play, tap **Tokens** for a board with every token your deck makes
 
 No install, no server, no account. Everything runs client-side. Add it to your home screen to use it like an app.
 
@@ -107,16 +108,52 @@ Smart mana base recommendations with correct dual land math.
 - Full-screen review overlay accessible from the draft view
 - Auto-closes when switching navigation tabs
 
+### 🪙 Tokens (Game Mode)
+A full-screen token board for playing the deck you built. Tap **Tokens** in the bottom nav; **‹ Deck** takes you back.
+
+- **Your deck’s tokens, automatically** — Looks up every card in your deck and sideboard on Scryfall and lists every token they can make, with the cards that make each one. Sideboard tokens are listed separately
+- **Official token images** — Real Scryfall token cards, not placeholders
+- **Choose your art** — Long-press a token and pick **Change art** to see every art that token has been printed with. Your pick is remembered for future games
+- **Search any token** — The Search tab finds any token on Scryfall, for when something outside your deck makes one
+- **Token copies** — The Copy a Card tab makes a token copy of any card in your deck or sideboard
+- **Tap to tap** — Tap a single token to tap or untap it; tapped tokens turn sideways like on the table
+- **Stacks** — Identical tokens stack into one card with a count. Tap a stack (or long-press any token) to choose how many to attack with, tap, untap, put counters on, or remove
+- **Split piles** — Tapping some of a stack splits it into an upright pile and a sideways pile
+- **+1/+1 counters** — A token with counters splits off into its own card and shows its new power/toughness
+- **Summoning sickness** — New creature tokens show 💤 until your next untap. Haste tokens skip it, **Give haste** clears it, and vigilance tokens don’t tap when they attack
+- **Untap all** — Your untap step: untaps everything and clears summoning sickness
+- **Undo** — Every change can be undone; **Clear** (tap twice) empties the board
+- **Auto-sizing** — One token type gets up to half the screen; cards shrink to fit as you add more, and the layout reflows when you fold, unfold or rotate
+- **Saved** — The board survives closing the app, so a game in progress is still there when you come back
+- **Screen stays on** — While the Tokens page is open, the phone won’t go to sleep (where the browser allows it)
+- **Never touches your deck** — Tokens only reads your deck; nothing you do on the board changes your pool or sideboard
+
 ---
 
 ## Technical Notes
 
-- **Single HTML file** — No build step, no framework, no bundler. Just open it.
+- **Two files, no build step** — `index.html` is the app; `tokens.js` adds the Tokens tab and is loaded by one line near the bottom of `index.html` (`<script src="tokens.js"></script>`). Delete that line to turn Tokens off without touching anything else. No framework, no bundler.
 - **Scryfall API** — All card data comes from [Scryfall](https://scryfall.com/docs/api). Rate-limited politely (50–100ms between requests).
 - **No server** — Everything runs in the browser. Your pool, sideboard and custom column layout are saved in your browser's local storage on that device only; nothing is sent anywhere except card lookups to Scryfall.
+- **Tokens data** — The token list comes from each card's related-parts data on Scryfall (`all_parts`), looked up in batches of 75. The token board, your art choices and the last token lookup are saved under the `dt_tokens_*` keys in local storage, separate from the deck. Tokens are matched by Scryfall's oracle ID, so different printings of the same token count as one.
+- **Offline** — There's no offline mode yet. Card and token images need a connection the first time they load; after that the browser usually has them cached.
 - **DFC Support** — Double-faced cards use front-face colors and mana cost, so transform cards like Ajani, Nacatl Pariah correctly show as their casting color.
 - **Mobile-First, Responsive** — Designed for phone use during a live draft. Layout is driven by available width (not device detection), so it also works in iOS Split View, on tablets and on desktop.
 - **Custom touch handling** — Drag & drop uses its own long-press logic instead of the browser's built-in drag API, which doesn't work reliably with touch on iOS. The hold time is set by `DRAG_HOLD_MS` in the script.
+
+---
+
+## Files
+
+| File | What it is |
+|------|------------|
+| `index.html` | The whole Draft Table app: Draft, Builder and Curve |
+| `tokens.js` | The Tokens tab and token board. Loaded by `index.html` |
+| `manifest.json` | Lets the app be added to your home screen |
+| `icon-192.png`, `icon-512.png` | Home screen icons |
+| `README.md` | This file |
+
+**Updating:** on GitHub, use **Add file → Upload files** and drop in the changed file. A file with the same name is replaced. GitHub Pages republishes in a minute or two; if the home screen app still shows the old version, close it fully and reopen it after a few minutes.
 
 ---
 
@@ -155,6 +192,7 @@ Basic land distribution uses a dampened ratio model informed by Frank Karsten's 
 ## Changelog
 
 ### November 2026
+- **Tokens tab:** a full-screen token board with every token your deck and sideboard can make, official Scryfall token images, art choice, search for any token, token copies of deck cards, stacks with tap/attack X, +1/+1 counters, summoning sickness, Untap all and Undo
 - Split View (Draft + Curve side by side) on screens 820px+ wide, built around the iPhone Duo's unfolded display
 - Long-press drag & drop on the Visual Curve: move cards between columns (display only), to/from the sideboard
 - ↺ Columns reset with Undo; custom layout saved with the deck and used in the share image
