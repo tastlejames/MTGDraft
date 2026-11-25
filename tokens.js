@@ -45,7 +45,7 @@
 .tt-root[hidden]{display:none}
 .tt-root *{box-sizing:border-box}
 .tt-root button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.tt-root button:focus-visible,.tt-root input:focus-visible,.tt-tile:focus-visible .tt-card{outline:3px solid var(--gold-trim2,#e8cc60);outline-offset:2px}
+.tt-root button:focus-visible,.tt-root input:focus-visible,.tt-face:focus-visible .tt-card{outline:3px solid var(--gold-trim2,#e8cc60);outline-offset:2px}
 
 .tt-top{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:calc(6px + env(safe-area-inset-top,0px)) 10px 6px;
   background:linear-gradient(180deg,#2a2010,#1a1408);border-bottom:3px solid var(--gold-trim3,#906010);box-shadow:0 4px 16px rgba(0,0,0,.6);position:relative;z-index:2}
@@ -60,7 +60,10 @@
 
 .tt-board{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .tt-grid{display:flex;flex-wrap:wrap;justify-content:center;align-content:center;min-height:100%}
-.tt-tile{position:relative;flex:0 0 auto;cursor:pointer;-webkit-touch-callout:none;outline:none}
+.tt-tile{position:relative;flex:0 0 auto;-webkit-touch-callout:none}
+.tt-face{position:absolute;inset:0;pointer-events:none;outline:none}
+.tt-face .tt-card{pointer-events:auto;cursor:pointer;-webkit-touch-callout:none}
+.tt-face.tt-tapped{z-index:2}
 .tt-card{position:absolute;inset:0;border-radius:4.75%/3.4%;overflow:hidden;background:linear-gradient(160deg,#e8dac0,#c8b080);
   box-shadow:0 .35em 1em rgba(0,0,0,.7);transition:filter .15s}
 .tt-s2 .tt-card{box-shadow:.2em .2em 0 0 #1a1208,.2em .2em 0 .06em rgba(200,160,48,.5),0 .35em 1em rgba(0,0,0,.7)}
@@ -72,14 +75,14 @@
 .tt-fbt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.7em;color:#4a3c28}
 .tt-fbx{font-size:.72em;line-height:1.25;overflow:hidden;flex:1}
 .tt-fbpt{align-self:flex-end;font-family:'Cinzel',serif;font-weight:700;font-size:1em}
-.tt-tapped .tt-card{transform:rotate(90deg) scale(var(--ts));filter:brightness(.78) saturate(.8)}
+.tt-face.tt-tapped .tt-card{transform:translateY(var(--dy,0px)) rotate(90deg) scale(var(--ts));filter:brightness(.8) saturate(.85)}
 .tt-a-tap .tt-card{animation:tt-tap .22s ease-out}
 .tt-a-untap .tt-card{animation:tt-untap .22s ease-out}
-@keyframes tt-tap{from{transform:none}to{transform:rotate(90deg) scale(var(--ts))}}
-@keyframes tt-untap{from{transform:rotate(90deg) scale(var(--ts))}to{transform:none}}
-.tt-tile:active .tt-card,.tt-tile.tt-held .tt-card{filter:brightness(1.1)}
-.tt-tapped:active .tt-card,.tt-tapped.tt-held .tt-card{filter:brightness(.9) saturate(.8)}
-.tt-count{position:absolute;left:-8px;z-index:3;min-width:2.2em;height:2.2em;padding:0 .45em;border-radius:999px;display:grid;place-items:center;
+@keyframes tt-tap{from{transform:none}to{transform:translateY(var(--dy,0px)) rotate(90deg) scale(var(--ts))}}
+@keyframes tt-untap{from{transform:translateY(var(--dy,0px)) rotate(90deg) scale(var(--ts))}to{transform:none}}
+.tt-face .tt-card:active,.tt-face.tt-held .tt-card{filter:brightness(1.1)}
+.tt-face.tt-tapped .tt-card:active,.tt-face.tt-tapped.tt-held .tt-card{filter:brightness(.92) saturate(.85)}
+.tt-count{position:absolute;left:-8px;z-index:4;min-width:2.2em;height:2.2em;padding:0 .45em;border-radius:999px;display:grid;place-items:center;
   background:radial-gradient(circle at 40% 35%,#f4dc80,#c8a030 55%,#906010);color:#1a0c00;border:2px solid #1a1208;
   font-family:'Cinzel',serif;font-weight:700;box-shadow:0 3px 8px rgba(0,0,0,.6);cursor:pointer}
 .tt-count::after{content:'';position:absolute;inset:-10px}
@@ -176,7 +179,7 @@
 .tt-ctr{position:absolute;left:5%;top:11.5%;font-family:'Cinzel',serif;font-weight:700;font-size:.85em;line-height:1.2;padding:.08em .45em;border-radius:.35em;border:2px solid #1a1208;box-shadow:0 2px 6px rgba(0,0,0,.6)}
 .tt-plus{background:linear-gradient(180deg,#86cc72,#2f7a2a)!important;color:#fff!important;text-shadow:0 1px 1px rgba(0,0,0,.5)}
 .tt-minus{background:linear-gradient(180deg,#e8806a,#8a1808)!important;color:#fff!important;text-shadow:0 1px 1px rgba(0,0,0,.5)}
-.tt-hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;max-width:96%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+.tt-hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;max-width:96%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   background:rgba(26,20,8,.93);color:#e8cc60;border:2px solid #c8a030;border-radius:999px;padding:.35em .85em;
   font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:.05em;text-transform:uppercase;box-shadow:0 4px 14px rgba(0,0,0,.75);pointer-events:none}
 
@@ -231,7 +234,7 @@
 .tt-leftl{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8a7a60}
 .tt-picked{min-height:30px;display:flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap}
 .tt-wbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-@media (prefers-reduced-motion: reduce){.tt-tile .tt-card,.tt-sheet,.tt-tray,.tt-wheel{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion: reduce){.tt-face .tt-card,.tt-sheet,.tt-tray,.tt-wheel{animation:none!important;transition:none!important}}
 `;
 
   /* --------------------------------------------------------------- helpers */
@@ -348,6 +351,7 @@
   let sheet = null;
   let root = null, grid = null, boardEl = null, wrapEl = null, sheetEl = null;
   let tray = null, wheel = null;
+  let moveSeq = 0, lastMove = null;
 
   function withArt(def) {
     const s = artPick[def.key];
@@ -356,6 +360,15 @@
 
   /* ---------------------------------------------------------- board model */
   function grp(id) { return board.groups.find(g => g.id === id); }
+  // A pile is all tokens of one kind with the same counters and sickness. Tapped and untapped
+  // tokens of a pile share one spot on the table, and piles keep their place (g.order).
+  const pk = b => b.s + '|' + b.c;
+  function ensureOrder(g) {
+    const present = [];
+    g.b.forEach(b => { const k = pk(b); if (!present.includes(k)) present.push(k); });
+    g.order = (g.order || []).filter((k, i, a) => present.includes(k) && a.indexOf(k) === i);
+    present.forEach(k => { if (!g.order.includes(k)) g.order.push(k); });
+  }
   function norm(g) {
     const m = new Map();
     for (const b of g.b) {
@@ -364,6 +377,7 @@
       if (m.has(k)) m.get(k).n += b.n; else m.set(k, { t: b.t, s: b.s, c: b.c, n: b.n });
     }
     g.b = [...m.values()].sort((a, b) => a.t - b.t || a.s - b.s || a.c - b.c);
+    ensureOrder(g);
   }
   function prune() { board.groups = board.groups.filter(g => g.b.some(b => b.n > 0)); }
   function addTokens(def, n) {
@@ -381,8 +395,15 @@
     b.n -= n;
     const nb = { t: b.t, s: b.s, c: b.c, n };
     change(nb);
+    const from = pk(b), to = pk(nb);
+    if (!g.order) ensureOrder(g);
+    if (nb.n > 0 && to !== from && !g.order.includes(to)) {   // a new pile (e.g. counters) goes right next to where it came from
+      const i = g.order.indexOf(from);
+      g.order.splice(i < 0 ? g.order.length : i + 1, 0, to);
+    }
     g.b.push(nb);
     norm(g); prune();
+    lastMove = { seq: ++moveSeq, gid, from: key, to: nb.n > 0 ? bk(nb) : null };
     return nb.n > 0 ? gid + ':' + bk(nb) : null;
   }
   function resolve(key) {
@@ -581,32 +602,57 @@
   }
 
   /* ---------------------------------------------------------------- render */
-  function tileHTML(x, cw, ch, ts, single) {
-    const d = board.defs[x.g.key], b = x.b;
-    const n = single ? 1 : b.n;
-    const cls = ['tt-tile'];
+  function faceHTML(d, g, b, cw, ts, o) {
+    const key = g.id + ':' + bk(b);
+    const cls = ['tt-face'];
     if (b.t) cls.push('tt-tapped');
-    const a = single ? null : anim.get(x.key); if (a) cls.push('tt-a-' + a);
-    if (n === 2) cls.push('tt-s2'); else if (n > 2) cls.push('tt-s3');
+    const a = o.noAnim ? null : anim.get(key); if (a) cls.push('tt-a-' + a);
+    if (o.n === 2) cls.push('tt-s2'); else if (o.n > 2) cls.push('tt-s3');
     const fs = Math.max(10, cw * 0.075);
-    const visH = b.t ? cw * ts : ch;
-    const top = Math.round((ch - visH) / 2 - 8);
     const cc = b.c > 0 ? 'tt-plus' : 'tt-minus';
     const pt = (b.c && d.p != null) ? `<span class="tt-pt ${cc}">${esc(ptOf(d, b.c))}</span>` : '';
     const ctr = b.c ? `<span class="tt-ctr ${cc}">${b.c > 0 ? '+1/+1' : '−1/−1'}${Math.abs(b.c) > 1 ? ' ×' + Math.abs(b.c) : ''}</span>` : '';
     const sick = b.s ? '<span class="tt-sick" aria-hidden="true">💤</span>' : '';
-    const sacAb = b.t ? sacAbility(d) : null;
-    const small = cw < 170;
-    const hintText = sacAb ? (sacAb.mana ? (small ? 'Sac for mana' : 'Tap to sac for mana') : (small ? 'Sac: ' + shortEff(sacAb, 12) : 'Tap to sac: ' + shortEff(sacAb, 18))) : '';
-    const hint = sacAb ? `<div class="tt-hint" style="font-size:${Math.round(Math.max(11, Math.min(15, cw * 0.06)))}px">${esc(hintText)}</div>` : '';
-    const count = n > 1 ? `<div class="tt-count" data-tray="${x.g.id}" role="button" aria-label="Spread out the ${esc(d.name)} pile" style="top:${top}px;font-size:${Math.round(Math.max(13, Math.min(20, cw * 0.07)))}px">×${n}</div>` : '';
     const ctrText = b.c ? `, ${Math.abs(b.c)} ${b.c > 0 ? '+1/+1' : '−1/−1'} counter${Math.abs(b.c) > 1 ? 's' : ''}, ${ptOf(d, b.c)}` : '';
-    const lbl = `${d.name}, ${n}, ${b.t ? 'tapped' : 'untapped'}${b.s ? ', summoning sick' : ''}${ctrText}`;
-    return `<div class="${cls.join(' ')}" data-key="${x.key}" role="button" tabindex="0" aria-label="${esc(lbl)}" style="width:${cw}px;height:${ch}px;--ts:${ts}">` +
+    const lbl = `${d.name}, ${o.n}, ${b.t ? 'tapped' : 'untapped'}${b.s ? ', summoning sick' : ''}${ctrText}`;
+    return `<div class="${cls.join(' ')}" data-key="${key}"${o.slot != null ? ` data-slot="${o.slot}"` : ''} role="button" tabindex="0" aria-label="${esc(lbl)}" style="--ts:${ts};--dy:${o.dy.toFixed(1)}px">` +
       `<div class="tt-card${d.img ? '' : ' tt-noimg'}" style="font-size:${fs}px">` +
       `<div class="tt-fb"><div class="tt-fbn">${esc(d.name)}</div><div class="tt-fbt">${esc(d.type)}</div>${d.text ? `<div class="tt-fbx">${esc(d.text)}</div>` : ''}${d.p != null ? `<div class="tt-fbpt">${esc(ptOf(d, 0))}</div>` : ''}</div>` +
       (d.img ? `<img src="${esc(d.img)}" alt="" draggable="false" decoding="async">` : '') +
-      sick + ctr + pt + `</div>${hint}${count}</div>`;
+      sick + ctr + pt + `</div></div>`;
+  }
+  function hintHTML(d, cw, top) {
+    const sacAb = sacAbility(d); if (!sacAb) return '';
+    const small = cw < 170;
+    const text = sacAb.mana ? (small ? 'Sac for mana' : 'Tap to sac for mana') : (small ? 'Sac: ' + shortEff(sacAb, 12) : 'Tap to sac: ' + shortEff(sacAb, 18));
+    return `<div class="tt-hint" style="top:${Math.round(top)}px;font-size:${Math.round(Math.max(11, Math.min(15, cw * 0.06)))}px">${esc(text)}</div>`;
+  }
+  // One spot on the table: the untapped cards stand upright, the tapped ones lie sideways across them.
+  function pileHTML(p, cw, ch, ts) {
+    const { g, up, tp } = p;
+    const d = board.defs[g.key];
+    const visT = cw * ts;                       // height of a sideways card
+    const bottom = (ch - visT) / 2;             // offset that puts a sideways card at the bottom of the spot
+    const mixed = !!(up && tp);
+    const bs = Math.round(Math.max(13, Math.min(20, cw * 0.07)));
+    const badge = (n, top) => n > 1 ? `<div class="tt-count" data-tray="${g.id}" data-pk="${p.pk}" role="button" aria-label="Spread out the ${esc(d.name)} pile" style="top:${Math.round(top)}px;font-size:${bs}px">×${n}</div>` : '';
+    let html = `<div class="tt-tile" style="width:${cw}px;height:${ch}px">`;
+    if (up) html += faceHTML(d, g, up, cw, ts, { n: up.n, dy: (tp || up.n > 1) ? bottom : 0 });
+    if (tp) html += faceHTML(d, g, tp, cw, ts, { n: tp.n, dy: mixed ? bottom : 0 });
+    if (up) html += badge(up.n, -8);
+    if (tp) html += badge(tp.n, (mixed ? ch - visT : bottom) - 8);
+    if (tp) html += hintHTML(d, cw, mixed ? ch - visT / 2 : ch / 2);
+    return html + '</div>';
+  }
+  function pilesOf(g) {
+    ensureOrder(g);
+    const out = [];
+    g.order.forEach(k => {
+      const up = g.b.find(b => !b.t && pk(b) === k) || null;
+      const tp = g.b.find(b => b.t && pk(b) === k) || null;
+      if (up || tp) out.push({ g, pk: k, up, tp });
+    });
+    return out;
   }
   function renderPool() {
     const el = $('tt-pool'); if (!el) return;
@@ -621,9 +667,9 @@
     renderPool();
     renderTray();
     const list = [];
-    for (const g of board.groups) for (const b of g.b) list.push({ g, b, key: g.id + ':' + bk(b) });
-    const total = list.reduce((s, x) => s + x.b.n, 0);
-    const tapped = list.reduce((s, x) => s + (x.b.t ? x.b.n : 0), 0);
+    board.groups.forEach(g => list.push(...pilesOf(g)));
+    let total = 0, tapped = 0;
+    board.groups.forEach(g => g.b.forEach(b => { total += b.n; if (b.t) tapped += b.n; }));
     $('tt-sum').textContent = total ? `${total} token${total === 1 ? '' : 's'}, ${tapped} tapped` : 'Empty table';
     $('tt-undo').disabled = !hist.length;
     if (!list.length) {
@@ -638,7 +684,7 @@
     grid.style.gap = gap + 'px';
     grid.style.padding = pad + 'px';
     const ts = cw / ch;
-    grid.innerHTML = list.map(x => tileHTML(x, cw, ch, ts)).join('');
+    grid.innerHTML = list.map(p => pileHTML(p, cw, ch, ts)).join('');
     anim.clear();
   }
 
@@ -647,7 +693,7 @@
   function wireTiles(el) {
     el.addEventListener('pointerdown', e => {
       if (e.target.closest('.tt-count')) return;
-      const tile = e.target.closest('.tt-tile'); if (!tile) return;
+      const tile = e.target.closest('[data-key]'); if (!tile) return;
       longFired = false; sx = e.clientX; sy = e.clientY;
       clearTimeout(lp);
       lp = setTimeout(() => {
@@ -663,15 +709,20 @@
     el.addEventListener('click', e => {
       if (e.target.closest('#tt-empty-add')) { openAdd('deck'); return; }
       const cnt = e.target.closest('.tt-count');
-      if (cnt) { openTray(+cnt.dataset.tray); return; }
-      const tile = e.target.closest('.tt-tile'); if (!tile) return;
+      if (cnt) { openTray(+cnt.dataset.tray, cnt.dataset.pk); return; }
+      const tile = e.target.closest('[data-key]'); if (!tile) return;
       if (longFired) { longFired = false; return; }
+      if (tray && tile.dataset.slot != null) tray.pending = { i: +tile.dataset.slot, seq: moveSeq };
       tapOne(tile.dataset.key);
     });
     el.addEventListener('keydown', e => {
-      const tile = e.target.closest('.tt-tile'); if (!tile) return;
+      const tile = e.target.closest('[data-key]'); if (!tile) return;
       if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); openTokenSheet(tile.dataset.key); }
-      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapOne(tile.dataset.key); }
+      else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (tray && tile.dataset.slot != null) tray.pending = { i: +tile.dataset.slot, seq: moveSeq };
+        tapOne(tile.dataset.key);
+      }
     });
     el.addEventListener('error', e => {
       if (e.target && e.target.tagName === 'IMG') { const c = e.target.closest('.tt-card'); if (c) c.classList.add('tt-noimg'); }
@@ -877,22 +928,41 @@
 
   // --- spread-out tray for one pile
   function syncLayer() { if (root) root.classList.toggle('tt-layer', !!(tray || wheel || sheet)); }
-  function openTray(gid) { tray = { gid }; $('tt-traywrap').hidden = false; syncLayer(); renderTray(); }
+  function openTray(gid, key) { tray = { gid, pk: key, slots: [], pending: null }; $('tt-traywrap').hidden = false; syncLayer(); renderTray(); }
   function closeTray() { tray = null; const w = $('tt-traywrap'); if (w) w.hidden = true; syncLayer(); }
   function renderTray() {
     if (!tray) return;
     const g = grp(tray.gid);
     if (!g) { closeTray(); return; }
+    if (!g.b.some(b => pk(b) === tray.pk)) {               // the pile lost its sickness on untap: follow it
+      const c = tray.pk.split('|')[1];
+      if (g.b.some(b => pk(b) === '0|' + c)) tray.pk = '0|' + c; else { closeTray(); return; }
+    }
     const d = board.defs[g.key];
-    const items = [];
-    g.b.forEach(b => { for (let i = 0; i < b.n; i++) items.push({ g, b, key: g.id + ':' + bk(b) }); });
-    const tapped = g.b.reduce((t, b) => t + (b.t ? b.n : 0), 0);
-    $('tt-trayname').textContent = `${d.name} ×${items.length}`;
-    $('tt-traysub').textContent = `${items.length - tapped} untapped, ${tapped} tapped`;
+    // The card you tapped stays in its spot in the tray.
+    if (tray.pending && lastMove && lastMove.seq > tray.pending.seq && lastMove.gid === g.id) {
+      const i = tray.pending.i;
+      if (tray.slots[i] === lastMove.from) { if (lastMove.to) tray.slots[i] = lastMove.to; else tray.slots.splice(i, 1); }
+      tray.pending = null;
+    }
+    const buckets = g.b.filter(b => pk(b) === tray.pk);
+    const want = {}; buckets.forEach(b => { want[bk(b)] = b.n; });
+    const have = {}, slots = [];
+    tray.slots.forEach(k => { if ((have[k] || 0) < (want[k] || 0)) { have[k] = (have[k] || 0) + 1; slots.push(k); } });
+    buckets.forEach(b => { const k = bk(b); while ((have[k] || 0) < b.n) { slots.push(k); have[k] = (have[k] || 0) + 1; } });
+    tray.slots = slots;
+    const tapped = buckets.reduce((t, b) => t + (b.t ? b.n : 0), 0);
+    const c = +tray.pk.split('|')[1];
+    $('tt-trayname').textContent = `${d.name} ×${slots.length}${c ? ` (${c > 0 ? '+1/+1' : '−1/−1'}${Math.abs(c) > 1 ? ' ×' + Math.abs(c) : ''})` : ''}`;
+    $('tt-traysub').textContent = `${slots.length - tapped} untapped, ${tapped} tapped`;
     const tg = $('tt-traygrid');
-    const { cw, ch, gap, pad } = fitIn(tg.clientWidth, tg.clientHeight, items.length, 72);
+    const { cw, ch, gap, pad } = fitIn(tg.clientWidth, tg.clientHeight, slots.length, 72);
+    const ts = cw / ch;
     tg.style.gap = gap + 'px'; tg.style.padding = pad + 'px';
-    tg.innerHTML = items.map(x => tileHTML(x, cw, ch, cw / ch, true)).join('');
+    tg.innerHTML = slots.map((k, i) => {
+      const b = buckets.find(x => bk(x) === k);
+      return `<div class="tt-tile" style="width:${cw}px;height:${ch}px">${faceHTML(d, g, b, cw, ts, { n: 1, dy: 0, slot: i, noAnim: true })}${b.t ? hintHTML(d, cw, ch / 2) : ''}</div>`;
+    }).join('');
   }
 
   // --- mana color wheel
@@ -1169,6 +1239,7 @@
       commit(() => {
         MANA_ORDER.forEach(c => { board.pool[c] = 0; });
         for (const g of board.groups) {
+          g.order = (g.order || []).map(k => '0|' + k.split('|')[1]);
           const had = g.b.some(b => b.t);
           g.b.forEach(b => { b.t = 0; b.s = 0; });
           norm(g);
