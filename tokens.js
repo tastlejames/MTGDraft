@@ -234,7 +234,44 @@
 .tt-leftl{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8a7a60}
 .tt-picked{min-height:30px;display:flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap}
 .tt-wbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-@media (prefers-reduced-motion: reduce){.tt-face .tt-card,.tt-sheet,.tt-tray,.tt-wheel{animation:none!important;transition:none!important}}
+.tt-hbtn.tt-hadd{background:linear-gradient(180deg,#e8cc70 0%,#c09020 40%,#a07010 60%,#c8a030 100%);border-color:#7a5010;color:#1a0c00}
+.tt-hbtn.tt-icon{width:38px;padding:0;font-size:18px;letter-spacing:0}
+.tt-board{touch-action:pan-y}
+.tt-bottom{min-height:calc(66px + env(safe-area-inset-bottom,0px))}
+.tt-bar{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.05;min-width:0;padding:0 6px}
+.tt-bar b{font-weight:700;white-space:nowrap}
+.tt-bar small{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.85;white-space:nowrap}
+.tt-bar.tt-atk{background:linear-gradient(180deg,#b03018,#7a1808);border-color:#e06040;color:#fff3e0}
+.tt-bar[hidden]{display:none}
+.tt-hint{flex:1;align-self:center;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#a08850}
+.tt-hint[hidden]{display:none}
+.tt-edge{position:absolute;left:0;bottom:calc(var(--tt-foot,72px) + 18px);z-index:3;width:16px;height:64px;padding:0;border:2px solid rgba(200,160,48,.55);border-left:none;
+  border-radius:0 10px 10px 0;background:linear-gradient(90deg,#2a2010,#4a3818);color:var(--gold-trim2,#e8cc60);font-size:13px;box-shadow:2px 0 10px rgba(0,0,0,.6)}
+.tt-edge::after{content:'';position:absolute;inset:-6px -14px -6px 0}
+.tt-drawwrap{position:absolute;inset:0;z-index:4}
+.tt-drawwrap[hidden]{display:none}
+.tt-drawer{position:absolute;left:0;top:0;bottom:0;width:min(330px,86%);display:flex;flex-direction:column;color:#1a1208;
+  padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
+  background:linear-gradient(180deg,#e8dac0,#e0d0b0);border-right:3px solid #1a1208;box-shadow:12px 0 40px rgba(0,0,0,.85);animation:tt-in .2s ease-out;touch-action:pan-y}
+@keyframes tt-in{from{transform:translateX(-100%)}to{transform:none}}
+.tt-drawhead{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 10px 8px 14px;border-bottom:1px solid #c8b080}
+.tt-drawtitle{flex:1;min-width:0;font-family:'Cinzel',serif;font-size:17px;font-weight:700}
+.tt-drawsub{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a7a60}
+.tt-drawx{width:38px;height:38px;border-radius:6px;border:1px solid #c8b080;background:#d8c8a0;color:#1a1208;font-size:18px}
+.tt-drawlist{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 10px 10px;display:flex;flex-direction:column;gap:5px}
+.tt-drawlist .tt-row{position:relative}
+.tt-drawlist .tt-row:active,.tt-drawlist .tt-row.tt-held{background:#ecdcb4}
+.tt-dplus{flex:0 0 auto;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:'Cinzel',serif;font-size:20px;font-weight:900;
+  background:radial-gradient(circle at 40% 35%,#f4dc80,#c8a030 55%,#906010);border:2px solid #1a1208;color:#1a0c00}
+.tt-have{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:#906010}
+.tt-drawfoot{flex:0 0 auto;display:flex;gap:6px;padding:8px 10px;border-top:1px solid #c8b080}
+.tt-drawfoot .tt-act{flex:1;margin:0}
+.tt-menu{position:absolute;right:8px;top:calc(env(safe-area-inset-top,0px) + 52px);z-index:7;min-width:200px;padding:5px;border-radius:10px;
+  background:linear-gradient(180deg,#e8dac0,#e0d0b0);border:2px solid #1a1208;box-shadow:0 12px 40px rgba(0,0,0,.85);display:flex;flex-direction:column;gap:4px}
+.tt-menu[hidden]{display:none}
+.tt-mi{height:44px;text-align:left;padding:0 12px;border-radius:6px;border:1px solid #c8b080;background:#e0d0b0;color:#1a1208;font-size:16px;font-weight:700}
+.tt-mi.tt-armed{background:#8a1808;border-color:#c03020;color:#fff}
+@media (prefers-reduced-motion: reduce){.tt-drawer,.tt-face .tt-card,.tt-sheet,.tt-tray,.tt-wheel{animation:none!important;transition:none!important}}
 `;
 
   /* --------------------------------------------------------------- helpers */
@@ -672,11 +709,13 @@
     board.groups.forEach(g => g.b.forEach(b => { total += b.n; if (b.t) tapped += b.n; }));
     $('tt-sum').textContent = total ? `${total} token${total === 1 ? '' : 's'}, ${tapped} tapped` : 'Empty table';
     $('tt-undo').disabled = !hist.length;
+    renderBar();
+    if (drawer) renderDrawer();
     if (!list.length) {
       grid.style.gap = ''; grid.style.padding = '16px';
       grid.innerHTML = `<div class="tt-empty"><div class="tt-empty-in"><div class="tt-empty-t">No tokens on the table</div>` +
-        `<div class="tt-empty-s">Add the tokens your deck makes, search any token, or make a token copy of a card.</div>` +
-        `<button class="tt-act tt-primary" id="tt-empty-add" style="width:100%">+ Add token</button></div></div>`;
+        `<div class="tt-empty-s">Swipe right from the left side for your deck’s tokens, or search any token.</div>` +
+        `<button class="tt-act tt-primary" id="tt-empty-add" style="width:100%">Your deck’s tokens</button></div></div>`;
       anim.clear();
       return;
     }
@@ -707,7 +746,7 @@
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, () => clearTimeout(lp)));
     el.addEventListener('contextmenu', e => { if (e.target.closest('.tt-tile')) e.preventDefault(); });
     el.addEventListener('click', e => {
-      if (e.target.closest('#tt-empty-add')) { openAdd('deck'); return; }
+      if (e.target.closest('#tt-empty-add')) { openDrawer(); return; }
       const cnt = e.target.closest('.tt-count');
       if (cnt) { openTray(+cnt.dataset.tray, cnt.dataset.pk); return; }
       const tile = e.target.closest('[data-key]'); if (!tile) return;
@@ -927,7 +966,7 @@
   }
 
   // --- spread-out tray for one pile
-  function syncLayer() { if (root) root.classList.toggle('tt-layer', !!(tray || wheel || sheet)); }
+  function syncLayer() { if (root) root.classList.toggle('tt-layer', !!(tray || wheel || sheet || drawer)); }
   function openTray(gid, key) { tray = { gid, pk: key, slots: [], pending: null }; $('tt-traywrap').hidden = false; syncLayer(); renderTray(); }
   function closeTray() { tray = null; const w = $('tt-traywrap'); if (w) w.hidden = true; syncLayer(); }
   function renderTray() {
@@ -1021,8 +1060,8 @@
   }
 
   // --- add tokens
-  function openAdd(tab) {
-    sheet = { mode: 'add', tab: tab || 'deck', sel: null, qty: 1, q: '', cq: '', list: [], seq: 0, err: false };
+  function openAdd(tab, pre) {
+    sheet = { mode: 'add', tab: tab || 'deck', sel: null, qty: 1, q: '', cq: '', list: [], seq: 0, err: false, pre: pre || null };
     renderAddShell(); showSheet(); loadTab();
   }
   function renderAddShell() {
@@ -1049,7 +1088,18 @@
     setList('<div class="tt-msg">' + (tab === 'deck' ? 'Finding your deck’s tokens…' : 'Loading your deck…') + '</div>');
     getDeck(!!force).then(c => {
       if (!sheet || sheet.mode !== 'add' || sheet.tab !== tab) return;
-      if (tab === 'deck') renderDeckTab(c); else renderCopyTab(c);
+      if (tab === 'deck') {
+        renderDeckTab(c);
+        if (sheet.pre) {
+          const i = sheet.list.findIndex(d => d.key === sheet.pre); sheet.pre = null;
+          if (i >= 0) {
+            sheet.sel = sheet.list[i]; sheet.qty = 2;
+            const row = $('tt-list').querySelector(`[data-pick="${i}"]`);
+            if (row) { row.classList.add('tt-on'); row.scrollIntoView({ block: 'nearest' }); }
+            updateFoot();
+          }
+        }
+      } else renderCopyTab(c);
     }).catch(() => {
       if (!sheet || sheet.mode !== 'add' || sheet.tab !== tab) return;
       setList('<div class="tt-msg">Couldn’t reach Scryfall. Check your signal, then try again.</div><button class="tt-act" data-retry="1" style="width:100%">Try again</button>');
@@ -1166,6 +1216,226 @@
     });
   }
 
+  /* ------------------------------------------------- bottom bar (dynamic)
+     Only shows what you can do right now, always in the same order:
+     Attack · Untap all · Treasure. When nothing applies it shows a hint. */
+  const vigil = d => hasKw(d, 'Vigilance');
+  // Tokens you sacrifice for mana with no other cost (Treasure, Gold). Clue/Food/Blood cost mana, so they're left out.
+  function manaSac(d) {
+    const ab = sacAbility(d);
+    return (ab && ab.mana && !ab.manaCost && !ab.other.length) ? ab : null;
+  }
+  function barState() {
+    let atk = 0, tapped = 0, sick = 0, treas = 0, allTreasure = true;
+    board.groups.forEach(g => {
+      const d = board.defs[g.key]; if (!d) return;
+      const cr = isCreature(d), ms = manaSac(d);
+      g.b.forEach(b => {
+        if (b.t) tapped += b.n;
+        if (b.s) sick += b.n;
+        if (cr && !b.t && !b.s) atk += b.n;
+        if (ms) { treas += b.n; if (!/^treasure$/i.test(d.name)) allTreasure = false; }
+      });
+    });
+    const floating = MANA_ORDER.some(c => board.pool[c] > 0);
+    return { atk, tapped, sick, treas, allTreasure, floating };
+  }
+  function renderBar() {
+    const st = barState();
+    const set = (id, show, html) => { const b = $(id); b.hidden = !show; if (show) b.innerHTML = html; };
+    set('tt-attack', st.atk > 0, `<b>Attack</b><small>${st.atk} ready</small>`);
+    const turn = st.tapped > 0 || st.sick > 0 || st.floating;
+    set('tt-turn', turn, st.tapped ? `<b>Untap all</b><small>${st.tapped} tapped</small>` : `<b>New turn</b><small>${st.sick ? 'Wake up ' + st.sick : 'Empty mana'}</small>`);
+    set('tt-treas', st.treas > 0, `<b>${st.allTreasure ? 'Treasure' : 'Sac for mana'}</b><small>${st.treas} → mana</small>`);
+    const hint = $('tt-hint');
+    const any = st.atk || turn || st.treas;
+    hint.hidden = !!any;
+    if (!any) hint.textContent = board.groups.length ? 'Tap a token to tap it · hold for more' : 'Swipe right or tap + Add';
+    syncFoot();
+  }
+  function untapAll() {
+    const floating = MANA_ORDER.some(c => board.pool[c] > 0);
+    if (!board.groups.length && !floating) return;
+    commit(() => {
+      MANA_ORDER.forEach(c => { board.pool[c] = 0; });
+      for (const g of board.groups) {
+        g.order = (g.order || []).map(k => '0|' + k.split('|')[1]);
+        const had = g.b.some(b => b.t);
+        g.b.forEach(b => { b.t = 0; b.s = 0; });
+        norm(g);
+        if (had) g.b.forEach(b => anim.set(g.id + ':' + bk(b), 'untap'));
+      }
+    });
+    toast(floating ? 'New turn: everything untapped, mana pool emptied' : 'New turn: everything untapped');
+  }
+  // Every untapped creature that isn't summoning sick attacks. Vigilance ones stay untapped.
+  function attackAll() {
+    let n = 0, vig = 0;
+    const trig = {};
+    commit(() => {
+      for (const g of board.groups) {
+        const d = board.defs[g.key]; if (!d || !isCreature(d)) continue;
+        const tk = attackTrigger(d);
+        const keys = [];
+        g.b.forEach(b => {
+          if (b.t || b.s || !b.n) return;
+          n += b.n;
+          if (tk) trig[tk.name] = (trig[tk.name] || 0) + b.n * tk.n;
+          if (vigil(d)) { vig += b.n; return; }
+          b.t = 1; keys.push(g.id + ':' + bk(b));
+        });
+        if (keys.length) { norm(g); keys.forEach(k => anim.set(k, 'tap')); }
+      }
+    });
+    if (!n) return;
+    const names = Object.keys(trig);
+    const msg = `Attacking with ${n} creature${n === 1 ? '' : 's'}` + (vig ? ` (${vig} with vigilance, still untapped)` : '');
+    if (names.length) {
+      const label = 'Create ' + names.map(k => `${trig[k]} ${k}`).join(' + ');
+      toast(msg, label, async () => { for (const k of names) await createNamed(k, trig[k]); });
+    } else toast(msg, 'Undo', undo);
+  }
+  // Sacrifice every Treasure (and Gold-style token) for mana in one go.
+  function treasurePiles() {
+    const out = [];
+    board.groups.forEach(g => {
+      const d = board.defs[g.key]; const ab = d && manaSac(d); if (!ab) return;
+      g.b.forEach(b => { if (b.n > 0) out.push({ g, b, d, ab }); });
+    });
+    return out;
+  }
+  function treasureAll() {
+    const piles = treasurePiles(); if (!piles.length) return;
+    const fixed = {}; let choose = 0; const choices = new Set();
+    let count = 0;
+    piles.forEach(({ b, ab }) => {
+      count += b.n;
+      if (ab.mana.fixed) MANA_ORDER.forEach(c => { if (ab.mana.fixed[c]) fixed[c] = (fixed[c] || 0) + ab.mana.fixed[c] * b.n; });
+      else { choose += ab.mana.count * b.n; ab.mana.choices.forEach(c => choices.add(c)); }
+    });
+    const names = [...new Set(piles.map(p => p.d.name))];
+    const what = names.length === 1 ? `${count} ${names[0]}${count === 1 ? '' : 's'}` : `${count} tokens`;
+    const apply = picked => {
+      const add = Object.assign({}, fixed);
+      (picked || []).forEach(c => { add[c] = (add[c] || 0) + 1; });
+      commit(() => {
+        board.groups.forEach(g => { const d = board.defs[g.key]; if (d && manaSac(d)) g.b = []; });
+        prune();
+        MANA_ORDER.forEach(c => { if (add[c]) board.pool[c] = (board.pool[c] || 0) + add[c]; });
+      });
+      toast(`Sacrificed ${what}: added ${manaText(add)}`, 'Undo', undo);
+    };
+    if (!choose) { apply(null); return; }
+    openWheel({ total: choose, choices: MANA_ORDER.filter(c => choices.has(c)), same: false, title: `Sacrifice ${what} for ${choose} mana`, onDone: apply });
+  }
+
+  /* ---------------------------------------------------------------- ⋯ menu */
+  let closeMenu = () => {};
+  function openMenu() { $('tt-menu').hidden = false; $('tt-more').setAttribute('aria-expanded', 'true'); }
+
+  /* ------------------------------------------- left drawer: deck's tokens
+     Swipe right on the left half of the table (or tap the edge tab).
+     Tap a token to put one on the table; hold to pick how many. */
+  let drawer = null;
+  function openDrawer() {
+    if (!root) return;
+    closeMenu();
+    drawer = { list: [] };
+    $('tt-drawwrap').hidden = false; syncLayer();
+    $('tt-drawlist').innerHTML = '<div class="tt-msg">Finding your deck’s tokens…</div>';
+    getDeck(false).then(() => { if (drawer) renderDrawer(); })
+      .catch(() => { if (drawer) $('tt-drawlist').innerHTML = '<div class="tt-msg">Couldn’t reach Scryfall. Check your signal, then try again.</div><button class="tt-act" data-dretry="1">Try again</button>'; });
+  }
+  function closeDrawer() { drawer = null; const w = $('tt-drawwrap'); if (w) w.hidden = true; syncLayer(); }
+  function renderDrawer() {
+    const el = $('tt-drawlist'); if (!el || !drawer) return;
+    const c = deckCache;
+    if (!c) return;
+    drawer.list = [];
+    if (c.empty) { el.innerHTML = '<div class="tt-msg">Your deck is empty. Draft or import a deck first, or use Search below.</div>'; return; }
+    if (!c.tokens.length) { el.innerHTML = '<div class="tt-msg">Nothing in your deck makes a token. Use Search or Copy a card below.</div><button class="tt-link" data-drefresh="1">Deck changed? Check again</button>'; return; }
+    const have = {};
+    board.groups.forEach(g => g.b.forEach(b => { have[g.key] = (have[g.key] || 0) + b.n; }));
+    let html = '';
+    const row = (x, who) => {
+      const d = withArt(x.def); drawer.list.push(d);
+      const h = have[d.key] ? `<span class="tt-have"> · ${have[d.key]} on table</span>` : '';
+      return `<button class="tt-row" data-dpick="${drawer.list.length - 1}">${thumb(d)}<span class="tt-rt"><span class="tt-rn">${esc(d.name)}${d.p != null ? ' ' + esc(ptOf(d, 0)) : ''}</span>` +
+        `<span class="tt-rs">${esc(madeBy(who))}${h}</span></span><span class="tt-dplus" aria-hidden="true">+</span></button>`;
+    };
+    const main = c.tokens.filter(x => x.main.length), side = c.tokens.filter(x => !x.main.length);
+    main.forEach(x => { html += row(x, x.main); });
+    if (side.length) { html += '<div class="tt-sec">From your sideboard</div>'; side.forEach(x => { html += row(x, x.side); }); }
+    html += '<button class="tt-link" data-drefresh="1">Deck changed? Check again</button>';
+    el.innerHTML = html;
+  }
+  function wireDrawer() {
+    const el = $('tt-drawlist');
+    let t = null, held = false, x0 = 0, y0 = 0;
+    el.addEventListener('pointerdown', e => {
+      const r = e.target.closest('[data-dpick]'); if (!r) return;
+      held = false; x0 = e.clientX; y0 = e.clientY; clearTimeout(t);
+      t = setTimeout(() => {
+        held = true; r.classList.add('tt-held');
+        if (navigator.vibrate) try { navigator.vibrate(10); } catch (err) { /* ignore */ }
+        const d = drawer && drawer.list[+r.dataset.dpick];
+        closeDrawer();
+        if (d) openAdd('deck', d.key);
+      }, 450);
+    });
+    el.addEventListener('pointermove', e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > 10) clearTimeout(t); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, () => clearTimeout(t)));
+    el.addEventListener('contextmenu', e => { if (e.target.closest('[data-dpick]')) e.preventDefault(); });
+    el.addEventListener('click', e => {
+      if (e.target.closest('[data-drefresh],[data-dretry]')) {
+        el.innerHTML = '<div class="tt-msg">Checking your deck…</div>';
+        getDeck(true).then(() => { if (drawer) renderDrawer(); }).catch(() => { if (drawer) el.innerHTML = '<div class="tt-msg">Couldn’t reach Scryfall.</div>'; });
+        return;
+      }
+      const r = e.target.closest('[data-dpick]'); if (!r || held) { held = false; return; }
+      const d = drawer && drawer.list[+r.dataset.dpick]; if (!d) return;
+      commit(() => addTokens(d, 1));
+      toast(`Created 1 ${d.name} token`, 'Undo', undo);
+    });
+    $('tt-drawer').addEventListener('click', e => {
+      const b = e.target.closest('[data-dtab]'); if (!b) return;
+      closeDrawer(); openAdd(b.dataset.dtab);
+    });
+    // swipe left on the drawer closes it
+    let sx0 = null, sy0 = 0;
+    const dr = $('tt-drawer');
+    dr.addEventListener('pointerdown', e => { sx0 = e.clientX; sy0 = e.clientY; });
+    dr.addEventListener('pointermove', e => {
+      if (sx0 == null) return;
+      const dx = e.clientX - sx0, dy = e.clientY - sy0;
+      if (dx < -50 && Math.abs(dy) < -dx * 0.7) { sx0 = null; clearTimeout(t); held = true; closeDrawer(); }
+    });
+    ['pointerup', 'pointercancel'].forEach(ev => dr.addEventListener(ev, () => { sx0 = null; }));
+  }
+  // Swipe right that starts on the left half of the table opens the drawer.
+  function wireSwipe() {
+    let st = null;
+    boardEl.addEventListener('pointerdown', e => {
+      st = null;
+      if (sheet || tray || wheel || drawer || e.button > 0) return;
+      const box = root.getBoundingClientRect();
+      if (e.clientX - box.left > box.width / 2) return;
+      st = { x: e.clientX, y: e.clientY };
+    });
+    boardEl.addEventListener('pointermove', e => {
+      if (!st) return;
+      const dx = e.clientX - st.x, dy = e.clientY - st.y;
+      if (Math.abs(dy) > 30 && Math.abs(dy) > dx) { st = null; return; }   // a scroll, not a swipe
+      if (dx > 45 && Math.abs(dy) < dx * 0.7) {
+        st = null;
+        clearTimeout(lp); longFired = true;   // don't let the swipe also tap the token under it
+        document.querySelectorAll('.tt-held').forEach(x => x.classList.remove('tt-held'));
+        openDrawer();
+      }
+    });
+    ['pointerup', 'pointercancel'].forEach(ev => boardEl.addEventListener(ev, () => { st = null; }));
+  }
+
   /* ----------------------------------------------------------------- toast */
   let toastT = null;
   function toast(msg, label, fn) {
@@ -1200,15 +1470,28 @@
       `<header class="tt-top">` +
       `<button class="tt-hbtn" id="tt-back" aria-label="Back to your deck">‹ Deck</button>` +
       `<div class="tt-title"><div class="tt-h1">⬡ Tokens</div><div class="tt-sum" id="tt-sum"></div></div>` +
-      `<button class="tt-hbtn" id="tt-undo" disabled>↶ Undo</button>` +
-      `<button class="tt-hbtn" id="tt-clear">Clear</button>` +
+      `<button class="tt-hbtn tt-hadd" id="tt-add" aria-label="Add a token">+ Add</button>` +
+      `<button class="tt-hbtn tt-icon" id="tt-undo" aria-label="Undo" disabled>↶</button>` +
+      `<button class="tt-hbtn tt-icon" id="tt-more" aria-label="More" aria-haspopup="menu" aria-expanded="false">⋯</button>` +
       `</header>` +
       `<div class="tt-pool" id="tt-pool" hidden><span class="tt-plabel">Floating</span><div class="tt-pips" id="tt-pips"></div><button class="tt-pempty" id="tt-pempty">Empty</button></div>` +
       `<main class="tt-board" id="tt-board"><div class="tt-grid" id="tt-grid"></div></main>` +
       `<footer class="tt-bottom" id="tt-bottom">` +
-      `<button class="tt-bar" id="tt-turn">Untap all</button>` +
-      `<button class="tt-bar tt-gold" id="tt-add">+ Add token</button>` +
+      `<button class="tt-bar tt-atk" id="tt-attack" hidden></button>` +
+      `<button class="tt-bar" id="tt-turn" hidden></button>` +
+      `<button class="tt-bar tt-gold" id="tt-treas" hidden></button>` +
+      `<div class="tt-hint" id="tt-hint"></div>` +
       `</footer>` +
+      `<button class="tt-edge" id="tt-edge" aria-label="Your deck’s tokens">›</button>` +
+      `<div class="tt-menu" id="tt-menu" role="menu" hidden>` +
+      `<button class="tt-mi" role="menuitem" data-mi="search">Search any token</button>` +
+      `<button class="tt-mi" role="menuitem" data-mi="copy">Copy a card</button>` +
+      `<button class="tt-mi" role="menuitem" data-mi="clear" id="tt-clear">Clear the table</button></div>` +
+      `<div class="tt-drawwrap" id="tt-drawwrap" hidden><div class="tt-scrim" id="tt-drawscrim"></div>` +
+      `<div class="tt-drawer" id="tt-drawer" role="dialog" aria-label="Your deck’s tokens"><div class="tt-drawhead"><div class="tt-drawtitle">Your deck’s tokens` +
+      `<div class="tt-drawsub">Tap adds one · hold for more</div></div><button class="tt-drawx" id="tt-drawx" aria-label="Close">‹</button></div>` +
+      `<div class="tt-drawlist" id="tt-drawlist"></div>` +
+      `<div class="tt-drawfoot"><button class="tt-act" data-dtab="search">Search</button><button class="tt-act" data-dtab="copy">Copy a card</button></div></div></div>` +
       `<div class="tt-traywrap" id="tt-traywrap" hidden><div class="tt-scrim" id="tt-trayscrim"></div>` +
       `<div class="tt-tray" role="dialog" aria-label="Spread out pile"><div class="tt-trayhead"><div class="tt-traytitle"><div class="tt-trayname" id="tt-trayname"></div><div class="tt-traysub" id="tt-traysub"></div></div>` +
       `<button class="tt-hbtn" id="tt-traydone">Done</button></div><div class="tt-traygrid" id="tt-traygrid"></div></div></div>` +
@@ -1232,41 +1515,40 @@
 
     $('tt-back').addEventListener('click', close);
     $('tt-undo').addEventListener('click', undo);
-    $('tt-add').addEventListener('click', () => openAdd('deck'));
-    $('tt-turn').addEventListener('click', () => {
-      const floating = MANA_ORDER.some(c => board.pool[c] > 0);
-      if (!board.groups.length && !floating) return;
-      commit(() => {
-        MANA_ORDER.forEach(c => { board.pool[c] = 0; });
-        for (const g of board.groups) {
-          g.order = (g.order || []).map(k => '0|' + k.split('|')[1]);
-          const had = g.b.some(b => b.t);
-          g.b.forEach(b => { b.t = 0; b.s = 0; });
-          norm(g);
-          if (had) g.b.forEach(b => anim.set(g.id + ':' + bk(b), 'untap'));
-        }
-      });
-      toast(floating ? 'New turn: everything untapped, mana pool emptied' : 'New turn: everything untapped');
-    });
+    $('tt-add').addEventListener('click', () => { closeMenu(); openAdd('deck'); });
+    $('tt-turn').addEventListener('click', untapAll);
+    $('tt-attack').addEventListener('click', attackAll);
+    $('tt-treas').addEventListener('click', treasureAll);
+    $('tt-edge').addEventListener('click', openDrawer);
+    $('tt-drawx').addEventListener('click', closeDrawer);
+    $('tt-drawscrim').addEventListener('click', closeDrawer);
+    wireDrawer();
+    $('tt-more').addEventListener('click', e => { e.stopPropagation(); if ($('tt-menu').hidden) openMenu(); else closeMenu(); });
+    root.addEventListener('pointerdown', e => { if (!$('tt-menu').hidden && !e.target.closest('#tt-menu,#tt-more')) closeMenu(); }, true);
     let armed = 0, armT = null;
     const clr = $('tt-clear');
-    clr.addEventListener('click', () => {
-      if (!board.groups.length) return;
+    const disarm = () => { armed = 0; clearTimeout(armT); clr.textContent = 'Clear the table'; clr.classList.remove('tt-armed'); };
+    $('tt-menu').addEventListener('click', e => {
+      const t = e.target.closest('[data-mi]'); if (!t) return;
+      const mi = t.dataset.mi;
+      if (mi === 'search' || mi === 'copy') { closeMenu(); openAdd(mi); return; }
+      if (!board.groups.length) { closeMenu(); return; }
       if (armed && Date.now() - armed < 3000) {
-        armed = 0; clearTimeout(armT); clr.textContent = 'Clear'; clr.classList.remove('tt-armed');
+        disarm(); closeMenu();
         commit(() => { board.groups = []; });
         toast('Cleared the table', 'Undo', undo);
       } else {
-        armed = Date.now(); clr.textContent = 'Sure?'; clr.classList.add('tt-armed');
-        clearTimeout(armT);
-        armT = setTimeout(() => { armed = 0; clr.textContent = 'Clear'; clr.classList.remove('tt-armed'); }, 3000);
+        armed = Date.now(); clr.textContent = 'Tap again to clear'; clr.classList.add('tt-armed');
+        clearTimeout(armT); armT = setTimeout(disarm, 3000);
       }
     });
+    closeMenu = () => { $('tt-menu').hidden = true; $('tt-more').setAttribute('aria-expanded', 'false'); disarm(); };
+    wireSwipe();
     root.addEventListener('pointerdown', keepAwake, { passive: true });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape' || !root || root.hidden) return;
-      if (wheel) closeWheel(); else if (sheet) closeSheet(); else if (tray) closeTray();
+      if (!$('tt-menu').hidden) closeMenu(); else if (wheel) closeWheel(); else if (sheet) closeSheet(); else if (tray) closeTray(); else if (drawer) closeDrawer();
     });
     let raf = 0;
     new ResizeObserver(() => {
@@ -1283,10 +1565,10 @@
     document.documentElement.classList.add('tt-open');
     syncFoot(); render(); keepAwake();
     getDeck(false).catch(() => { /* shown when the Add sheet opens */ });
-    if (!board.groups.length) openAdd('deck');
+    if (!board.groups.length) openDrawer();
   }
   function close() {
-    closeSheet(); closeTray(); if (wheel) closeWheel();
+    closeSheet(); closeTray(); closeDrawer(); if (wheel) closeWheel(); if (root) closeMenu();
     if (root) root.hidden = true;
     document.documentElement.classList.remove('tt-open');
     releaseAwake();
