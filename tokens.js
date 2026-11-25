@@ -243,11 +243,13 @@
 .tt-bar small{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.85;white-space:nowrap}
 .tt-bar.tt-atk{background:linear-gradient(180deg,#b03018,#7a1808);border-color:#e06040;color:#fff3e0}
 .tt-bar[hidden]{display:none}
-.tt-hint{flex:1;align-self:center;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#a08850}
-.tt-hint[hidden]{display:none}
-.tt-edge{position:absolute;left:0;bottom:calc(var(--tt-foot,72px) + 18px);z-index:3;width:16px;height:64px;padding:0;border:2px solid rgba(200,160,48,.55);border-left:none;
-  border-radius:0 10px 10px 0;background:linear-gradient(90deg,#2a2010,#4a3818);color:var(--gold-trim2,#e8cc60);font-size:13px;box-shadow:2px 0 10px rgba(0,0,0,.6)}
-.tt-edge::after{content:'';position:absolute;inset:-6px -14px -6px 0}
+.tt-bhint{flex:1;align-self:center;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#a08850}
+.tt-bhint[hidden]{display:none}
+.tt-lane{flex:0 0 100%;height:0}
+.tt-addhead{display:flex;align-items:flex-start;gap:12px;margin:0 0 10px}
+.tt-addhead .tt-stitle{margin:0;flex:0 0 auto}
+.tt-tip{flex:1;text-align:right;font-size:13px;line-height:1.25;color:#6a5a40;font-style:italic;padding-top:3px}
+.tt-tip b{font-style:normal;color:#906010}
 .tt-drawwrap{position:absolute;inset:0;z-index:4}
 .tt-drawwrap[hidden]{display:none}
 .tt-drawer{position:absolute;left:0;top:0;bottom:0;width:min(330px,86%);display:flex;flex-direction:column;color:#1a1208;
@@ -627,15 +629,30 @@
     const gap = Math.round(Math.max(12, Math.min(W0, H0) * 0.03));
     const pad = gap;
     const W = W0 - pad * 2, H = H0 - pad * 2;
-    let best = 0;
+    let best = 0, bestCols = 1;
     for (let cols = 1; cols <= n; cols++) {
       const rows = Math.ceil(n / cols);
       const w = Math.min((W - gap * (cols - 1)) / cols, ((H - gap * (rows - 1)) / rows) / R);
-      if (w > best) best = w;
+      if (w > best) { best = w; bestCols = cols; }
     }
     const cap = Math.sqrt(0.5 * W * H / R);   // a single card never takes more than half the table
     const cw = Math.floor(Math.max(Math.min(best, cap), Math.min(minW, W))) - 1;
-    return { cw, ch: Math.floor(cw * R), gap, pad };
+    const fitCols = Math.max(1, Math.floor((W + gap) / (cw + gap)));
+    return { cw, ch: Math.floor(cw * R), gap, pad, cols: Math.min(bestCols, fitCols) };
+  }
+  function fitLanes(a, b) {
+    const W0 = boardEl.clientWidth, H0 = boardEl.clientHeight;
+    const gap = Math.round(Math.max(12, Math.min(W0, H0) * 0.03));
+    const pad = gap, W = W0 - pad * 2, H = H0 - pad * 2;
+    let best = 0;
+    for (let cols = 1; cols <= Math.max(a, b); cols++) {
+      const rows = Math.ceil(a / cols) + Math.ceil(b / cols);
+      const w = Math.min((W - gap * (cols - 1)) / cols, ((H - gap * (rows - 1)) / rows) / R);
+      if (w > best) best = w;
+    }
+    const cap = Math.sqrt(0.5 * W * H / R);
+    const cw = Math.floor(Math.max(Math.min(best, cap), Math.min(96, W))) - 1;
+    return { cw, ch: Math.floor(cw * R), gap, pad, cols: 0 };
   }
 
   /* ---------------------------------------------------------------- render */
@@ -704,7 +721,9 @@
     renderPool();
     renderTray();
     const list = [];
-    board.groups.forEach(g => list.push(...pilesOf(g)));
+    const crs = [], oth = [];
+    board.groups.forEach(g => { const d = board.defs[g.key]; (d && isCreature(d) ? crs : oth).push(...pilesOf(g)); });
+    list.push(...crs, ...oth);
     let total = 0, tapped = 0;
     board.groups.forEach(g => g.b.forEach(b => { total += b.n; if (b.t) tapped += b.n; }));
     $('tt-sum').textContent = total ? `${total} token${total === 1 ? '' : 's'}, ${tapped} tapped` : 'Empty table';
@@ -714,16 +733,22 @@
     if (!list.length) {
       grid.style.gap = ''; grid.style.padding = '16px';
       grid.innerHTML = `<div class="tt-empty"><div class="tt-empty-in"><div class="tt-empty-t">No tokens on the table</div>` +
-        `<div class="tt-empty-s">Swipe right from the left side for your deck’s tokens, or search any token.</div>` +
-        `<button class="tt-act tt-primary" id="tt-empty-add" style="width:100%">Your deck’s tokens</button></div></div>`;
+        `<div class="tt-empty-s">Add the tokens your deck makes, search any token, or copy a card.</div>` +
+        `<button class="tt-act tt-primary" id="tt-empty-add" style="width:100%">+ Add token</button></div></div>`;
       anim.clear();
       return;
     }
-    const { cw, ch, gap, pad } = fit(list.length);
+    // One row while everything fits on one. Once it needs a second row, creatures get the
+    // top lane and everything else (Treasure, Clue, Food...) the lane below.
+    let lay = fit(list.length), split = false;
+    if (lay.cols < list.length && crs.length && oth.length) { lay = fitLanes(crs.length, oth.length); split = true; }
+    const { cw, ch, gap, pad } = lay;
     grid.style.gap = gap + 'px';
     grid.style.padding = pad + 'px';
     const ts = cw / ch;
-    grid.innerHTML = list.map(p => pileHTML(p, cw, ch, ts)).join('');
+    const tiles = list.map(p => pileHTML(p, cw, ch, ts));
+    if (split) tiles.splice(crs.length, 0, `<div class="tt-lane" style="margin-top:-${gap}px"></div>`);
+    grid.innerHTML = tiles.join('');
     anim.clear();
   }
 
@@ -746,7 +771,7 @@
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, () => clearTimeout(lp)));
     el.addEventListener('contextmenu', e => { if (e.target.closest('.tt-tile')) e.preventDefault(); });
     el.addEventListener('click', e => {
-      if (e.target.closest('#tt-empty-add')) { openDrawer(); return; }
+      if (e.target.closest('#tt-empty-add')) { openAdd('deck'); return; }
       const cnt = e.target.closest('.tt-count');
       if (cnt) { openTray(+cnt.dataset.tray, cnt.dataset.pk); return; }
       const tile = e.target.closest('[data-key]'); if (!tile) return;
@@ -1067,7 +1092,7 @@
   function renderAddShell() {
     const tabs = [['deck', 'Your deck'], ['search', 'Search'], ['copy', 'Copy a card']];
     sheetEl.innerHTML =
-      `<div class="tt-stitle">Add a token</div>` +
+      `<div class="tt-addhead"><div class="tt-stitle">Add a token</div><div class="tt-tip"><b>Tip:</b> swipe right on the table for quick-add from your deck</div></div>` +
       `<div class="tt-tabs">${tabs.map(([k, l]) => `<button class="tt-tab${sheet.tab === k ? ' tt-on' : ''}" data-tab="${k}">${l}</button>`).join('')}</div>` +
       (sheet.tab === 'search' ? `<input class="tt-input" id="tt-q" type="search" placeholder="Search any token, like Elf Warrior or Treasure" autocomplete="off" autocorrect="off" spellcheck="false" value="${esc(sheet.q)}">` : '') +
       (sheet.tab === 'copy' ? `<input class="tt-input" id="tt-cq" type="search" placeholder="Filter your deck’s cards" autocomplete="off" autocorrect="off" spellcheck="false" value="${esc(sheet.cq)}">` : '') +
@@ -1245,12 +1270,12 @@
     const set = (id, show, html) => { const b = $(id); b.hidden = !show; if (show) b.innerHTML = html; };
     set('tt-attack', st.atk > 0, `<b>Attack</b><small>${st.atk} ready</small>`);
     const turn = st.tapped > 0 || st.sick > 0 || st.floating;
-    set('tt-turn', turn, st.tapped ? `<b>Untap all</b><small>${st.tapped} tapped</small>` : `<b>New turn</b><small>${st.sick ? 'Wake up ' + st.sick : 'Empty mana'}</small>`);
+    set('tt-turn', turn, st.tapped ? `<b>Untap all</b><small>${st.tapped} tapped</small>` : `<b>New turn</b>`);
     set('tt-treas', st.treas > 0, `<b>${st.allTreasure ? 'Treasure' : 'Sac for mana'}</b><small>${st.treas} → mana</small>`);
     const hint = $('tt-hint');
     const any = st.atk || turn || st.treas;
     hint.hidden = !!any;
-    if (!any) hint.textContent = board.groups.length ? 'Tap a token to tap it · hold for more' : 'Swipe right or tap + Add';
+    if (!any) hint.textContent = board.groups.length ? 'Tap a token to tap it · hold for more' : 'Tap + Add to make tokens';
     syncFoot();
   }
   function untapAll() {
@@ -1480,9 +1505,8 @@
       `<button class="tt-bar tt-atk" id="tt-attack" hidden></button>` +
       `<button class="tt-bar" id="tt-turn" hidden></button>` +
       `<button class="tt-bar tt-gold" id="tt-treas" hidden></button>` +
-      `<div class="tt-hint" id="tt-hint"></div>` +
+      `<div class="tt-bhint" id="tt-hint"></div>` +
       `</footer>` +
-      `<button class="tt-edge" id="tt-edge" aria-label="Your deck’s tokens">›</button>` +
       `<div class="tt-menu" id="tt-menu" role="menu" hidden>` +
       `<button class="tt-mi" role="menuitem" data-mi="search">Search any token</button>` +
       `<button class="tt-mi" role="menuitem" data-mi="copy">Copy a card</button>` +
@@ -1519,7 +1543,6 @@
     $('tt-turn').addEventListener('click', untapAll);
     $('tt-attack').addEventListener('click', attackAll);
     $('tt-treas').addEventListener('click', treasureAll);
-    $('tt-edge').addEventListener('click', openDrawer);
     $('tt-drawx').addEventListener('click', closeDrawer);
     $('tt-drawscrim').addEventListener('click', closeDrawer);
     wireDrawer();
@@ -1565,7 +1588,6 @@
     document.documentElement.classList.add('tt-open');
     syncFoot(); render(); keepAwake();
     getDeck(false).catch(() => { /* shown when the Add sheet opens */ });
-    if (!board.groups.length) openDrawer();
   }
   function close() {
     closeSheet(); closeTray(); closeDrawer(); if (wheel) closeWheel(); if (root) closeMenu();
