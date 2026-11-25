@@ -8,82 +8,75 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Duo Test">
 <meta name="theme-color" content="#1a1408">
-<title>Duo Test</title>
+<title>Duo Test v2</title>
 <style>
-  /* The page never scrolls, so anything hung past the right edge stays put like a fixed rail would. */
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0806; color: #e8dac0;
-    font: 16px/1.35 -apple-system, system-ui, sans-serif; touch-action: pan-y pinch-zoom;
-    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-  body { position: relative; }
-  .panel { position: absolute; inset: 12px; overflow: auto; border: 2px solid #906010; border-radius: 18px;
-    background: #1a1408; padding: 14px 16px; box-sizing: border-box; }
+  /* Same setup as the published Duo workaround: the page itself is not clipped,
+     sideways dragging is turned off, and an extra column hangs off the right edge. */
+  html { overflow-x: hidden; touch-action: pan-y pinch-zoom; background: #0a0806; }
+  body { margin: 0; color: #e8dac0; font: 16px/1.35 -apple-system, system-ui, sans-serif;
+    touch-action: pan-y pinch-zoom; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .panel { margin: 12px; border: 2px solid #906010; border-radius: 18px; background: #1a1408; padding: 14px 16px; }
   h1 { margin: 0 0 6px; font-size: 20px; color: #e8cc60; }
   .note { color: #c8b080; font-size: 14px; margin: 0 0 10px; }
-  pre { margin: 0 0 12px; white-space: pre-wrap; font: 13px/1.4 ui-monospace, Menlo, monospace; color: #e8dac0; }
+  pre { margin: 0 0 12px; white-space: pre-wrap; font: 13px/1.4 ui-monospace, Menlo, monospace; }
   .row { display: flex; gap: 8px; flex-wrap: wrap; }
   button { font: 700 16px -apple-system, system-ui, sans-serif; border-radius: 12px; border: 2px solid #7a5010;
     background: linear-gradient(#e8cc70, #c09020); color: #1a0c00; padding: 12px 16px; }
-  /* The test column: hung just past the right edge of the page, where the Duo's strip is. */
-  #strip { position: absolute; top: 0; left: 100%; height: 100%; width: 0; overflow: hidden;
-    background: repeating-linear-gradient(45deg, #ff00aa 0 14px, #aa0077 14px 28px);
-    display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 12px;
-    padding-bottom: 24px; box-sizing: border-box; }
-  #strip button { width: 64px; height: 64px; padding: 0; border-radius: 50%; background: #fff; border-color: #000; color: #000; font-size: 22px; }
+  /* The test column. Not inside any positioned or clipped box, so left:100% is the right edge of the page. */
+  #edge { position: absolute; top: 0; left: 100%; width: 120px; height: 100vh;
+    background: repeating-linear-gradient(45deg, #ff00aa 0 14px, #aa0077 14px 28px); }
+  #edge button { position: absolute; left: 10px; width: 64px; height: 64px; padding: 0; border-radius: 50%;
+    background: #fff; border-color: #000; color: #000; font-size: 22px; }
 </style>
 </head>
 <body>
   <div class="panel">
-    <h1>Duo strip test</h1>
-    <p class="note">If the right-hand strip turns pink and striped, the page can draw there. Tap the round white buttons in the strip (A, B, C), tap the button below, then tap Copy results and paste them in the chat. Try it folded and unfolded.</p>
+    <h1>Duo strip test v2</h1>
+    <p class="note">Look for a pink striped strip on the right. If you see round white buttons in it, tap A, B and C. Then tap the button below, then Copy results, and paste them in the chat. Try folded and unfolded.</p>
     <pre id="out">Loading…</pre>
     <div class="row">
       <button id="inside">Tap inside: 0</button>
       <button id="copy">Copy results</button>
     </div>
   </div>
-  <div id="strip" aria-hidden="true">
-    <button data-k="A">A</button>
-    <button data-k="B">B</button>
-    <button data-k="C">C</button>
+  <div id="edge" aria-hidden="true">
+    <button data-k="A" style="top:38%">A</button>
+    <button data-k="B" style="top:52%">B</button>
+    <button data-k="C" style="top:66%">C</button>
   </div>
   <div id="probe" style="position:fixed;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)"></div>
 <script>
 (function () {
-  var taps = { A: 0, B: 0, C: 0, inside: 0 };
-  var out = document.getElementById('out'), strip = document.getElementById('strip');
-  function stripWidth() {
-    var landscape = innerWidth > innerHeight;
-    var sw = landscape ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
-    var gap = Math.round(sw - innerWidth);
-    return { gap: gap, sw: sw };
-  }
+  var taps = { A: 0, B: 0, C: 0 }, touches = 0, inside = 0;
+  var out = document.getElementById('out'), edge = document.getElementById('edge');
   function report() {
-    var s = stripWidth();
-    strip.style.width = (s.gap > 0 ? s.gap : 0) + 'px';
+    edge.style.height = Math.max(innerHeight, document.documentElement.scrollHeight) + 'px';
     var p = getComputedStyle(document.getElementById('probe'));
-    var mode = ['fullscreen', 'standalone', 'minimal-ui', 'browser'].find(function (m) { return matchMedia('(display-mode: ' + m + ')').matches; }) || 'unknown';
+    var vv = window.visualViewport;
     out.textContent = [
-      'Opened as:      ' + mode + (navigator.standalone ? ' (home screen app)' : ''),
-      'Screen:         ' + screen.width + ' x ' + screen.height + ' (dpr ' + devicePixelRatio + ')',
-      'Page viewport:  ' + innerWidth + ' x ' + innerHeight,
-      'Strip width:    ' + s.gap + ' px',
+      'Version:        v2',
+      'Home screen:    ' + (navigator.standalone ? 'yes' : 'no'),
+      'Page viewport:  ' + innerWidth + ' x ' + innerHeight + (vv ? ' (visual ' + Math.round(vv.width) + ')' : ''),
+      'Document width: ' + document.documentElement.scrollWidth + ' (bigger than the viewport = the column is there)',
       'Safe area:      top ' + p.paddingTop + ', right ' + p.paddingRight + ', bottom ' + p.paddingBottom + ', left ' + p.paddingLeft,
+      'Strip touches:  ' + touches,
       'Strip taps:     A ' + taps.A + ', B ' + taps.B + ', C ' + taps.C,
-      'Inside taps:    ' + taps.inside,
+      'Inside taps:    ' + inside,
       'Browser:        ' + navigator.userAgent
     ].join('\n');
   }
-  strip.addEventListener('click', function (e) {
+  edge.addEventListener('pointerdown', function () { touches++; report(); });
+  edge.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     taps[b.dataset.k]++; b.style.background = '#7cf27c'; report();
   });
   document.getElementById('inside').addEventListener('click', function () {
-    taps.inside++; this.textContent = 'Tap inside: ' + taps.inside; report();
+    inside++; this.textContent = 'Tap inside: ' + inside; report();
   });
   document.getElementById('copy').addEventListener('click', function () {
     var b = this, text = out.textContent;
-    var done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy results'; }, 1500); };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { b.textContent = 'Copy failed: screenshot instead'; });
+    var ok = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy results'; }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, function () { b.textContent = 'Copy failed: screenshot instead'; });
     else b.textContent = 'Copy failed: screenshot instead';
   });
   addEventListener('resize', report);
